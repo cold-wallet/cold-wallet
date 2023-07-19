@@ -22,16 +22,16 @@ function useInterval(callback, delay) {
 }
 
 const DataLoader = () => {
-    const [data1, setData1] = useState(JSON.parse(localStorage.getItem('data1')));
-    const [data2, setData2] = useState(JSON.parse(localStorage.getItem('data2')));
+    const [binanceData, setBinanceData] = useState(JSON.parse(localStorage.getItem('data1')));
+    const [monobankData, setMonobankData] = useState(JSON.parse(localStorage.getItem('data2')));
 
     let loadBinance = () => {
         const fetchBinance = async () => {
             try {
                 const response = await axios.get(urlBinance);
-                setData1(response.data);
+                setBinanceData(response.data);
             } catch (error) {
-                console.error('Error fetching data from binance:', error);
+                console.warn('Error fetching data from binance:', error);
             }
         };
         fetchBinance();
@@ -41,9 +41,9 @@ const DataLoader = () => {
         const fetchMonobank = async () => {
             try {
                 const response = await axios.get(urlMonobank);
-                setData2(response.data[0]);
+                setMonobankData(response.data[0]);
             } catch (error) {
-                console.error('Error fetching data from monobank:', error);
+                console.warn('Error fetching data from monobank:', error.response?.data?.errorDescription);
             }
         };
         fetchMonobank();
@@ -55,19 +55,19 @@ const DataLoader = () => {
     }, []);
 
     useEffect(() => {
-        if (data1 && data2) {
-            localStorage.setItem('data1', JSON.stringify(data1));
-            localStorage.setItem('data2', JSON.stringify(data2));
+        if (binanceData && monobankData) {
+            localStorage.setItem('data1', JSON.stringify(binanceData));
+            localStorage.setItem('data2', JSON.stringify(monobankData));
         }
-    }, [data1, data2]);
+    }, [binanceData, monobankData]);
 
-    useInterval(() => loadBinance(), 1500);
-    useInterval(() => loadMonobank(), 30000);
+    useInterval(loadBinance, 1500);
+    useInterval(loadMonobank, 60000);
 
     return (
         <div>
-            <p>{data1 ? `${data1.symbol}: ${data1.price}` : 'Loading...'}</p>
-            <p>{data2 ? `USDUAH: ${(data2.rateSell + data2.rateBuy) / 2}` : 'Loading...'}</p>
+            <p>{binanceData ? `${binanceData.symbol}: ${binanceData.price}` : 'Loading...'}</p>
+            <p>{monobankData ? `USDUAH: ${(monobankData.rateSell + monobankData.rateBuy) / 2}` : 'Loading...'}</p>
         </div>
     );
 };
