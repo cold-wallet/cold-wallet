@@ -1,10 +1,10 @@
 import './App.css';
-import DataLoader from "./web/dataLoader";
+import ColdWallet from "./web/ColdWallet";
 
 function App() {
     return (
         <div className="App">
-            <DataLoader/>
+            <ColdWallet/>
         </div>
     );
 }
