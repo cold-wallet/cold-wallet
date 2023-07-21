@@ -10,6 +10,10 @@ function useInterval(callback, delay) {
     });
 
     useEffect(() => {
+        if (!delay) {
+            return
+        }
+
         function tick() {
             savedCallback.current();
         }
@@ -26,6 +30,8 @@ const ColdWallet = () => {
     const [binanceCurrenciesLoaded, setBinanceCurrenciesLoaded] = useState(false);
     const [monobankRates, setMonobankRates] = useState(JSON.parse(localStorage.getItem('monobankRates')));
     const [monobankCurrencies, setMonobankCurrencies] = useState(JSON.parse(localStorage.getItem('monobankCurrencies')));
+    const [loaded, setLoaded] = useState(false);
+    const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userData')));
 
     let loadBinancePrices = () => {
         binanceApiClient.fetchBinancePrices().then(response => {
@@ -63,8 +69,15 @@ const ColdWallet = () => {
     useEffect(loadBinancePrices, []);
     useEffect(loadBinanceCurrencies, []);
     useEffect(loadMonobank, []);
-    useInterval(loadBinancePrices, 1500);
+    useInterval(loadBinancePrices, 5000);
     useInterval(loadMonobank, 60000);
+    useInterval(() => {
+        if (!loaded && !!binancePricesLoaded && !!binanceCurrenciesLoaded
+            && !!monobankRates && !!monobankCurrencies
+        ) {
+            setLoaded(true)
+        }
+    }, loaded ? null : 1500);
 
     useEffect(() => {
         binancePrices && localStorage.setItem('binancePrices', JSON.stringify(binancePrices));
@@ -78,19 +91,86 @@ const ColdWallet = () => {
     useEffect(() => {
         monobankCurrencies && localStorage.setItem('monobankCurrencies', JSON.stringify(monobankCurrencies));
     }, [monobankCurrencies]);
+    useEffect(() => {
+        userData && localStorage.setItem('userData', JSON.stringify(userData));
+    }, [userData]);
+
+    const loggedIn = !!userData && !userData.loginRequired;
+
+    const buildLoading = () => {
+        return (
+            <div className={"startup-loading-box layer-1-themed-color"}>
+                <p>{binancePricesLoaded ? `BTC/USDT: ${binancePrices["BTCUSDT"]}` : 'Loading binance prices...'}</p>
+                <p>{binanceCurrenciesLoaded
+                    ? `binance currencies: ${Object.keys(binanceCurrencies).length}`
+                    : 'Loading binance currencies...'}</p>
+                <p>{monobankRates
+                    ? `USD/UAH: ${(monobankRates[0].rateSell + monobankRates[0].rateBuy) / 2}
+                ` : 'Loading monobank rates...'}</p>
+                <p>{monobankCurrencies
+                    ? `monobank currencies: ${monobankCurrencies ? Object.keys(monobankCurrencies).length : monobankCurrencies}`
+                    : 'Loading monobank currencies...'}</p>
+            </div>
+        )
+    }
+
+    const buildOnLoggedIn = () => {
+        return (
+            <div className={"application-box"}>
+                assets
+            </div>
+        );
+    }
+
+    const buildLoginWindow = () => {
+        return (
+            <div className={"login-box"}>
+                please log in
+            </div>
+        );
+    }
+
+    const createWallet = () => {
+        setUserData({})
+    }
+
+    const buildCreateWallet = () => {
+        return (
+            <button
+                onClick={createWallet}
+                className={"create-wallet-box layer-2-themed-color"}>
+                create wallet
+            </button>
+        );
+    }
+
+    const buildImportWindow = () => {
+        return (
+            <button className={"import-wallet-box layer-2-themed-color"}>
+                import
+            </button>
+        );
+    }
+
+    const buildOnNotLoggedIn = () => {
+        return (
+            <div className={"startup-login-box layer-1-themed-color"}>
+                {userData
+                    ? buildLoginWindow()
+                    : buildCreateWallet()}
+                {buildImportWindow()}
+            </div>
+        );
+    }
+
+    const buildOnLoaded = () => {
+        return loggedIn ? buildOnLoggedIn() : buildOnNotLoggedIn()
+    }
 
     return (
-        <div>
-            <p>{binancePricesLoaded ? `BTC/USDT: ${binancePrices["BTCUSDT"]}` : 'Loading binance prices...'}</p>
-            <p>{binanceCurrenciesLoaded
-                ? `binance currencies: ${Object.keys(binanceCurrencies).length}`
-                : 'Loading binance currencies...'}</p>
-            <p>{monobankRates
-                ? `USD/UAH: ${(monobankRates[0].rateSell + monobankRates[0].rateBuy) / 2}
-                ` : 'Loading monobank rates...'}</p>
-            <p>{monobankCurrencies
-                ? `monobank currencies: ${monobankCurrencies ? Object.keys(monobankCurrencies).length : monobankCurrencies}`
-                : 'Loading monobank currencies...'}</p>
+        <div className={"App background-themed-color"}>
+            {loaded || !loggedIn || buildLoading()}
+            {loaded && buildOnLoaded()}
         </div>
     );
 };

@@ -1,6 +1,55 @@
+.border-themed-color {
+    background-color: #2e3532;
+}
+
+.background-themed-color {
+    background-color: #35605a;
+}
+
+.layer-1-themed-color {
+    background-color: #6f9f98;
+}
+
+.layer-2-themed-color {
+    background-color: #8cbeb7;
+}
+
+.layer-3-themed-color {
+    background-color: #a9ddd6;
+}
+
+.startup-login-box {
+    width: 70%;
+    height: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.create-wallet-box {
+    width: 90%;
+    height: 30%;
+}
+
+.import-wallet-box {
+    width: 90%;
+    height: 30%;
+}
+
 .App {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    align-items: center;
+    justify-content: space-evenly;
 }
+
+.startup-loading-box {
+    width: 50%;
+}
+
 
 .App-logo {
     height: 40vmin;
