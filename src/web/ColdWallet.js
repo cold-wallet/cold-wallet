@@ -10,6 +10,8 @@ import MonobankSvg from "../core/resources/images/monobankSvg";
 import NumberFormat from "react-number-format";
 import fiatCurrencies from "../core/fiatCurrencies";
 import compareStrings from "../core/utils/compareStrings";
+import Asset from "../core/domain/Asset";
+import noExponents from "../core/utils/noExponents";
 
 function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -42,7 +44,8 @@ const ColdWallet = () => {
     const [loaded, setLoaded] = useState(false);
     const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userData')));
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData?.assets?.length));
-    const [newAssetCurrency, setNewAssetCurrency] = useState(!!(userData?.assets?.length));
+    const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData?.assets?.length));
+    const [newAssetCurrency, setNewAssetCurrency] = useState(null);
     const [newAssetValue, setNewAssetValue] = useState(0);
     const [isNewAssetInvalid, setIsNewAssetInvalid] = useState(false);
 
@@ -85,7 +88,7 @@ const ColdWallet = () => {
     useInterval(loadBinancePrices, 5000);
     useInterval(loadMonobank, 60000);
     useInterval(() => {
-        if (!loaded && !!binancePricesLoaded && !!binanceCurrenciesLoaded
+        if (!loaded && binancePricesLoaded && binanceCurrenciesLoaded
             && !!monobankRates && !!monobankCurrencies
         ) {
             setLoaded(true)
@@ -281,21 +284,48 @@ const ColdWallet = () => {
         )
     }
 
-    const buildAcceptNewAssetButton = () => {
+    const isAssetValueValid = (value) => {
+        return value && !isNaN(value) && (value > 0)
+    }
+
+    const buildAcceptNewAssetButton = (afterDecimalPoint) => {
         return (
-            <div key={1} className="asset-row-controls-button asset-row-button-accept button positive-button">✔</div>
+            <div key={1}
+                 onClick={event => {
+                     if (isAssetValueValid(newAssetValue)) {
+                         setNewAssetValue(null);
+                         setNewAssetCurrency(null);
+                         setShowCreateNewAssetWindow(false);
+                         setIsNewAssetInvalid(false);
+                         if (!userData.assets) {
+                             userData.assets = [];
+                         }
+                         userData.assets.push(new Asset(newAssetCurrency, newAssetValue, afterDecimalPoint))
+                         setUserData(userData);
+                         setCreatingNewAsset(false);
+                     } else {
+                         setIsNewAssetInvalid(true);
+                     }
+                 }}
+                 className="asset-row-controls-button asset-row-button-accept button positive-button">✔</div>
         )
     }
 
     const buildCancelNewAssetButton = () => {
         return (
-            <div key={2} className="asset-row-controls-button button negative-button">✖</div>
+            <div key={2}
+                 onClick={event => {
+                     setNewAssetValue(null);
+                     setNewAssetCurrency(null);
+                     setShowCreateNewAssetWindow(true);
+                 }}
+                 className="asset-row-controls-button button negative-button">✖</div>
         )
     }
 
-    const buildEditNewAssetControls = () => {
+    const buildEditNewAssetControls = (afterDecimalPoint) => {
         return [
-            buildAcceptNewAssetButton(),
+            buildAcceptNewAssetButton(afterDecimalPoint),
             buildCancelNewAssetButton(),
         ]
     }
@@ -305,7 +335,7 @@ const ColdWallet = () => {
         const afterDecimalPoint = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
         return (
             <div className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
-                <div className="asset-item-value">
+                <div className={"asset-item-value" + (isNewAssetInvalid ? " asset-item-value-input--invalid" : "")}>
                     <NumberFormat
                         allowNegative={false}
                         getInputRef={(input) => {
@@ -326,6 +356,7 @@ const ColdWallet = () => {
                             //     floatValue: 23234235.56 //floating point representation. For big numbers it
                             //     // can have exponential syntax
                             // }
+                            setIsNewAssetInvalid(false);
                             setNewAssetValue(floatValue);
                         }}
                         renderText={value => <div className={
@@ -336,24 +367,33 @@ const ColdWallet = () => {
                 </div>
                 <div className="asset-row-currency">{newAssetCurrency}</div>
                 <div className={"asset-row-controls flex-box-centered flex-direction-row"}>
-                    {buildEditNewAssetControls()}
+                    {buildEditNewAssetControls(afterDecimalPoint)}
                 </div>
             </div>
         )
     }
 
-    const buildAssets = () => {
-        return (
-            <div className={"asset-row"}>assets</div>
-        )
-    }
+    const buildAssets = () => (userData.assets || []).map((asset, i) => (
+        <div key={i} className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
+            <div className={"asset-item-value"}>
+                <NumberFormat value={noExponents(asset.amount)}
+                              displayType={'text'}
+                              decimalScale={asset.decimalScale || 8}
+                              suffix={" " + asset.currency}
+                              thousandSeparator={true}/>
+            </div>
+            <div className={"asset-row-controls flex-box-centered flex-direction-row"}>
+                {buildEditNewAssetControls()}
+            </div>
+        </div>
+    ))
 
     const buildOnLoggedIn = () => {
         return (
             <div className={"application-box flex-box flex-direction-row"}>
                 {showCreateNewAssetWindow && newAssetWindow()}
                 <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
-                    {showCreateNewAssetWindow || buildEditNewAsset()}
+                    {!showCreateNewAssetWindow && creatingNewAsset && buildEditNewAsset()}
                     {buildAssets()}
                 </div>
             </div>
@@ -407,7 +447,7 @@ const ColdWallet = () => {
 
     return (
         <div className={"App background-themed-color"}>
-            {loaded || !loggedIn || buildLoading()}
+            {loaded || buildLoading()}
             {loaded && buildOnLoaded()}
         </div>
     );

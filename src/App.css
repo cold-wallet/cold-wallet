@@ -287,9 +287,8 @@ input[type=checkbox] {
     border-color: #4f5a6b;
 }
 
-.asset-item-value-input--invalid {
-    border-color: #D00000;
-    background-color: rgba(208, 0, 0, 0.2);
+.asset-item-value-input--invalid input {
+    border: dashed #D00000;
 }
 
 .startup-login-box {
