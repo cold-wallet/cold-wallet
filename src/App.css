@@ -1,97 +1,78 @@
-.new-asset-title,
-.new-asset-choose-title {
-    height: 5%;
-    width: 90%;
+.button {
+    cursor: pointer;
 }
 
-.new-asset-controls-box {
-    height: 90%;
-    width: 90%;
+.button:hover {
+    opacity: 0.8;
 }
 
-.new-asset-window {
-    width: 60%;
-    height: 60%;
-    left: 20%;
-    top: 10%;
+.button:active {
+    opacity: 0.5;
 }
 
-.new-asset-choose-box {
-    width: 40%;
-    height: 100%;
+.positive-button {
+    font-size: 20px;
+    text-align: center;
+    outline: none;
+    color: #9BC995;
+    background-color: #F0F8FF;
+    border-color: #8DA7BE;
+    border-radius: 10%;
 }
 
-.new-asset-choose-buttons {
-    width: 100%;
-    height: 85%;
-    flex-wrap: wrap;
+.positive-button:hover,
+.positive-button:active {
+    background-color: #9BC995;
+    color: #fff;
 }
 
-.new-asset-choose-select-box {
-    width: 100%;
-    height: 10%;
+.positive-button:active {
+    padding: 0 1px 1px 0;
 }
 
-.new-asset-choose-button {
-    height: 40%;
-    width: 30%;
+.negative-button {
+    font-size: 20px;
+    text-align: center;
+    outline: none;
+    color: #D00000;
+    background-color: #F0F8FF;
+    border-color: #8DA7BE;
+    border-radius: 10%;
 }
 
-.new-asset-choose-button-image-icon {
-    width: 100%;
-    height: 100%;
+.negative-button:hover,
+.negative-button:active {
+    background-color: #D00000;
+    color: #2D3142;
 }
 
-.new-asset-choose-button-image-text {
-    width: 100%;
-    font-size: 350%;
-    background-color: #F6AE2D;
-    border-radius: 47%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    flex-flow: column;
+.negative-button:active {
+    padding: 0 2px 2px 0;
 }
 
-.new-asset-choose-button-image {
-    width: 90%;
-    height: 80%;
+.neutral-button {
+    font-size: 20px;
+    text-align: center;
+    outline: none;
+    color: #2D3142;
+    background-color: #F0F8FF;
+    border-color: #8DA7BE;
+    border-radius: 10%;
 }
 
-.new-asset-integration {
-    width: 100%;
-    height: 30%;
+.neutral-button:hover,
+.neutral-button:active {
+    background-color: #BFD0DF;
+    color: #2D3142;
 }
 
-.new-asset-integration-logo {
-    width: 60%;
-    border-radius: 5px;
-    padding: 3%;
+.neutral-button:active {
+    padding: 0 2px 2px 0;
 }
 
-.new-asset-integration-logo--binance {
-    fill: #f3ba2f;
-    background-color: black;
-}
-
-.new-asset-integration-logo--qmall {
-    background-color: #33323e;
-}
-
-.new-asset-integration-logo--monobank {
-    fill: #f6f6f6;
-    background-color: black;
-    padding: 2%;
-}
-
-.assets-panel {
-    width: 30%;
-    height: 100%;
-}
-
-.asset-row {
-    width: 90%;
-    height: 10%;
+.document--label,
+input[type=checkbox] {
+    cursor: pointer;
 }
 
 .modal-window-box {
@@ -167,6 +148,150 @@
     justify-content: space-between;
 }
 
+.new-asset-title,
+.new-asset-choose-title {
+    height: 5%;
+    width: 90%;
+}
+
+.new-asset-controls-box {
+    height: 90%;
+    width: 90%;
+}
+
+.new-asset-window {
+    width: 60%;
+    height: 60%;
+    left: 20%;
+    top: 10%;
+}
+
+.new-asset-choose-box {
+    width: 40%;
+    height: 100%;
+}
+
+.new-asset-choose-buttons {
+    width: 100%;
+    height: 85%;
+    flex-wrap: wrap;
+}
+
+.new-asset-choose-select-box {
+    width: 100%;
+    height: 10%;
+}
+
+.new-asset-choose-button {
+    height: 40%;
+    width: 30%;
+}
+
+.new-asset-choose-button-image-icon {
+    width: 100%;
+}
+
+.new-asset-choose-button-image-text {
+    width: 100%;
+    font-size: 350%;
+    background-color: #F6AE2D;
+    border-radius: 47%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    flex-flow: column;
+}
+
+.new-asset-choose-button-image {
+    width: 90%;
+}
+
+.new-asset-integration {
+    width: 100%;
+    height: 30%;
+}
+
+.new-asset-integration-logo {
+    width: 60%;
+    border-radius: 5px;
+    padding: 3%;
+}
+
+.new-asset-integration-logo--binance {
+    fill: #f3ba2f;
+    background-color: black;
+}
+
+.new-asset-integration-logo--qmall {
+    background-color: #33323e;
+}
+
+.new-asset-integration-logo--monobank {
+    fill: #f6f6f6;
+    background-color: black;
+    padding: 2%;
+}
+
+.assets-panel {
+    width: 30%;
+    height: 100%;
+}
+
+.asset-row {
+    width: 90%;
+    height: 10%;
+}
+
+.asset-row-controls {
+    width: 30%;
+}
+
+.asset-row-controls-button {
+    width: 25%;
+}
+
+.asset-row-button-accept:hover {
+    background-color: #9fec4e;
+}
+
+.asset-item-value {
+    width: 50%;
+}
+
+.asset-item-value-input,
+.asset-item-value input {
+    text-align: center;
+    border-style: solid;
+    border-color: #8da7be;
+    border-width: 2px;
+    outline: none;
+    width: 90%;
+    padding: 2% 0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.asset-item-value-input:disabled,
+.asset-item-value input:disabled {
+    background-color: #F0F8FF;
+}
+
+.asset-item-value-input:focus,
+.asset-item-value input:focus {
+    border-style: dashed;
+}
+
+.asset-item-value-input:active,
+.asset-item-value input:active {
+    border-style: solid;
+    border-color: #4f5a6b;
+}
+
+.asset-item-value-input--invalid {
+    border-color: #D00000;
+    background-color: rgba(208, 0, 0, 0.2);
+}
+
 .startup-login-box {
     width: 70%;
     height: 50%;
@@ -196,18 +321,6 @@
 
 .startup-loading-box {
     width: 50%;
-}
-
-.button {
-    cursor: pointer;
-}
-
-.button:hover {
-    opacity: 0.8;
-}
-
-.button:active {
-    opacity: 0.5;
 }
 
 .App-logo {

@@ -9,6 +9,7 @@ import QmallSvg from "../core/resources/images/qmallSvg";
 import MonobankSvg from "../core/resources/images/monobankSvg";
 import NumberFormat from "react-number-format";
 import fiatCurrencies from "../core/fiatCurrencies";
+import compareStrings from "../core/utils/compareStrings";
 
 function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -182,26 +183,13 @@ const ColdWallet = () => {
                                    className={"new-asset-choose-button-image-icon"}/>,
             },
         ];
-        const selectCurrencies = [
-            {
-                name: "USD",
-            },
-            {
-                name: "EUR",
-            },
-            {
-                name: "UAH",
-            },
-            {
-                name: "USDT",
-            },
-            {
-                name: "BTC",
-            },
-            {
-                name: "ETH",
-            },
-        ];
+        let totalCurrencies = Object.keys(monobankCurrencies || {}).concat(binanceCurrencies || []);
+        const selectCurrencies = Object.keys(totalCurrencies
+            .reduce((result, value) => {
+                result[value] = true;
+                return result
+            }, {}))
+            .sort(compareStrings);
         const chooseIntegrations = [
             {
                 name: "binance",
@@ -245,14 +233,12 @@ const ColdWallet = () => {
                             </div>
                             <div className="new-asset-choose-select-box">
                                 <select className={"new-asset-choose-select"}
-                                        onChange={e => onNewAssetCurrencySelected({
-                                            currencyCode: e.target.value,
-                                        })}
+                                        onChange={e => onNewAssetCurrencySelected(e.target.value)}
                                 >
                                     <option defaultValue value> -- select currency --</option>
                                     {
-                                        selectCurrencies.map((currency, i) => (
-                                            <option key={i} value={currency.name}>{currency.name}</option>
+                                        selectCurrencies.map((currencyName, i) => (
+                                            <option key={i} value={currencyName}>{currencyName}</option>
                                         ))
                                     }
                                 </select>
@@ -278,9 +264,7 @@ const ColdWallet = () => {
                             </div>
                             <div className="new-asset-choose-select-box">
                                 <select className={"new-asset-choose-select"}
-                                        onChange={e => onNewAssetIntegrationSelected({
-                                            currencyCode: e.target.value,
-                                        })}
+                                        onChange={e => onNewAssetIntegrationSelected(e.target.value)}
                                 >
                                     <option defaultValue value> -- select integration --</option>
                                     {
@@ -297,12 +281,31 @@ const ColdWallet = () => {
         )
     }
 
+    const buildAcceptNewAssetButton = () => {
+        return (
+            <div key={1} className="asset-row-controls-button asset-row-button-accept button positive-button">✔</div>
+        )
+    }
+
+    const buildCancelNewAssetButton = () => {
+        return (
+            <div key={2} className="asset-row-controls-button button negative-button">✖</div>
+        )
+    }
+
+    const buildEditNewAssetControls = () => {
+        return [
+            buildAcceptNewAssetButton(),
+            buildCancelNewAssetButton(),
+        ]
+    }
+
     const buildEditNewAsset = () => {
         let fiatCurrency = fiatCurrencies.getByStringCode(newAssetCurrency);
         const afterDecimalPoint = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
         return (
             <div className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
-                <div className="asset-row-value">
+                <div className="asset-item-value">
                     <NumberFormat
                         allowNegative={false}
                         getInputRef={(input) => {
@@ -331,8 +334,10 @@ const ColdWallet = () => {
                         }>{value}</div>}
                     />
                 </div>
-                <div className="asset-row-currency">{newAssetValue} {newAssetCurrency}</div>
-                <div className="asset-row-controls">X</div>
+                <div className="asset-row-currency">{newAssetCurrency}</div>
+                <div className={"asset-row-controls flex-box-centered flex-direction-row"}>
+                    {buildEditNewAssetControls()}
+                </div>
             </div>
         )
     }
