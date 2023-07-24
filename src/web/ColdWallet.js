@@ -1,6 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import binanceApiClient from "../core/integrations/binance/binanceApiClient";
 import monobankApiCLient from "../core/integrations/monobank/monobankApiClient";
+import btcIcon from "../core/resources/images/btc.png";
+import ethIcon from "../core/resources/images/eth.png";
+import usdtIcon from "../core/resources/images/usdt.png";
+import BinanceSvg from "../core/resources/images/binanceSvg";
+import QmallSvg from "../core/resources/images/qmallSvg";
+import MonobankSvg from "../core/resources/images/monobankSvg";
 
 function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -77,7 +83,7 @@ const ColdWallet = () => {
         ) {
             setLoaded(true)
         }
-    }, loaded ? null : 1500);
+    }, loaded ? null : 1000);
 
     useEffect(() => {
         binancePrices && localStorage.setItem('binancePrices', JSON.stringify(binancePrices));
@@ -108,16 +114,166 @@ const ColdWallet = () => {
                     ? `USD/UAH: ${(monobankRates[0].rateSell + monobankRates[0].rateBuy) / 2}
                 ` : 'Loading monobank rates...'}</p>
                 <p>{monobankCurrencies
-                    ? `monobank currencies: ${monobankCurrencies ? Object.keys(monobankCurrencies).length : monobankCurrencies}`
+                    ? `monobank currencies: ${monobankCurrencies
+                        ? Object.keys(monobankCurrencies).length
+                        : monobankCurrencies}`
                     : 'Loading monobank currencies...'}</p>
             </div>
         )
     }
 
+    const newAssetWindow = () => {
+        const currencies = [
+            {
+                name: "USD",
+                type: "fiat",
+                imageType: "text",
+                imageElement: <span className={"new-asset-choose-button-image-text"}>&#x24;</span>,
+            },
+            {
+                name: "EUR",
+                type: "fiat",
+                imageType: "text",
+                imageElement: <span className={"new-asset-choose-button-image-text"}>&euro;</span>,
+            },
+            {
+                name: "UAH",
+                type: "fiat",
+                imageType: "text",
+                imageElement: <span className={"new-asset-choose-button-image-text"}>&#8372;</span>,
+            },
+            {
+                name: "USDT",
+                type: "crypto",
+                imageType: "image",
+                imageElement: <img src={usdtIcon}
+                                   alt="USDT"
+                                   className={"new-asset-choose-button-image-icon"}/>,
+            },
+            {
+                name: "BTC",
+                type: "crypto",
+                imageType: "image",
+                imageElement: <img src={btcIcon}
+                                   alt="BTC"
+                                   className={"new-asset-choose-button-image-icon"}/>,
+            },
+            {
+                name: "ETH",
+                type: "crypto",
+                imageType: "image",
+                imageElement: <img src={ethIcon}
+                                   alt="ETH"
+                                   className={"new-asset-choose-button-image-icon"}/>,
+            },
+        ];
+        const selectCurrencies = [
+            {
+                name: "USD",
+            },
+            {
+                name: "EUR",
+            },
+            {
+                name: "UAH",
+            },
+            {
+                name: "USDT",
+            },
+            {
+                name: "BTC",
+            },
+            {
+                name: "ETH",
+            },
+        ];
+        const chooseIntegrations = [
+            {
+                name: "binance",
+                logo: <BinanceSvg/>,
+                logoClass: "new-asset-integration-logo--binance",
+            },
+            {
+                name: "qmall",
+                logo: <QmallSvg/>,
+                logoClass: "new-asset-integration-logo--qmall",
+            },
+            {
+                name: "monobank",
+                logo: <MonobankSvg/>,
+                logoClass: "new-asset-integration-logo--monobank",
+            },
+        ];
+        return (
+            <div className="modal-window-box">
+                <div className="modal-window-shadow"/>
+                <div className={"new-asset-window modal-window flex-box-centered" +
+                " flex-direction-column layer-3-themed-color"}>
+                    <div className="new-asset-title">Create new asset</div>
+                    <div className="new-asset-controls-box flex-box-centered flex-direction-row">
+                        <div className="new-asset-choose-box flex-box-centered flex-direction-column">
+                            <div className="new-asset-choose-title">Enter asset value manually</div>
+                            <div className="new-asset-choose-buttons flex-box-centered">
+                                {
+                                    currencies.map((data, i) => (
+                                        <div key={i} className={"new-asset-choose-button button layer-2-themed-color " +
+                                        " flex-box-centered flex-direction-column"}>
+                                            <div className="new-asset-choose-button-image">
+                                                {data.imageElement}
+                                            </div>
+                                            <div className="new-asset-choose-button-name">{data.name}</div>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                            <div className="new-asset-choose-select-box">
+                                <select className={"new-asset-choose-select"}>
+                                    <option defaultValue value> -- select currency --</option>
+                                    {
+                                        selectCurrencies.map((currency, i) => (
+                                            <option key={i} value={currency.name}>{currency.name}</option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div className="new-asset-choose-box flex-box-centered flex-direction-column">
+                            <div className="new-asset-choose-title">Choose your integration</div>
+                            <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>
+                                {
+                                    chooseIntegrations.map((integration, i) => (
+                                        <div key={i} className={"new-asset-integration flex-box-centered" +
+                                        " flex-direction-row button layer-2-themed-color"}>
+                                            <div className={"new-asset-integration-logo " + integration.logoClass}>
+                                                {integration.logo}
+                                            </div>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                            <div className="new-asset-choose-select-box">
+                                <select className={"new-asset-choose-select"}>
+                                    <option defaultValue value> -- select integration --</option>
+                                    {
+                                        chooseIntegrations.map((integration, i) => (
+                                            <option key={i} value={integration.name}>{integration.name}</option>
+                                        ))
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     const buildOnLoggedIn = () => {
+        let assets = userData.assets?.length || 0;
         return (
             <div className={"application-box"}>
-                assets
+                assets: {assets}
+                {assets || newAssetWindow()}
             </div>
         );
     }
