@@ -348,7 +348,7 @@ const ColdWallet = () => {
                         thousandSeparator={true}
                         defaultValue={""}
                         onValueChange={(values) => {
-                            const {floatValue} = values;
+                            const {value} = values;
                             // {
                             //     formattedValue: '$23,234,235.56', //value after applying formatting
                             //     value: '23234235.56', //non formatted value as numeric string 23234235.56,
@@ -357,7 +357,7 @@ const ColdWallet = () => {
                             //     // can have exponential syntax
                             // }
                             setIsNewAssetInvalid(false);
-                            setNewAssetValue(floatValue);
+                            setNewAssetValue(value);
                         }}
                         renderText={value => <div className={
                             "asset-item-value-input" +
@@ -376,11 +376,16 @@ const ColdWallet = () => {
     const buildAssets = () => (userData.assets || []).map((asset, i) => (
         <div key={i} className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
             <div className={"asset-item-value"}>
-                <NumberFormat value={noExponents(asset.amount)}
-                              displayType={'text'}
-                              decimalScale={asset.decimalScale || 8}
-                              suffix={" " + asset.currency}
-                              thousandSeparator={true}/>
+                <NumberFormat
+                    allowNegative={false}
+                    isNumericString={true}
+                    displayType={"text"}
+                    disabled={true}
+                    decimalScale={asset.decimalScale || 8}
+                    thousandSeparator={true}
+                    suffix={" " + asset.currency}
+                    renderText={value => <div className={"asset-item-value-input"}>{noExponents(asset.amount)}</div>}
+                />
             </div>
             <div className={"asset-row-controls flex-box-centered flex-direction-row"}>
                 {buildEditNewAssetControls()}
