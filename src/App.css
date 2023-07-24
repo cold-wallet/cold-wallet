@@ -39,6 +39,7 @@
 
 .new-asset-choose-button-image-icon {
     width: 100%;
+    height: 100%;
 }
 
 .new-asset-choose-button-image-text {
@@ -53,7 +54,8 @@
 }
 
 .new-asset-choose-button-image {
-    width: 100%;
+    width: 90%;
+    height: 80%;
 }
 
 .new-asset-integration {
@@ -82,6 +84,15 @@
     padding: 2%;
 }
 
+.assets-panel {
+    width: 30%;
+    height: 100%;
+}
+
+.asset-row {
+    width: 90%;
+    height: 10%;
+}
 
 .modal-window-box {
     position: absolute;
@@ -153,6 +164,7 @@
 .application-box {
     width: 100%;
     height: 100%;
+    justify-content: space-between;
 }
 
 .startup-login-box {
@@ -164,14 +176,13 @@
     align-items: center;
 }
 
-.create-wallet-box {
+.startup-login-box-button {
     width: 90%;
     height: 30%;
-}
-
-.import-wallet-box {
-    width: 90%;
-    height: 30%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
 }
 
 .App {

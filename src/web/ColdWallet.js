@@ -7,6 +7,8 @@ import usdtIcon from "../core/resources/images/usdt.png";
 import BinanceSvg from "../core/resources/images/binanceSvg";
 import QmallSvg from "../core/resources/images/qmallSvg";
 import MonobankSvg from "../core/resources/images/monobankSvg";
+import NumberFormat from "react-number-format";
+import fiatCurrencies from "../core/fiatCurrencies";
 
 function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -38,6 +40,10 @@ const ColdWallet = () => {
     const [monobankCurrencies, setMonobankCurrencies] = useState(JSON.parse(localStorage.getItem('monobankCurrencies')));
     const [loaded, setLoaded] = useState(false);
     const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userData')));
+    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData?.assets?.length));
+    const [newAssetCurrency, setNewAssetCurrency] = useState(!!(userData?.assets?.length));
+    const [newAssetValue, setNewAssetValue] = useState(0);
+    const [isNewAssetInvalid, setIsNewAssetInvalid] = useState(false);
 
     let loadBinancePrices = () => {
         binanceApiClient.fetchBinancePrices().then(response => {
@@ -120,6 +126,15 @@ const ColdWallet = () => {
                     : 'Loading monobank currencies...'}</p>
             </div>
         )
+    }
+
+    const onNewAssetCurrencySelected = (currency) => {
+        setNewAssetCurrency(currency);
+        setShowCreateNewAssetWindow(false);
+    }
+
+    const onNewAssetIntegrationSelected = (integration) => {
+        alert(integration)
     }
 
     const newAssetWindow = () => {
@@ -215,19 +230,25 @@ const ColdWallet = () => {
                             <div className="new-asset-choose-title">Enter asset value manually</div>
                             <div className="new-asset-choose-buttons flex-box-centered">
                                 {
-                                    currencies.map((data, i) => (
-                                        <div key={i} className={"new-asset-choose-button button layer-2-themed-color " +
-                                        " flex-box-centered flex-direction-column"}>
+                                    currencies.map((currency, i) => (
+                                        <div key={i}
+                                             onClick={() => onNewAssetCurrencySelected(currency.name)}
+                                             className={"new-asset-choose-button button layer-2-themed-color " +
+                                             " flex-box-centered flex-direction-column"}>
                                             <div className="new-asset-choose-button-image">
-                                                {data.imageElement}
+                                                {currency.imageElement}
                                             </div>
-                                            <div className="new-asset-choose-button-name">{data.name}</div>
+                                            <div className="new-asset-choose-button-name">{currency.name}</div>
                                         </div>
                                     ))
                                 }
                             </div>
                             <div className="new-asset-choose-select-box">
-                                <select className={"new-asset-choose-select"}>
+                                <select className={"new-asset-choose-select"}
+                                        onChange={e => onNewAssetCurrencySelected({
+                                            currencyCode: e.target.value,
+                                        })}
+                                >
                                     <option defaultValue value> -- select currency --</option>
                                     {
                                         selectCurrencies.map((currency, i) => (
@@ -242,9 +263,13 @@ const ColdWallet = () => {
                             <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>
                                 {
                                     chooseIntegrations.map((integration, i) => (
-                                        <div key={i} className={"new-asset-integration flex-box-centered" +
-                                        " flex-direction-row button layer-2-themed-color"}>
-                                            <div className={"new-asset-integration-logo " + integration.logoClass}>
+                                        <div key={i}
+                                             onClick={() => onNewAssetIntegrationSelected(integration.name)}
+                                             className={"new-asset-integration flex-box-centered" +
+                                             " flex-direction-row button layer-2-themed-color"}
+                                        >
+                                            <div className={"new-asset-integration-logo " + integration.logoClass}
+                                                 title={integration.name}>
                                                 {integration.logo}
                                             </div>
                                         </div>
@@ -252,11 +277,15 @@ const ColdWallet = () => {
                                 }
                             </div>
                             <div className="new-asset-choose-select-box">
-                                <select className={"new-asset-choose-select"}>
+                                <select className={"new-asset-choose-select"}
+                                        onChange={e => onNewAssetIntegrationSelected({
+                                            currencyCode: e.target.value,
+                                        })}
+                                >
                                     <option defaultValue value> -- select integration --</option>
                                     {
-                                        chooseIntegrations.map((integration, i) => (
-                                            <option key={i} value={integration.name}>{integration.name}</option>
+                                        chooseIntegrations.map(({name}, i) => (
+                                            <option key={i} value={name}>{name}</option>
                                         ))
                                     }
                                 </select>
@@ -268,12 +297,60 @@ const ColdWallet = () => {
         )
     }
 
-    const buildOnLoggedIn = () => {
-        let assets = userData.assets?.length || 0;
+    const buildEditNewAsset = () => {
+        let fiatCurrency = fiatCurrencies.getByStringCode(newAssetCurrency);
+        const afterDecimalPoint = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
         return (
-            <div className={"application-box"}>
-                assets: {assets}
-                {assets || newAssetWindow()}
+            <div className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
+                <div className="asset-row-value">
+                    <NumberFormat
+                        allowNegative={false}
+                        getInputRef={(input) => {
+                            // props.valueInput = input;
+                            input && /*this.state.newAsset &&*/ input.focus();
+                        }}
+                        isNumericString={true}
+                        displayType={"input"}
+                        decimalScale={afterDecimalPoint}
+                        thousandSeparator={true}
+                        defaultValue={""}
+                        onValueChange={(values) => {
+                            const {floatValue} = values;
+                            // {
+                            //     formattedValue: '$23,234,235.56', //value after applying formatting
+                            //     value: '23234235.56', //non formatted value as numeric string 23234235.56,
+                            //     // if you are setting this value to state make sure to pass isNumericString prop to true
+                            //     floatValue: 23234235.56 //floating point representation. For big numbers it
+                            //     // can have exponential syntax
+                            // }
+                            setNewAssetValue(floatValue);
+                        }}
+                        renderText={value => <div className={
+                            "asset-item-value-input" +
+                            (isNewAssetInvalid ? " asset-item-value-input--invalid" : "")
+                        }>{value}</div>}
+                    />
+                </div>
+                <div className="asset-row-currency">{newAssetValue} {newAssetCurrency}</div>
+                <div className="asset-row-controls">X</div>
+            </div>
+        )
+    }
+
+    const buildAssets = () => {
+        return (
+            <div className={"asset-row"}>assets</div>
+        )
+    }
+
+    const buildOnLoggedIn = () => {
+        return (
+            <div className={"application-box flex-box flex-direction-row"}>
+                {showCreateNewAssetWindow && newAssetWindow()}
+                <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
+                    {showCreateNewAssetWindow || buildEditNewAsset()}
+                    {buildAssets()}
+                </div>
             </div>
         );
     }
@@ -292,19 +369,19 @@ const ColdWallet = () => {
 
     const buildCreateWallet = () => {
         return (
-            <button
+            <div
                 onClick={createWallet}
-                className={"create-wallet-box layer-2-themed-color"}>
-                create wallet
-            </button>
+                className={"startup-login-box-button layer-2-themed-color button"}>
+                create new wallet
+            </div>
         );
     }
 
     const buildImportWindow = () => {
         return (
-            <button className={"import-wallet-box layer-2-themed-color"}>
+            <div className={"startup-login-box-button layer-2-themed-color button"}>
                 import
-            </button>
+            </div>
         );
     }
 
