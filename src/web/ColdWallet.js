@@ -37,20 +37,6 @@ function useInterval(callback, delay) {
 const ColdWallet = () => {
     const [binancePrices, setBinancePrices] = useState(JSON.parse(localStorage.getItem('binancePrices')));
     const [binancePricesLoaded, setBinancePricesLoaded] = useState(false);
-    const [binanceCurrencies, setBinanceCurrencies] = useState(JSON.parse(localStorage.getItem('binanceCurrencies')));
-    const [binanceCurrenciesLoaded, setBinanceCurrenciesLoaded] = useState(false);
-    const [monobankRates, setMonobankRates] = useState(JSON.parse(localStorage.getItem('monobankRates')));
-    const [monobankCurrencies, setMonobankCurrencies] = useState(JSON.parse(localStorage.getItem('monobankCurrencies')));
-    const [loaded, setLoaded] = useState(false);
-    const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userData')));
-    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData?.assets?.length));
-    const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData?.assets?.length));
-    const [newAssetCurrency, setNewAssetCurrency] = useState(null);
-    const [newAssetValue, setNewAssetValue] = useState(0);
-    const [newAssetName, setNewAssetName] = useState("");
-    const [isNewAssetInvalid, setIsNewAssetInvalid] = useState(false);
-    const [isNewAssetNameInvalid, setIsNewAssetNameInvalid] = useState(false);
-
     let loadBinancePrices = () => {
         binanceApiClient.fetchBinancePrices().then(response => {
             if (response.success) {
@@ -61,7 +47,14 @@ const ColdWallet = () => {
             }
         })
     };
+    useEffect(loadBinancePrices, []);
+    useInterval(loadBinancePrices, 5000);
+    useEffect(() => {
+        binancePrices && localStorage.setItem('binancePrices', JSON.stringify(binancePrices));
+    }, [binancePrices]);
 
+    const [binanceCurrencies, setBinanceCurrencies] = useState(JSON.parse(localStorage.getItem('binanceCurrencies')));
+    const [binanceCurrenciesLoaded, setBinanceCurrenciesLoaded] = useState(false);
     let loadBinanceCurrencies = () => {
         binanceApiClient.fetchBinanceCurrencies().then(response => {
             if (response.success) {
@@ -72,7 +65,13 @@ const ColdWallet = () => {
             }
         });
     };
+    useEffect(loadBinanceCurrencies, []);
+    useEffect(() => {
+        binanceCurrencies && localStorage.setItem('binanceCurrencies', JSON.stringify(binanceCurrencies));
+    }, [binanceCurrencies]);
 
+    const [monobankRates, setMonobankRates] = useState(JSON.parse(localStorage.getItem('monobankRates')));
+    const [monobankCurrencies, setMonobankCurrencies] = useState(JSON.parse(localStorage.getItem('monobankCurrencies')));
     let loadMonobank = () => {
         monobankApiCLient.fetchMonobankRatesAndCurrencies().then(response => {
             if (response.success) {
@@ -83,12 +82,16 @@ const ColdWallet = () => {
             }
         });
     };
-
-    useEffect(loadBinancePrices, []);
-    useEffect(loadBinanceCurrencies, []);
     useEffect(loadMonobank, []);
-    useInterval(loadBinancePrices, 5000);
     useInterval(loadMonobank, 60000);
+    useEffect(() => {
+        monobankRates && localStorage.setItem('monobankRates', JSON.stringify(monobankRates));
+    }, [monobankRates]);
+    useEffect(() => {
+        monobankCurrencies && localStorage.setItem('monobankCurrencies', JSON.stringify(monobankCurrencies));
+    }, [monobankCurrencies]);
+
+    const [loaded, setLoaded] = useState(false);
     useInterval(() => {
         if (!loaded && binancePricesLoaded && binanceCurrenciesLoaded
             && !!monobankRates && !!monobankCurrencies
@@ -97,21 +100,18 @@ const ColdWallet = () => {
         }
     }, loaded ? null : 1000);
 
-    useEffect(() => {
-        binancePrices && localStorage.setItem('binancePrices', JSON.stringify(binancePrices));
-    }, [binancePrices]);
-    useEffect(() => {
-        binanceCurrencies && localStorage.setItem('binanceCurrencies', JSON.stringify(binanceCurrencies));
-    }, [binanceCurrencies]);
-    useEffect(() => {
-        monobankRates && localStorage.setItem('monobankRates', JSON.stringify(monobankRates));
-    }, [monobankRates]);
-    useEffect(() => {
-        monobankCurrencies && localStorage.setItem('monobankCurrencies', JSON.stringify(monobankCurrencies));
-    }, [monobankCurrencies]);
+    const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userData')));
     useEffect(() => {
         userData && localStorage.setItem('userData', JSON.stringify(userData));
     }, [userData]);
+
+    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData?.assets?.length));
+    const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData?.assets?.length));
+    const [newAssetCurrency, setNewAssetCurrency] = useState(null);
+    const [newAssetValue, setNewAssetValue] = useState(0);
+    const [newAssetName, setNewAssetName] = useState("");
+    const [isNewAssetInvalid, setIsNewAssetInvalid] = useState(false);
+    const [isNewAssetNameInvalid, setIsNewAssetNameInvalid] = useState(false);
 
     const loggedIn = !!userData && !userData.loginRequired;
 
@@ -307,7 +307,7 @@ const ColdWallet = () => {
                          if (!userDataNew.assets) {
                              userDataNew.assets = [];
                          }
-                         userDataNew.assets.push(new Asset(newAssetCurrency, newAssetValue, newAssetName,
+                         userDataNew.assets.unshift(new Asset(newAssetCurrency, newAssetValue, newAssetName,
                              afterDecimalPoint))
                          setUserData(userDataNew);
                          setNewAssetValue(null);
