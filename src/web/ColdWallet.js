@@ -47,7 +47,9 @@ const ColdWallet = () => {
     const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData?.assets?.length));
     const [newAssetCurrency, setNewAssetCurrency] = useState(null);
     const [newAssetValue, setNewAssetValue] = useState(0);
+    const [newAssetName, setNewAssetName] = useState("");
     const [isNewAssetInvalid, setIsNewAssetInvalid] = useState(false);
+    const [isNewAssetNameInvalid, setIsNewAssetNameInvalid] = useState(false);
 
     let loadBinancePrices = () => {
         binanceApiClient.fetchBinancePrices().then(response => {
@@ -288,23 +290,32 @@ const ColdWallet = () => {
         return value && !isNaN(value) && (value > 0)
     }
 
+    const isAssetNameValid = (newAssetName) => {
+        return newAssetName && newAssetName.length <= 40
+    }
+
     const buildAcceptNewAssetButton = (afterDecimalPoint) => {
         return (
             <div key={1}
                  onClick={event => {
-                     if (isAssetValueValid(newAssetValue)) {
+                     if (!isAssetValueValid(newAssetValue)) {
+                         setIsNewAssetInvalid(true);
+                     } else if (!isAssetNameValid(newAssetName)) {
+                         setIsNewAssetNameInvalid(true);
+                     } else {
+                         let userDataNew = {...userData}
+                         if (!userDataNew.assets) {
+                             userDataNew.assets = [];
+                         }
+                         userDataNew.assets.push(new Asset(newAssetCurrency, newAssetValue, newAssetName,
+                             afterDecimalPoint))
+                         setUserData(userDataNew);
                          setNewAssetValue(null);
+                         setNewAssetName("");
                          setNewAssetCurrency(null);
                          setShowCreateNewAssetWindow(false);
                          setIsNewAssetInvalid(false);
-                         if (!userData.assets) {
-                             userData.assets = [];
-                         }
-                         userData.assets.push(new Asset(newAssetCurrency, newAssetValue, afterDecimalPoint))
-                         setUserData(userData);
                          setCreatingNewAsset(false);
-                     } else {
-                         setIsNewAssetInvalid(true);
                      }
                  }}
                  className="asset-row-controls-button asset-row-button-accept button positive-button">✔</div>
@@ -317,6 +328,7 @@ const ColdWallet = () => {
                  onClick={event => {
                      setNewAssetValue(null);
                      setNewAssetCurrency(null);
+                     setNewAssetName("");
                      setShowCreateNewAssetWindow(true);
                  }}
                  className="asset-row-controls-button button negative-button">✖</div>
@@ -338,9 +350,9 @@ const ColdWallet = () => {
                 <div className={"asset-item-value" + (isNewAssetInvalid ? " asset-item-value-input--invalid" : "")}>
                     <NumberFormat
                         allowNegative={false}
+                        allowLeadingZeros={false}
                         getInputRef={(input) => {
-                            // props.valueInput = input;
-                            input && /*this.state.newAsset &&*/ input.focus();
+                            input && !input.value && input.focus();
                         }}
                         isNumericString={true}
                         displayType={"input"}
@@ -365,9 +377,20 @@ const ColdWallet = () => {
                         }>{value}</div>}
                     />
                 </div>
-                <div className="asset-row-currency">{newAssetCurrency}</div>
+                <div className="asset-row-currency text-label">{newAssetCurrency}</div>
                 <div className={"asset-row-controls flex-box-centered flex-direction-row"}>
                     {buildEditNewAssetControls(afterDecimalPoint)}
+                </div>
+                <div className="asset-item-name-row flex-box-centered flex-direction-row">
+                    <div className="asset-item-name-label text-label">name:&nbsp;</div>
+                    <input type={"text"}
+                           defaultValue={`${newAssetCurrency} amount`}
+                           onChange={event => {
+                               let value = event?.target?.value;
+                               value && (newAssetName !== value) && setNewAssetName(value);
+                           }}
+                           className={"asset-item-name-input"
+                           + (isNewAssetNameInvalid ? " asset-item-name-input--invalid" : "")}/>
                 </div>
             </div>
         )
@@ -377,27 +400,43 @@ const ColdWallet = () => {
         <div key={i} className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
             <div className={"asset-item-value"}>
                 <NumberFormat
+                    allowLeadingZeros={false}
                     allowNegative={false}
                     isNumericString={true}
                     displayType={"text"}
-                    disabled={true}
                     decimalScale={asset.decimalScale || 8}
                     thousandSeparator={true}
-                    suffix={" " + asset.currency}
-                    renderText={value => <div className={"asset-item-value-input"}>{noExponents(asset.amount)}</div>}
+                    value={noExponents(asset.amount)}
+                    renderText={value => <div className={"asset-item-value-input"}>{value}</div>}
                 />
             </div>
+            <div className={"asset-item-name text-label"} title={asset.name}>{asset.name}</div>
             <div className={"asset-row-controls flex-box-centered flex-direction-row"}>
                 {buildEditNewAssetControls()}
             </div>
         </div>
     ))
 
+    const addNewAssetButtonClicked = () => {
+        setShowCreateNewAssetWindow(true);
+        setCreatingNewAsset(true);
+    }
+
+    const buildAddNewAssetButton = () => (
+        <div className="add-new-asset-row flex-box-centered flex-direction-row">
+            <div onClick={addNewAssetButtonClicked}
+                 className="add-new-asset-button button positive-button layer-3-themed-color">+
+            </div>
+            <div className="add-new-asset-text text-label">Add new asset</div>
+        </div>
+    )
+
     const buildOnLoggedIn = () => {
         return (
             <div className={"application-box flex-box flex-direction-row"}>
                 {showCreateNewAssetWindow && newAssetWindow()}
                 <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
+                    {buildAddNewAssetButton()}
                     {!showCreateNewAssetWindow && creatingNewAsset && buildEditNewAsset()}
                     {buildAssets()}
                 </div>

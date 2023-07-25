@@ -101,12 +101,16 @@
   flex-wrap: wrap;
 }
 
+.asset-row:hover {
+  opacity: 0.8;
+}
+
 .asset-row-controls {
-  width: 30%;
+  width: 15%;
 }
 
 .asset-row-controls-button {
-  width: 25%;
+  width: 45%;
 }
 
 .asset-row-button-accept:hover {
@@ -114,7 +118,7 @@
 }
 
 .asset-item-value {
-  width: 50%;
+  width: 40%;
 }
 
 .asset-item-value-input,
@@ -146,7 +150,8 @@
   border-color: #4f5a6b;
 }
 
-.asset-item-value-input--invalid input {
+.asset-item-value-input--invalid input,
+.asset-item-name-input--invalid {
   border: dashed #D00000;
 }
 
@@ -159,6 +164,27 @@
 .add-new-asset-button {
   width: 10%;
   margin-left: 25%;
+}
+
+.asset-item-name-label {
+  width: 15%;
+}
+
+.asset-item-name-row {
+  width: 100%;
+  height: 35%;
+}
+
+.asset-item-name-input {
+  width: 60%;
+  height: 90%;
+}
+
+.asset-item-name {
+  width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .startup-login-box {
