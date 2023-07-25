@@ -25,6 +25,7 @@ const ColdWallet = () => {
     const [newAssetName, setNewAssetName] = useState("");
     const [isNewAssetInvalid, setIsNewAssetInvalid] = useState(false);
     const [isNewAssetNameInvalid, setIsNewAssetNameInvalid] = useState(false);
+    const [assetToDelete, setAssetToDelete] = useState(null);
 
     const loggedIn = !!userData && !userData.loginRequired;
 
@@ -51,6 +52,8 @@ const ColdWallet = () => {
                         isNewAssetNameInvalid,
                         monobankCurrencies,
                         binanceCurrencies,
+                        assetToDelete,
+                        setAssetToDelete,
                     )
                     : NotLoggedIn(userData, setUserData)
                 : LoadingWindow(binancePricesLoaded,

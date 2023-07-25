@@ -39,7 +39,7 @@ button {
   color: #6f9f98;
   background-color: #F0F8FF;
   border-color: #8DA7BE;
-  border-radius: 10%;
+  border-radius: 2px;
 }
 
 .positive-button:hover,
@@ -59,7 +59,7 @@ button {
   color: #D00000;
   background-color: #F0F8FF;
   border-color: #8DA7BE;
-  border-radius: 10%;
+  border-radius: 2px;
 }
 
 .negative-button:hover,
@@ -79,7 +79,7 @@ button {
   color: #2D3142;
   background-color: #F0F8FF;
   border-color: #8DA7BE;
-  border-radius: 10%;
+  border-radius: 2px;
 }
 
 .neutral-button:hover,
@@ -163,3 +163,6 @@ button {
   background-color: #a9ddd6;
 }
 
+.clickable {
+  cursor: pointer;
+}

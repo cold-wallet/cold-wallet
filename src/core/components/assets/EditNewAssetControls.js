@@ -18,7 +18,7 @@ export default function EditNewAssetControls(
     setUserData,
     setCreatingNewAsset,
 ) {
-    const buildAcceptNewAssetButton = () => {
+    const buildAcceptNewAssetButton = (afterDecimalPoint) => {
         return (
             <div key={1}
                  onClick={event => {

@@ -3,6 +3,7 @@ import AddNewAssetButton from "./AddNewAssetButton";
 import Asset from "./Asset";
 import EditNewAsset from "./EditNewAsset";
 import NewAssetWindow from "./NewAssetWindow";
+import AssetDeleteWindow from "./AssetDeleteWindow";
 
 export default function AssetsDashboard(
     showCreateNewAssetWindow,
@@ -23,6 +24,8 @@ export default function AssetsDashboard(
     isNewAssetNameInvalid,
     monobankCurrencies,
     binanceCurrencies,
+    assetToDelete,
+    setAssetToDelete,
 ) {
     return (
         <div className={"application-box flex-box flex-direction-row"}>
@@ -32,6 +35,7 @@ export default function AssetsDashboard(
                 monobankCurrencies,
                 binanceCurrencies,
             )}
+            {assetToDelete && AssetDeleteWindow(assetToDelete, setAssetToDelete,)}
             <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
                 {AddNewAssetButton(setShowCreateNewAssetWindow, setCreatingNewAsset)}
                 {!showCreateNewAssetWindow && creatingNewAsset && EditNewAsset(
@@ -50,19 +54,10 @@ export default function AssetsDashboard(
                     setUserData,
                     setCreatingNewAsset,
                 )}
-                {(userData.assets || []).map(asset => Asset(asset,
-                    setNewAssetValue,
-                    setNewAssetCurrency,
-                    setNewAssetName,
-                    setShowCreateNewAssetWindow,
-                    newAssetValue,
-                    setIsNewAssetInvalid,
-                    newAssetName,
-                    setIsNewAssetNameInvalid,
-                    userData,
-                    newAssetCurrency,
-                    setUserData,
-                    setCreatingNewAsset,))}
+                {(userData.assets || []).map(asset => Asset(
+                    asset,
+                    setAssetToDelete,
+                ))}
             </div>
         </div>
     );
