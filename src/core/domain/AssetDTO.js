@@ -1,4 +1,4 @@
-class Asset {
+class AssetDTO {
 
     id;
     currency;
@@ -18,4 +18,4 @@ class Asset {
     }
 }
 
-export default Asset;
+export default AssetDTO;
