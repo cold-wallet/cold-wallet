@@ -26,10 +26,10 @@ const binanceApiClient = {
                 }
             }
         } catch (error) {
-            console.warn('Error fetching prices from binance:', error);
+            console.warn('Error fetching prices from binance:', error.message || error);
             return {
                 success: false,
-                error: error.response?.data?.errorDescription
+                error: error.message || error.response?.data?.errorDescription
             }
         }
     },
@@ -55,10 +55,10 @@ const binanceApiClient = {
                 }
             }
         } catch (error) {
-            console.warn('Error fetching currencies from binance:', error);
+            console.warn('Error fetching currencies from binance:', error.message || error);
             return {
                 success: false,
-                error: error.response?.data?.errorDescription
+                error: error.message || error.response?.data?.errorDescription
             }
         }
     }

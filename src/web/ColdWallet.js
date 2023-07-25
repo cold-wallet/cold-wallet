@@ -385,6 +385,7 @@ const ColdWallet = () => {
                     <div className="asset-item-name-label text-label">name:&nbsp;</div>
                     <input type={"text"}
                            defaultValue={`${newAssetCurrency} amount`}
+                           ref={instance => setNewAssetName(`${newAssetCurrency} amount`)}
                            onChange={event => {
                                let value = event?.target?.value;
                                value && (newAssetName !== value) && setNewAssetName(value);
