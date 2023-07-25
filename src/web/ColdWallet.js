@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import binanceApiClient from "../core/integrations/binance/binanceApiClient";
 import monobankApiCLient from "../core/integrations/monobank/monobankApiClient";
 import btcIcon from "../core/resources/images/btc.png";
@@ -12,27 +12,8 @@ import fiatCurrencies from "../core/fiatCurrencies";
 import compareStrings from "../core/utils/compareStrings";
 import Asset from "../core/domain/Asset";
 import noExponents from "../core/utils/noExponents";
-
-function useInterval(callback, delay) {
-    const savedCallback = useRef();
-
-    useEffect(() => {
-        savedCallback.current = callback;
-    });
-
-    useEffect(() => {
-        if (!delay) {
-            return
-        }
-
-        function tick() {
-            savedCallback.current();
-        }
-
-        let id = setInterval(tick, delay);
-        return () => clearInterval(id);
-    }, [delay]);
-}
+import useInterval from "../core/utils/useInterval";
+import uuidGenerator from "../core/utils/uuid-generator";
 
 const ColdWallet = () => {
     const [binancePrices, setBinancePrices] = useState(JSON.parse(localStorage.getItem('binancePrices')));
@@ -307,8 +288,9 @@ const ColdWallet = () => {
                          if (!userDataNew.assets) {
                              userDataNew.assets = [];
                          }
-                         userDataNew.assets.unshift(new Asset(newAssetCurrency, newAssetValue, newAssetName,
-                             afterDecimalPoint))
+                         let newAsset = new Asset(uuidGenerator.generateUUID(), newAssetCurrency, newAssetValue,
+                             newAssetName, afterDecimalPoint);
+                         userDataNew.assets.unshift(newAsset)
                          setUserData(userDataNew);
                          setNewAssetValue(null);
                          setNewAssetName("");
@@ -346,7 +328,7 @@ const ColdWallet = () => {
         let fiatCurrency = fiatCurrencies.getByStringCode(newAssetCurrency);
         const afterDecimalPoint = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
         return (
-            <div className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
+            <div className={"asset-row-edit-asset flex-box-centered flex-direction-row layer-2-themed-color"}>
                 <div className={"asset-item-value" + (isNewAssetInvalid ? " asset-item-value-input--invalid" : "")}>
                     <NumberFormat
                         allowNegative={false}
@@ -385,10 +367,12 @@ const ColdWallet = () => {
                     <div className="asset-item-name-label text-label">name:&nbsp;</div>
                     <input type={"text"}
                            defaultValue={`${newAssetCurrency} amount`}
-                           ref={instance => setNewAssetName(`${newAssetCurrency} amount`)}
+                           ref={instance => !newAssetName && setNewAssetName(`${newAssetCurrency} amount`)}
                            onChange={event => {
                                let value = event?.target?.value;
-                               value && (newAssetName !== value) && setNewAssetName(value);
+                               if (value && (newAssetName !== value)) {
+                                   setNewAssetName(value)
+                               }
                            }}
                            className={"asset-item-name-input"
                            + (isNewAssetNameInvalid ? " asset-item-name-input--invalid" : "")}/>

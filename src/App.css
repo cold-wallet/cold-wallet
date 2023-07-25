@@ -92,12 +92,24 @@
   width: 30%;
   height: 100%;
   justify-content: flex-start;
+  overflow-y: auto;
 }
 
 .asset-row {
+  padding: 1%;
   margin: 1%;
   width: 95%;
-  height: 10%;
+  height: 7%;
+  min-height: 7%;
+  flex-wrap: wrap;
+}
+
+.asset-row-edit-asset {
+  padding: 1%;
+  margin: 1%;
+  width: 95%;
+  height: 11%;
+  min-height: 11%;
   flex-wrap: wrap;
 }
 
@@ -177,7 +189,7 @@
 
 .asset-item-name-input {
   width: 60%;
-  height: 90%;
+  padding: 1%;
 }
 
 .asset-item-name {
