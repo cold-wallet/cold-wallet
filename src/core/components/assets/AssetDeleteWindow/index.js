@@ -37,7 +37,7 @@ export default function AssetDeleteWindow(
                     </div>
                 </div>
                 <div className="confirm-delete-asset-text text-label">{
-                    `Delete ${assetToDelete.amount} ` + assetToDelete.normalizedName + `${assetToDelete.name}?`
+                    `Delete ${assetToDelete.amount} ${assetToDelete.normalizedName}?`
                 }</div>
                 <div className="confirm-delete-asset-buttons flex-box-centered flex-direction-row">
                     <div onClick={deleteAsset}
