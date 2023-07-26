@@ -16,7 +16,7 @@ const BinanceLoader = () => {
         })
     };
     useEffect(loadBinancePrices, []);
-    useInterval(loadBinancePrices, 1000);
+    useInterval(loadBinancePrices, 5000);
     useEffect(() => {
         binancePrices && localStorage.setItem('binancePrices', JSON.stringify(binancePrices));
     }, [binancePrices]);

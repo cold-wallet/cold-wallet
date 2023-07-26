@@ -5,6 +5,7 @@ class AssetDTO {
     amount;
     name;
     decimalScale;
+    normalizedName;
 
     constructor(id, currency, amount, name, decimalScale) {
         if (!id || !currency || !amount || !name || !decimalScale || amount <= 0) {
@@ -15,6 +16,7 @@ class AssetDTO {
         this.amount = amount;
         this.name = name;
         this.decimalScale = decimalScale;
+        this.normalizedName = ((this.name.indexOf(this.currency) === -1) ? `${this.currency} ` : "") + name;
     }
 }
 

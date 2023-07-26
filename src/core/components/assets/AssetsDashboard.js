@@ -35,7 +35,10 @@ export default function AssetsDashboard(
                 monobankCurrencies,
                 binanceCurrencies,
             )}
-            {assetToDelete && AssetDeleteWindow(assetToDelete, setAssetToDelete,)}
+            {assetToDelete && AssetDeleteWindow(
+                assetToDelete, setAssetToDelete, userData, setUserData, setShowCreateNewAssetWindow,
+                setCreatingNewAsset,
+            )}
             <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
                 {AddNewAssetButton(setShowCreateNewAssetWindow, setCreatingNewAsset)}
                 {!showCreateNewAssetWindow && creatingNewAsset && EditNewAsset(

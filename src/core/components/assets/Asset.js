@@ -5,6 +5,7 @@ import AssetControls from "./AssetControls";
 
 export default function Asset(asset, setAssetToDelete,) {
     let decimalScale = asset.decimalScale || 8;
+    console.log("asset", asset)
     return (
         <div key={asset.id} className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
             <div className={"asset-item-value"}>
@@ -21,7 +22,7 @@ export default function Asset(asset, setAssetToDelete,) {
                     )}
                 />
             </div>
-            <div className={"asset-item-name text-label"} title={asset.name}>{asset.name}</div>
+            <div className={"asset-item-name text-label"} title={asset.normalizedName}>{asset.normalizedName}</div>
             {AssetControls(asset, setAssetToDelete,)}
         </div>
     )
