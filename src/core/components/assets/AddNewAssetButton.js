@@ -3,10 +3,16 @@ import React from "react";
 export default function AddNewAssetButton(
     setShowCreateNewAssetWindow,
     setCreatingNewAsset,
+    setAssetToEdit,
+    setNewAssetAmount,
+    setNewAssetName,
 ) {
     const addNewAssetButtonClicked = () => {
         setShowCreateNewAssetWindow(true);
         setCreatingNewAsset(true);
+        setAssetToEdit(null);
+        setNewAssetAmount(null);
+        setNewAssetName(null);
     }
 
     return (

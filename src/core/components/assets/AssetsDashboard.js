@@ -4,28 +4,31 @@ import Asset from "./Asset";
 import EditNewAsset from "./EditNewAsset";
 import NewAssetWindow from "./NewAssetWindow";
 import AssetDeleteWindow from "./AssetDeleteWindow";
+import EditAsset from "./EditAsset";
 
 export default function AssetsDashboard(
     showCreateNewAssetWindow,
-    creatingNewAsset,
     setShowCreateNewAssetWindow,
+    creatingNewAsset,
     setCreatingNewAsset,
     userData,
-    setNewAssetValue,
-    setNewAssetCurrency,
-    setNewAssetName,
-    newAssetValue,
-    setIsNewAssetInvalid,
-    newAssetName,
-    setIsNewAssetNameInvalid,
+    newAssetAmount,
+    setNewAssetAmount,
     newAssetCurrency,
-    setUserData,
-    isNewAssetInvalid,
+    setNewAssetCurrency,
+    newAssetName,
+    setNewAssetName,
+    isNewAssetAmountInvalid,
+    setIsNewAssetAmountInvalid,
     isNewAssetNameInvalid,
+    setIsNewAssetNameInvalid,
+    setUserData,
     monobankCurrencies,
     binanceCurrencies,
     assetToDelete,
     setAssetToDelete,
+    assetToEdit,
+    setAssetToEdit,
 ) {
     return (
         <div className={"application-box flex-box flex-direction-row"}>
@@ -40,27 +43,53 @@ export default function AssetsDashboard(
                 setCreatingNewAsset,
             )}
             <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
-                {AddNewAssetButton(setShowCreateNewAssetWindow, setCreatingNewAsset)}
+                {AddNewAssetButton(
+                    setShowCreateNewAssetWindow,
+                    setCreatingNewAsset,
+                    setAssetToEdit,
+                    setNewAssetAmount,
+                    setNewAssetName,
+                )}
                 {!showCreateNewAssetWindow && creatingNewAsset && EditNewAsset(
                     newAssetCurrency,
-                    isNewAssetInvalid,
-                    setIsNewAssetInvalid,
-                    setNewAssetValue,
+                    setNewAssetCurrency,
+                    isNewAssetAmountInvalid,
+                    setIsNewAssetAmountInvalid,
+                    newAssetAmount,
+                    setNewAssetAmount,
                     newAssetName,
                     setNewAssetName,
-                    isNewAssetNameInvalid,
-                    setNewAssetCurrency,
                     setShowCreateNewAssetWindow,
-                    newAssetValue,
+                    isNewAssetNameInvalid,
                     setIsNewAssetNameInvalid,
                     userData,
                     setUserData,
                     setCreatingNewAsset,
                 )}
-                {(userData.assets || []).map(asset => Asset(
-                    asset,
-                    setAssetToDelete,
-                ))}
+                {(userData.assets || []).map(asset => (assetToEdit && (asset.id === assetToEdit.id))
+                    ? EditAsset(
+                        assetToEdit,
+                        setAssetToEdit,
+                        userData,
+                        setUserData,
+                        isNewAssetAmountInvalid,
+                        setIsNewAssetAmountInvalid,
+                        newAssetAmount,
+                        setNewAssetAmount,
+                        newAssetName,
+                        setNewAssetName,
+                        isNewAssetNameInvalid,
+                        setIsNewAssetNameInvalid,
+                    )
+                    : Asset(
+                        asset,
+                        setAssetToDelete,
+                        setAssetToEdit,
+                        setNewAssetAmount,
+                        setNewAssetName,
+                        setIsNewAssetNameInvalid,
+                        setIsNewAssetAmountInvalid,
+                    ))}
             </div>
         </div>
     );

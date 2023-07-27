@@ -21,11 +21,12 @@ const ColdWallet = () => {
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData?.assets?.length));
     const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData?.assets?.length));
     const [newAssetCurrency, setNewAssetCurrency] = useState(null);
-    const [newAssetValue, setNewAssetValue] = useState(0);
-    const [newAssetName, setNewAssetName] = useState("");
-    const [isNewAssetInvalid, setIsNewAssetInvalid] = useState(false);
+    const [newAssetAmount, setNewAssetAmount] = useState(null);
+    const [newAssetName, setNewAssetName] = useState(null);
+    const [isNewAssetAmountInvalid, setIsNewAssetAmountInvalid] = useState(false);
     const [isNewAssetNameInvalid, setIsNewAssetNameInvalid] = useState(false);
     const [assetToDelete, setAssetToDelete] = useState(null);
+    const [assetToEdit, setAssetToEdit] = useState(null);
 
     const loggedIn = !!userData && !userData.loginRequired;
 
@@ -35,25 +36,27 @@ const ColdWallet = () => {
                 ? loggedIn
                     ? AssetsDashboard(
                         showCreateNewAssetWindow,
-                        creatingNewAsset,
                         setShowCreateNewAssetWindow,
+                        creatingNewAsset,
                         setCreatingNewAsset,
                         userData,
-                        setNewAssetValue,
-                        setNewAssetCurrency,
-                        setNewAssetName,
-                        newAssetValue,
-                        setIsNewAssetInvalid,
-                        newAssetName,
-                        setIsNewAssetNameInvalid,
+                        newAssetAmount,
+                        setNewAssetAmount,
                         newAssetCurrency,
-                        setUserData,
-                        isNewAssetInvalid,
+                        setNewAssetCurrency,
+                        newAssetName,
+                        setNewAssetName,
+                        isNewAssetAmountInvalid,
+                        setIsNewAssetAmountInvalid,
                         isNewAssetNameInvalid,
+                        setIsNewAssetNameInvalid,
+                        setUserData,
                         monobankCurrencies,
                         binanceCurrencies,
                         assetToDelete,
                         setAssetToDelete,
+                        assetToEdit,
+                        setAssetToEdit,
                     )
                     : NotLoggedIn(userData, setUserData)
                 : LoadingWindow(binancePricesLoaded,

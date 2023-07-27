@@ -3,7 +3,15 @@ import noExponents from "../../utils/noExponents";
 import React from "react";
 import AssetControls from "./AssetControls";
 
-export default function Asset(asset, setAssetToDelete,) {
+export default function Asset(
+    asset,
+    setAssetToDelete,
+    setAssetToEdit,
+    setNewAssetAmount,
+    setNewAssetName,
+    setIsAssetNameInvalid,
+    setIsAssetAmountInvalid,
+) {
     let decimalScale = asset.decimalScale || 8;
     return (
         <div key={asset.id} className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
@@ -22,7 +30,15 @@ export default function Asset(asset, setAssetToDelete,) {
                 />
             </div>
             <div className={"asset-item-name text-label"} title={asset.normalizedName}>{asset.normalizedName}</div>
-            {AssetControls(asset, setAssetToDelete,)}
+            {AssetControls(
+                asset,
+                setAssetToDelete,
+                setAssetToEdit,
+                setNewAssetAmount,
+                setNewAssetName,
+                setIsAssetNameInvalid,
+                setIsAssetAmountInvalid,
+            )}
         </div>
     )
 }

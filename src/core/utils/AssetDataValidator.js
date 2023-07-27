@@ -1,6 +1,6 @@
 const AssetDataValidator = {
 
-    isAssetValueValid: (value) => {
+    isAssetAmountValid: (value) => {
         return value && !isNaN(value) && (value > 0)
     },
 

@@ -5,15 +5,15 @@ import EditNewAssetControls from "./EditNewAssetControls";
 
 export default function EditNewAsset(
     newAssetCurrency,
-    isNewAssetInvalid,
-    setIsNewAssetInvalid,
-    setNewAssetValue,
+    setNewAssetCurrency,
+    isNewAssetAmountInvalid,
+    setIsNewAssetAmountInvalid,
+    newAssetAmount,
+    setNewAssetAmount,
     newAssetName,
     setNewAssetName,
-    isNewAssetNameInvalid,
-    setNewAssetCurrency,
     setShowCreateNewAssetWindow,
-    newAssetValue,
+    isNewAssetNameInvalid,
     setIsNewAssetNameInvalid,
     userData,
     setUserData,
@@ -21,9 +21,13 @@ export default function EditNewAsset(
 ) {
     let fiatCurrency = fiatCurrencies.getByStringCode(newAssetCurrency);
     const afterDecimalPoint = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
+    console.log("newAssetName222", newAssetName)
+    if (newAssetName == null) {
+        setNewAssetName(`${newAssetCurrency} amount`);
+    }
     return (
         <div className={"asset-row-edit-asset flex-box-centered flex-direction-row layer-2-themed-color"}>
-            <div className={"asset-item-value" + (isNewAssetInvalid ? " asset-item-value-input--invalid" : "")}>
+            <div className={"asset-item-value" + (isNewAssetAmountInvalid ? " asset-item-value-input--invalid" : "")}>
                 <NumberFormat
                     allowNegative={false}
                     allowLeadingZeros={false}
@@ -44,28 +48,28 @@ export default function EditNewAsset(
                         //     floatValue: 23234235.56 //floating point representation. For big numbers it
                         //     // can have exponential syntax
                         // }
-                        setIsNewAssetInvalid(false);
-                        setNewAssetValue(value);
+                        setIsNewAssetAmountInvalid(false);
+                        setNewAssetAmount(value);
                     }}
                     renderText={value => <div className={
                         "asset-item-value-input" +
-                        (isNewAssetInvalid ? " asset-item-value-input--invalid" : "")
+                        (isNewAssetAmountInvalid ? " asset-item-value-input--invalid" : "")
                     }>{value}</div>}
                 />
             </div>
             <div className="asset-row-currency text-label">{newAssetCurrency}</div>
             {EditNewAssetControls(
                 afterDecimalPoint,
-                setNewAssetValue,
+                newAssetAmount,
+                setNewAssetAmount,
+                newAssetCurrency,
                 setNewAssetCurrency,
+                newAssetName,
                 setNewAssetName,
                 setShowCreateNewAssetWindow,
-                newAssetValue,
-                setIsNewAssetInvalid,
-                newAssetName,
+                setIsNewAssetAmountInvalid,
                 setIsNewAssetNameInvalid,
                 userData,
-                newAssetCurrency,
                 setUserData,
                 setCreatingNewAsset,
             )}
@@ -73,12 +77,11 @@ export default function EditNewAsset(
                 <div className="asset-item-name-label text-label">name:&nbsp;</div>
                 <input type={"text"}
                        defaultValue={`${newAssetCurrency} amount`}
-                       ref={instance => !newAssetName && setNewAssetName(`${newAssetCurrency} amount`)}
+                    //ref={() => (newAssetName === null) && setNewAssetName(`${newAssetCurrency} amount`)}
                        onChange={event => {
                            let value = event?.target?.value;
-                           if (value && (newAssetName !== value)) {
-                               setNewAssetName(value)
-                           }
+                           setIsNewAssetNameInvalid(false);
+                           setNewAssetName(value);
                        }}
                        className={"asset-item-name-input"
                        + (isNewAssetNameInvalid ? " asset-item-name-input--invalid" : "")}/>

@@ -5,24 +5,26 @@ import React from "react";
 
 export default function EditNewAssetControls(
     afterDecimalPoint,
-    setNewAssetValue,
+    newAssetAmount,
+    setNewAssetAmount,
+    newAssetCurrency,
     setNewAssetCurrency,
+    newAssetName,
     setNewAssetName,
     setShowCreateNewAssetWindow,
-    newAssetValue,
     setIsNewAssetInvalid,
-    newAssetName,
     setIsNewAssetNameInvalid,
     userData,
-    newAssetCurrency,
     setUserData,
     setCreatingNewAsset,
 ) {
     const buildAcceptNewAssetButton = (afterDecimalPoint) => {
         return (
             <div key={1}
-                 onClick={event => {
-                     if (!AssetDataValidator.isAssetValueValid(newAssetValue)) {
+                 onClick={() => {
+                     console.log("newAssetAmount", newAssetAmount)
+                     console.log("newAssetName", newAssetName)
+                     if (!AssetDataValidator.isAssetAmountValid(newAssetAmount)) {
                          setIsNewAssetInvalid(true);
                      } else if (!AssetDataValidator.isAssetNameValid(newAssetName)) {
                          setIsNewAssetNameInvalid(true);
@@ -31,15 +33,16 @@ export default function EditNewAssetControls(
                          if (!userDataNew.assets) {
                              userDataNew.assets = [];
                          }
-                         let newAsset = new AssetDTO(uuidGenerator.generateUUID(), newAssetCurrency, newAssetValue,
+                         let newAsset = new AssetDTO(uuidGenerator.generateUUID(), newAssetCurrency, newAssetAmount,
                              newAssetName, afterDecimalPoint);
                          userDataNew.assets.unshift(newAsset)
                          setUserData(userDataNew);
-                         setNewAssetValue(null);
-                         setNewAssetName("");
+                         setNewAssetAmount(null);
+                         setNewAssetName(false);
                          setNewAssetCurrency(null);
                          setShowCreateNewAssetWindow(false);
                          setIsNewAssetInvalid(false);
+                         setIsNewAssetNameInvalid(false);
                          setCreatingNewAsset(false);
                      }
                  }}
@@ -50,11 +53,14 @@ export default function EditNewAssetControls(
     const buildCancelNewAssetButton = () => {
         return (
             <div key={2}
-                 onClick={event => {
-                     setNewAssetValue(null);
+                 onClick={() => {
+                     setNewAssetAmount(null);
                      setNewAssetCurrency(null);
-                     setNewAssetName("");
-                     setShowCreateNewAssetWindow(true);
+                     setNewAssetName(null);
+                     setIsNewAssetNameInvalid(false);
+                     setIsNewAssetInvalid(false);
+                     setCreatingNewAsset(!(userData.assets?.length));
+                     setShowCreateNewAssetWindow(!(userData.assets?.length));
                  }}
                  className="asset-row-controls-button button negative-button">✖</div>
         )
