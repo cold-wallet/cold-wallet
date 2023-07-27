@@ -8,6 +8,7 @@ export default function AssetControls(
     setNewAssetName,
     setIsAssetNameInvalid,
     setIsAssetAmountInvalid,
+    setCreatingNewAsset,
 ) {
     const EditAssetButton = (asset) => {
         return (
@@ -16,6 +17,7 @@ export default function AssetControls(
                      setAssetToEdit(asset);
                      setNewAssetAmount(asset.amount);
                      setNewAssetName(asset.name);
+                     setCreatingNewAsset(false);
                  }}>✎</div>
         )
     }
@@ -30,6 +32,7 @@ export default function AssetControls(
                      setAssetToEdit(null);
                      setIsAssetNameInvalid(false);
                      setIsAssetAmountInvalid(false);
+                     setCreatingNewAsset(false);
                  }}>✖</div>
         )
     }

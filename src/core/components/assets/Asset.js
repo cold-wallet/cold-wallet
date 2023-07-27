@@ -11,6 +11,7 @@ export default function Asset(
     setNewAssetName,
     setIsAssetNameInvalid,
     setIsAssetAmountInvalid,
+    setCreatingNewAsset,
 ) {
     let decimalScale = asset.decimalScale || 8;
     return (
@@ -38,6 +39,7 @@ export default function Asset(
                 setNewAssetName,
                 setIsAssetNameInvalid,
                 setIsAssetAmountInvalid,
+                setCreatingNewAsset,
             )}
         </div>
     )

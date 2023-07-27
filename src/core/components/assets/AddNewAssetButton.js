@@ -6,6 +6,8 @@ export default function AddNewAssetButton(
     setAssetToEdit,
     setNewAssetAmount,
     setNewAssetName,
+    setIsNewAssetAmountInvalid,
+    setIsNewAssetNameInvalid,
 ) {
     const addNewAssetButtonClicked = () => {
         setShowCreateNewAssetWindow(true);
@@ -13,6 +15,8 @@ export default function AddNewAssetButton(
         setAssetToEdit(null);
         setNewAssetAmount(null);
         setNewAssetName(null);
+        setIsNewAssetAmountInvalid(false);
+        setIsNewAssetNameInvalid(false);
     }
 
     return (

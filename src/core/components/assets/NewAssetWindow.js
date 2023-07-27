@@ -10,8 +10,10 @@ import React from "react";
 export default function NewAssetWindow(
     setNewAssetCurrency,
     setShowCreateNewAssetWindow,
+    setCreatingNewAsset,
     monobankCurrencies,
     binanceCurrencies,
+    userData,
 ) {
 
     const onNewAssetCurrencySelected = (currency) => {
@@ -92,15 +94,32 @@ export default function NewAssetWindow(
         },
     ];
 
+    const otherAssetsExist = !!(userData?.assets?.length);
+
+    const onClose = () => {
+        if (!otherAssetsExist) {
+            return;
+        }
+        setShowCreateNewAssetWindow(false);
+        setCreatingNewAsset(false);
+    }
+
     return (
         <div className="modal-window-box">
-            <div className="modal-window-shadow"/>
+            <div className={"modal-window-shadow" + (otherAssetsExist ? " clickable" : "")}
+                 onClick={onClose}/>
             <div className={"new-asset-window modal-window flex-box-centered" +
             " flex-direction-column layer-3-themed-color"}>
-                <div className="new-asset-title">Create new asset</div>
+                <div className="create-new-asset-window-header flex-box flex-direction-row layer-2-themed-color">
+                    <div className="create-new-asset-window-title text-label flex-box-centered">Create new asset</div>
+                    {otherAssetsExist ?
+                        <div className={"create-new-asset-window-close-button button neutral-button flex-box-centered"}
+                             onClick={onClose}>x
+                        </div> : null}
+                </div>
                 <div className="new-asset-controls-box flex-box-centered flex-direction-row">
                     <div className="new-asset-choose-box flex-box-centered flex-direction-column">
-                        <div className="new-asset-choose-title">Enter asset value manually</div>
+                        <div className="new-asset-choose-title text-label">Enter asset value manually</div>
                         <div className="new-asset-choose-buttons flex-box-centered">
                             {
                                 currencies.map((currency, i) => (
@@ -129,7 +148,7 @@ export default function NewAssetWindow(
                         </div>
                     </div>
                     <div className="new-asset-choose-box flex-box-centered flex-direction-column">
-                        <div className="new-asset-choose-title">Choose your integration</div>
+                        <div className="new-asset-choose-title text-label">Choose your integration</div>
                         <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>
                             {
                                 chooseIntegrations.map((integration, i) => (

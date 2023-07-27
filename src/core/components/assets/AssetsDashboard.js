@@ -35,8 +35,10 @@ export default function AssetsDashboard(
             {showCreateNewAssetWindow && NewAssetWindow(
                 setNewAssetCurrency,
                 setShowCreateNewAssetWindow,
+                setCreatingNewAsset,
                 monobankCurrencies,
                 binanceCurrencies,
+                userData,
             )}
             {assetToDelete && AssetDeleteWindow(
                 assetToDelete, setAssetToDelete, userData, setUserData, setShowCreateNewAssetWindow,
@@ -49,6 +51,8 @@ export default function AssetsDashboard(
                     setAssetToEdit,
                     setNewAssetAmount,
                     setNewAssetName,
+                    setIsNewAssetAmountInvalid,
+                    setIsNewAssetNameInvalid,
                 )}
                 {!showCreateNewAssetWindow && creatingNewAsset && EditNewAsset(
                     newAssetCurrency,
@@ -89,6 +93,7 @@ export default function AssetsDashboard(
                         setNewAssetName,
                         setIsNewAssetNameInvalid,
                         setIsNewAssetAmountInvalid,
+                        setCreatingNewAsset,
                     ))}
             </div>
         </div>
