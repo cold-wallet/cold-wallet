@@ -1,0 +1,19 @@
+.negative-button {
+  font-size: 20px;
+  text-align: center;
+  outline: none;
+  color: #D00000;
+  background-color: #F0F8FF;
+  border-color: #8DA7BE;
+  border-radius: 2px;
+}
+
+.negative-button:hover,
+.negative-button:active {
+  background-color: #D00000;
+  color: #2D3142;
+}
+
+.negative-button:active {
+  padding: 0 2px 2px 0;
+}

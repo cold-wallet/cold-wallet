@@ -1,5 +1,5 @@
 import './App.css';
-import ColdWallet from "./web/ColdWallet";
+import ColdWallet from "./core/components/ColdWallet";
 
 function App() {
     return (

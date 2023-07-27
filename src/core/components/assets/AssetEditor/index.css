@@ -1,0 +1,60 @@
+.asset-row-edit-asset {
+  padding: 1%;
+  margin: 1%;
+  width: 95%;
+  height: 11%;
+  min-height: 11%;
+  flex-wrap: wrap;
+}
+
+.edit-asset-item-value {
+  width: 40%;
+}
+
+.edit-asset-item-value-input,
+.edit-asset-item-value input {
+  text-align: center;
+  border-style: solid;
+  border-color: #8da7be;
+  border-width: 2px;
+  outline: none;
+  width: 100%;
+  padding: 2% 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.edit-asset-item-value-input:disabled,
+.edit-asset-item-value input:disabled {
+  background-color: #F0F8FF;
+}
+
+.edit-asset-item-value-input:focus,
+.edit-asset-item-value input:focus {
+  border-style: dashed;
+}
+
+.edit-asset-item-value-input:active,
+.edit-asset-item-value input:active {
+  border-style: solid;
+  border-color: #4f5a6b;
+}
+
+.edit-asset-item-value-input--invalid input,
+.edit-asset-item-name-input--invalid {
+  border: dashed #D00000;
+}
+
+.asset-item-name-label {
+  width: 15%;
+}
+
+.asset-item-name-row {
+  width: 100%;
+  height: 35%;
+}
+
+.edit-asset-item-name-input {
+  width: 60%;
+  padding: 1%;
+}

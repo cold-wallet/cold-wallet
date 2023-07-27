@@ -1,5 +1,5 @@
-import currenciesIso from "./resources/currencies-iso-4217.json";
-import currencyCodes from "./resources/currencies-iso-4217-code.json";
+import currenciesIso from "../resources/currencies-iso-4217.json";
+import currencyCodes from "../resources/currencies-iso-4217-code.json";
 
 const fiatCurrencies = {
     getByStringCode(code) {

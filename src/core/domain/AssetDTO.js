@@ -16,7 +16,7 @@ class AssetDTO {
         this.amount = amount;
         this.name = name;
         this.decimalScale = decimalScale;
-        this.normalizedName = ((this.name.toUpperCase().indexOf(this.currency.toUpperCase()) === -1)
+        this.normalizedName = ((this.name.toUpperCase().indexOf(this.currency.toUpperCase()) !== 0)
             ? `${this.currency} ` : "") + name;
     }
 }

@@ -1,0 +1,19 @@
+.positive-button {
+  font-size: 20px;
+  text-align: center;
+  outline: none;
+  color: #6f9f98;
+  background-color: #F0F8FF;
+  border-color: #8DA7BE;
+  border-radius: 2px;
+}
+
+.positive-button:hover,
+.positive-button:active {
+  background-color: #9fec4e;
+  color: #fff;
+}
+
+.positive-button:active {
+  padding: 0 1px 1px 0;
+}

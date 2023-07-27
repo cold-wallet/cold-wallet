@@ -1,13 +1,15 @@
-const AssetDataValidator = {
+const MAX_ASSET_NAME_LENGTH = 40;
+
+const assetDataValidator = {
 
     isAssetAmountValid: (value) => {
-        return value && !isNaN(value) && (value > 0)
+        return value && !isNaN(value) && (value > 0);
     },
 
     isAssetNameValid: (newAssetName) => {
-        return newAssetName && newAssetName.length <= 40
+        return newAssetName && newAssetName.length <= MAX_ASSET_NAME_LENGTH;
     }
 
 }
 
-export default AssetDataValidator;
+export default assetDataValidator;

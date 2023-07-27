@@ -1,0 +1,52 @@
+.asset-row {
+  padding: 1%;
+  margin: 1%;
+  width: 95%;
+  height: 7%;
+  min-height: 7%;
+  flex-wrap: wrap;
+}
+
+.asset-row:hover {
+  opacity: 0.8;
+}
+
+.asset-item-value {
+  width: 40%;
+}
+
+.asset-item-value-input,
+.asset-item-value input {
+  text-align: center;
+  border-style: solid;
+  border-color: #8da7be;
+  border-width: 2px;
+  outline: none;
+  width: 100%;
+  padding: 2% 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.asset-item-value-input:disabled,
+.asset-item-value input:disabled {
+  background-color: #F0F8FF;
+}
+
+.asset-item-value-input:focus,
+.asset-item-value input:focus {
+  border-style: dashed;
+}
+
+.asset-item-value-input:active,
+.asset-item-value input:active {
+  border-style: solid;
+  border-color: #4f5a6b;
+}
+
+.asset-item-name {
+  width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
