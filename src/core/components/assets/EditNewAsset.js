@@ -21,7 +21,6 @@ export default function EditNewAsset(
 ) {
     let fiatCurrency = fiatCurrencies.getByStringCode(newAssetCurrency);
     const afterDecimalPoint = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
-    console.log("newAssetName222", newAssetName)
     if (newAssetName == null) {
         setNewAssetName(`${newAssetCurrency} amount`);
     }

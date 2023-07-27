@@ -22,8 +22,6 @@ export default function EditAsset(
     }
     if (newAssetAmount === null) {
         setAssetAmount(assetToEdit.amount)
-    } else {
-        console.log("am", newAssetAmount)
     }
     return (
         <div key={assetToEdit.id}
@@ -50,7 +48,6 @@ export default function EditAsset(
                         //     // can have exponential syntax
                         // }
                         setIsAssetAmountInvalid(false);
-                        console.log("am2", value)
                         setAssetAmount(value);
                     }}
                     renderText={value => <div className={

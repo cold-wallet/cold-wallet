@@ -22,8 +22,6 @@ export default function EditNewAssetControls(
         return (
             <div key={1}
                  onClick={() => {
-                     console.log("newAssetAmount", newAssetAmount)
-                     console.log("newAssetName", newAssetName)
                      if (!AssetDataValidator.isAssetAmountValid(newAssetAmount)) {
                          setIsNewAssetInvalid(true);
                      } else if (!AssetDataValidator.isAssetNameValid(newAssetName)) {
