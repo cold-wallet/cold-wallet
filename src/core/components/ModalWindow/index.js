@@ -1,13 +1,6 @@
 import './index.css';
 import React from "react";
-
-const CloseButton = ({onCancel}) => {
-    return (
-        <div className="modal-window-close-button button neutral-button"
-             onClick={onCancel}>✖
-        </div>
-    )
-}
+import NeutralButton from "../buttons/NeutralButton";
 
 export default function ModalWindow({onCancel, closeable, children, title, bottom, large,}) {
     return (
@@ -15,12 +8,14 @@ export default function ModalWindow({onCancel, closeable, children, title, botto
             <div onClick={onCancel}
                  className={"modal-window-shadow" + (closeable ? " clickable" : "")}/>
             <div className={"modal-window modal-window-" + (large ? "large" : "small") + " flex-box" +
-            " flex-direction-column layer-2-themed-color"}>
+                " flex-direction-column layer-2-themed-color"}>
                 <div className={"modal-window-header modal-window-header-" + (large ? "large" : "small")
-                + " flex-box" + (closeable ? "" : " modal-window-header-centered") +
-                " flex-direction-row layer-1-themed-color"}>
+                    + " flex-box" + (closeable ? "" : " modal-window-header-centered") +
+                    " flex-direction-row layer-1-themed-color"}>
                     {title}
-                    {closeable ? CloseButton({onCancel}) : null}
+                    {closeable ? <NeutralButton className={"modal-window-close-button"}
+                                                onClick={onCancel}
+                    >✖</NeutralButton> : null}
                 </div>
                 {children}
                 {bottom}

@@ -1,6 +1,8 @@
 import React from "react";
 import './index.css'
 import ModalWindow from "../../ModalWindow";
+import NegativeButton from "../../buttons/NegativeButton";
+import NeutralButton from "../../buttons/NeutralButton";
 
 export default function AssetDeleteWindow(
     assetToDelete,
@@ -37,12 +39,12 @@ export default function AssetDeleteWindow(
         }
         bottom={
             <div className="confirm-delete-asset-buttons flex-box-centered flex-direction-row layer-1-themed-color">
-                <div onClick={deleteAsset}
-                     className="confirm-delete-asset-button button negative-button">Delete
-                </div>
-                <div onClick={onCancel}
-                     className="confirm-delete-asset-button button neutral-button">Cancel
-                </div>
+                <NegativeButton onClick={deleteAsset}
+                                className="confirm-delete-asset-button">Delete
+                </NegativeButton>
+                <NeutralButton onClick={onCancel}
+                               className="confirm-delete-asset-button">Cancel
+                </NeutralButton>
             </div>
         }/>
 }

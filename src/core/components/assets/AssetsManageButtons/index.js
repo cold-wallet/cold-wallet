@@ -1,7 +1,8 @@
 import React from "react";
 import './index.css';
+import PositiveButton from "../../buttons/PositiveButton";
 
-export default function AddNewAssetButton(
+export default function AssetsManageButtons(
     setShowCreateNewAssetWindow,
     setCreatingNewAsset,
     setAssetToEdit,
@@ -22,9 +23,9 @@ export default function AddNewAssetButton(
 
     return (
         <div className="add-new-asset-row flex-box-centered flex-direction-row">
-            <div onClick={addNewAssetButtonClicked}
-                 className="add-new-asset-button button positive-button layer-3-themed-color">+
-            </div>
+            <PositiveButton onClick={addNewAssetButtonClicked}
+                            className={"add-new-asset-button layer-3-themed-color"}
+            >+</PositiveButton>
             <div className="add-new-asset-text text-label">Add new asset</div>
         </div>
     )

@@ -5,7 +5,6 @@ export default function EditButton({onClick}) {
     return (
         <NeutralButton className={"asset-row-controls-button"}
                        onClick={onClick}
-                       text={"✎"}
-        />
+        >✎</NeutralButton>
     )
 }

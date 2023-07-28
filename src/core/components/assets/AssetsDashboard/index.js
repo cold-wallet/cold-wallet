@@ -1,7 +1,7 @@
 import './index.css';
 
 import React from "react";
-import AddNewAssetButton from "./../AddNewAssetButton";
+import AddNewAssetButton from "../AssetsManageButtons";
 import Asset from "./../Asset";
 import EditNewAsset from "./../EditNewAsset";
 import NewAssetWindow from "./../NewAssetWindow";
