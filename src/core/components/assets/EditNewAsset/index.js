@@ -33,7 +33,13 @@ export default function EditNewAsset(
             newAssetName, decimalScale);
         userDataNew.assets.unshift(newAsset)
         setUserData(userDataNew);
-        onCancel();
+        setNewAssetAmount(null);
+        setNewAssetCurrency(null);
+        setNewAssetName(null);
+        setIsNewAssetNameInvalid(false);
+        setIsNewAssetAmountInvalid(false);
+        setCreatingNewAsset(false);
+        setShowCreateNewAssetWindow(false);
     }
 
     const onCancel = () => {
