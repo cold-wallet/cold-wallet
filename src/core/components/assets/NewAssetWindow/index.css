@@ -1,4 +1,5 @@
 .new-asset-choose-button-image-text {
+  font-weight: bold;
   width: 100%;
   font-size: 350%;
   background-color: #F6AE2D;
@@ -60,6 +61,11 @@
 }
 
 .new-asset-choose-button-image {
+  width: 90%;
+}
+
+.new-asset-choose-button-symbol {
+  height: 55%;
   width: 90%;
 }
 

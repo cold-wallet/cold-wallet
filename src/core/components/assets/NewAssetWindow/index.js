@@ -32,43 +32,67 @@ export default function NewAssetWindow(
             name: "USD",
             type: "fiat",
             imageType: "text",
-            imageElement: <span className={"new-asset-choose-button-image-text"}>&#x24;</span>,
+            imageElement: (
+                <div className="new-asset-choose-button-symbol">
+                    <div className={"new-asset-choose-button-image-text"}>&#x24;</div>
+                </div>
+            ),
         },
         {
             name: "EUR",
             type: "fiat",
             imageType: "text",
-            imageElement: <span className={"new-asset-choose-button-image-text"}>&euro;</span>,
+            imageElement: (
+                <div className="new-asset-choose-button-symbol">
+                    <div className={"new-asset-choose-button-image-text"}>&euro;</div>
+                </div>
+            ),
         },
         {
             name: "UAH",
             type: "fiat",
             imageType: "text",
-            imageElement: <span className={"new-asset-choose-button-image-text"}>&#8372;</span>,
+            imageElement: (
+                <div className="new-asset-choose-button-symbol">
+                    <div className={"new-asset-choose-button-image-text"}>&#8372;</div>
+                </div>
+            ),
         },
         {
             name: "USDT",
             type: "crypto",
             imageType: "image",
-            imageElement: <img src={usdtIcon}
-                               alt="USDT"
-                               className={"new-asset-choose-button-image-icon"}/>,
+            imageElement: (
+                <div className="new-asset-choose-button-image">
+                    <img src={usdtIcon}
+                         alt="USDT"
+                         className={"new-asset-choose-button-image-icon"}/>
+                </div>
+            ),
         },
         {
             name: "BTC",
             type: "crypto",
             imageType: "image",
-            imageElement: <img src={btcIcon}
-                               alt="BTC"
-                               className={"new-asset-choose-button-image-icon"}/>,
+            imageElement: (
+                <div className="new-asset-choose-button-image">
+                    <img src={btcIcon}
+                         alt="BTC"
+                         className={"new-asset-choose-button-image-icon"}/>
+                </div>
+            ),
         },
         {
             name: "ETH",
             type: "crypto",
             imageType: "image",
-            imageElement: <img src={ethIcon}
-                               alt="ETH"
-                               className={"new-asset-choose-button-image-icon"}/>,
+            imageElement: (
+                <div className="new-asset-choose-button-image">
+                    <img src={ethIcon}
+                         alt="ETH"
+                         className={"new-asset-choose-button-image-icon"}/>
+                </div>
+            ),
         },
     ];
     let totalCurrencies = Object.keys(monobankCurrencies || {}).concat(binanceCurrencies || []);
@@ -122,9 +146,7 @@ export default function NewAssetWindow(
                                      onClick={() => onNewAssetCurrencySelected(currency.name)}
                                      className={"new-asset-choose-button button layer-3-themed-color " +
                                      " flex-box-centered flex-direction-column"}>
-                                    <div className="new-asset-choose-button-image">
-                                        {currency.imageElement}
-                                    </div>
+                                    {currency.imageElement}
                                     <div className="new-asset-choose-button-name">{currency.name}</div>
                                 </div>
                             ))
