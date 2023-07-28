@@ -31,7 +31,7 @@ export default function ColdWallet() {
     const loggedIn = !!userData && !userData.loginRequired;
 
     return (
-        <div className={"App background-themed-color"}>
+        <div className={"application background-themed-color"}>
             {loaded
                 ? loggedIn
                     ? AssetsDashboard(
