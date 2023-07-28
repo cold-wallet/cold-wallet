@@ -10,7 +10,7 @@ export default function CreateWalletButton(setUserData) {
     return (
         <div
             onClick={createWallet}
-            className={"startup-login-box-button layer-2-themed-color button"}>
+            className={"startup-login-box-button layer-2-themed-color pad"}>
             create new wallet
         </div>
     );
