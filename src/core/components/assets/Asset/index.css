@@ -5,10 +5,11 @@
   height: 7%;
   min-height: 7%;
   flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .asset-row:hover {
-  opacity: 0.8;
+  background-color: #91cbc2;
 }
 
 .asset-item-value {

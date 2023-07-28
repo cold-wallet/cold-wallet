@@ -21,6 +21,9 @@
   position: absolute;
   z-index: 2;
   justify-content: space-between;
+  border: 2px solid #3e3e3e;
+  box-shadow: 5px 5px 20px 0;
+  border-radius: 5px;
 }
 
 .modal-window-large {
@@ -40,6 +43,9 @@
 .modal-window-header {
   width: 100%;
   justify-content: end;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  box-shadow: 0 0 7px 0 #35605a;
 }
 
 .modal-window-header-small {

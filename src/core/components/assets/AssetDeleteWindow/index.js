@@ -36,7 +36,7 @@ export default function AssetDeleteWindow(
             }</div>
         }
         bottom={
-            <div className="confirm-delete-asset-buttons flex-box-centered flex-direction-row">
+            <div className="confirm-delete-asset-buttons flex-box-centered flex-direction-row layer-1-themed-color">
                 <div onClick={deleteAsset}
                      className="confirm-delete-asset-button button negative-button">Delete
                 </div>

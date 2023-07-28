@@ -144,7 +144,7 @@ export default function NewAssetWindow(
                             currencies.map((currency, i) => (
                                 <div key={i}
                                      onClick={() => onNewAssetCurrencySelected(currency.name)}
-                                     className={"new-asset-choose-button button layer-3-themed-color " +
+                                     className={"new-asset-choose-button pad layer-3-themed-color " +
                                      " flex-box-centered flex-direction-column"}>
                                     {currency.imageElement}
                                     <div className="new-asset-choose-button-name">{currency.name}</div>
@@ -172,7 +172,7 @@ export default function NewAssetWindow(
                                 <div key={i}
                                      onClick={() => onNewAssetIntegrationSelected(integration.name)}
                                      className={"new-asset-integration flex-box-centered" +
-                                     " flex-direction-row button layer-3-themed-color"}>
+                                     " flex-direction-row pad layer-3-themed-color"}>
                                     <div className={"new-asset-integration-logo " + integration.logoClass}
                                          title={integration.name}>
                                         {integration.logo}

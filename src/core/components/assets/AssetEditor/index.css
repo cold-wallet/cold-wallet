@@ -5,6 +5,7 @@
   height: 11%;
   min-height: 11%;
   flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .edit-asset-item-value {
