@@ -48,6 +48,10 @@
   box-shadow: 0 0 7px 0 #35605a;
 }
 
+.modal-window-header-centered {
+  justify-content: center;
+}
+
 .modal-window-header-small {
   height: 10%;
 }
