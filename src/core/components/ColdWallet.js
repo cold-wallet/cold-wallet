@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
-import BinanceLoader from "../../../web/integrations/binance/BinanceLoader";
-import MonobankLoader from "../../../web/integrations/monobank/MonobankLoader";
-import LoadingWindow from "../LoadingWindow";
-import NotLoggedIn from "../NotLoggedIn";
-import AssetsDashboard from "../assets/AssetsDashboard";
-import OnStartupLoader from "../OnStartupLoader";
-import UserData from "../../../web/storage/UserData";
+import BinanceLoader from "./../../web/integrations/binance/BinanceLoader";
+import MonobankLoader from "./../../web/integrations/monobank/MonobankLoader";
+import LoadingWindow from "./LoadingWindow";
+import NotLoggedIn from "./NotLoggedIn";
+import AssetsDashboard from "./assets/AssetsDashboard";
+import OnStartupLoader from "./OnStartupLoader";
+import UserData from "./../../web/storage/UserData";
 
 export default function ColdWallet() {
     const {binancePrices, binancePricesLoaded, binanceCurrencies, binanceCurrenciesLoaded} = BinanceLoader();
@@ -27,6 +27,18 @@ export default function ColdWallet() {
     const [isNewAssetNameInvalid, setIsNewAssetNameInvalid] = useState(false);
     const [assetToDelete, setAssetToDelete] = useState(null);
     const [assetToEdit, setAssetToEdit] = useState(null);
+
+    function stateReset() {
+        setShowCreateNewAssetWindow(false);
+        setCreatingNewAsset(false);
+        setNewAssetCurrency(null);
+        setNewAssetAmount(null);
+        setNewAssetName(null);
+        setIsNewAssetAmountInvalid(false);
+        setIsNewAssetNameInvalid(false);
+        setAssetToDelete(null);
+        setAssetToEdit(null);
+    }
 
     const loggedIn = !!userData && !userData.loginRequired;
 
@@ -57,6 +69,7 @@ export default function ColdWallet() {
                         setAssetToDelete,
                         assetToEdit,
                         setAssetToEdit,
+                        stateReset,
                     )
                     : NotLoggedIn(userData, setUserData)
                 : LoadingWindow(binancePricesLoaded,

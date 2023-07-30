@@ -5,7 +5,6 @@ import AssetEditor from "../AssetEditor";
 
 export default function EditAsset(
     assetToEdit,
-    setAssetToEdit,
     userData,
     setUserData,
     isNewAssetAmountInvalid,
@@ -16,6 +15,7 @@ export default function EditAsset(
     setNewAssetName,
     isNewAssetNameInvalid,
     setIsNewAssetNameInvalid,
+    stateReset,
 ) {
     if (newAssetName === null) {
         setNewAssetName(assetToEdit.name)
@@ -42,11 +42,7 @@ export default function EditAsset(
     }
 
     const onCancelAsset = () => {
-        setNewAssetAmount(null);
-        setNewAssetName(null);
-        setAssetToEdit(null);
-        setIsNewAssetNameInvalid(false);
-        setIsNewAssetAmountInvalid(false);
+        stateReset();
     }
 
     return (

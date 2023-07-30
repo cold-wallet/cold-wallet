@@ -5,7 +5,6 @@ import AssetEditor from "../AssetEditor";
 
 export default function EditNewAsset(
     assetCurrency,
-    setNewAssetCurrency,
     isNewAssetAmountInvalid,
     setIsNewAssetAmountInvalid,
     newAssetAmount,
@@ -18,6 +17,7 @@ export default function EditNewAsset(
     userData,
     setUserData,
     setCreatingNewAsset,
+    stateReset,
 ) {
     let fiatCurrency = fiatCurrencies.getByStringCode(assetCurrency);
     const decimalScale = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
@@ -33,21 +33,11 @@ export default function EditNewAsset(
             newAssetName, decimalScale);
         userDataNew.assets.unshift(newAsset)
         setUserData(userDataNew);
-        setNewAssetAmount(null);
-        setNewAssetCurrency(null);
-        setNewAssetName(null);
-        setIsNewAssetNameInvalid(false);
-        setIsNewAssetAmountInvalid(false);
-        setCreatingNewAsset(false);
-        setShowCreateNewAssetWindow(false);
+        stateReset();
     }
 
     const onCancel = () => {
-        setNewAssetAmount(null);
-        setNewAssetCurrency(null);
-        setNewAssetName(null);
-        setIsNewAssetNameInvalid(false);
-        setIsNewAssetAmountInvalid(false);
+        stateReset();
         setCreatingNewAsset(!(userData.assets?.length));
         setShowCreateNewAssetWindow(!(userData.assets?.length));
     }

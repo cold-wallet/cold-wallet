@@ -31,6 +31,7 @@ export default function AssetsDashboard(
     setAssetToDelete,
     assetToEdit,
     setAssetToEdit,
+    stateReset,
 ) {
     return (
         <div className={"application-box flex-box flex-direction-row"}>
@@ -44,21 +45,16 @@ export default function AssetsDashboard(
             )}
             {assetToDelete && AssetDeleteWindow(
                 assetToDelete, setAssetToDelete, userData, setUserData, setShowCreateNewAssetWindow,
-                setCreatingNewAsset,
+                setCreatingNewAsset, stateReset,
             )}
             <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
                 {AddNewAssetButton(
                     setShowCreateNewAssetWindow,
                     setCreatingNewAsset,
-                    setAssetToEdit,
-                    setNewAssetAmount,
-                    setNewAssetName,
-                    setIsNewAssetAmountInvalid,
-                    setIsNewAssetNameInvalid,
+                    stateReset,
                 )}
                 {!showCreateNewAssetWindow && creatingNewAsset && EditNewAsset(
                     newAssetCurrency,
-                    setNewAssetCurrency,
                     isNewAssetAmountInvalid,
                     setIsNewAssetAmountInvalid,
                     newAssetAmount,
@@ -71,11 +67,11 @@ export default function AssetsDashboard(
                     userData,
                     setUserData,
                     setCreatingNewAsset,
+                    stateReset,
                 )}
                 {(userData.assets || []).map(asset => (assetToEdit && (asset.id === assetToEdit.id))
                     ? EditAsset(
                         assetToEdit,
-                        setAssetToEdit,
                         userData,
                         setUserData,
                         isNewAssetAmountInvalid,
@@ -86,6 +82,7 @@ export default function AssetsDashboard(
                         setNewAssetName,
                         isNewAssetNameInvalid,
                         setIsNewAssetNameInvalid,
+                        stateReset,
                     )
                     : Asset(
                         asset,
@@ -93,9 +90,7 @@ export default function AssetsDashboard(
                         setAssetToEdit,
                         setNewAssetAmount,
                         setNewAssetName,
-                        setIsNewAssetNameInvalid,
-                        setIsNewAssetAmountInvalid,
-                        setCreatingNewAsset,
+                        stateReset,
                     ))}
             </div>
         </div>

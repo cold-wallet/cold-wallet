@@ -7,23 +7,16 @@ import SettingsIcon from './../../../../resources/images/icons8-settings.svg'
 export default function AssetsManageButtons(
     setShowCreateNewAssetWindow,
     setCreatingNewAsset,
-    setAssetToEdit,
-    setNewAssetAmount,
-    setNewAssetName,
-    setIsNewAssetAmountInvalid,
-    setIsNewAssetNameInvalid,
+    stateReset,
 ) {
     const addNewAssetButtonClicked = () => {
+        stateReset();
         setShowCreateNewAssetWindow(true);
         setCreatingNewAsset(true);
-        setAssetToEdit(null);
-        setNewAssetAmount(null);
-        setNewAssetName(null);
-        setIsNewAssetAmountInvalid(false);
-        setIsNewAssetNameInvalid(false);
     }
 
     const showConfigsWindow = () => {
+        stateReset();
     }
 
     return (

@@ -10,29 +10,20 @@ export default function Asset(
     setAssetToEdit,
     setNewAssetAmount,
     setNewAssetName,
-    setIsAssetNameInvalid,
-    setIsAssetAmountInvalid,
-    setCreatingNewAsset,
+    stateReset,
 ) {
     let decimalScale = asset.decimalScale || 8;
 
     const onEditAsset = (asset) => {
+        stateReset();
         setAssetToEdit(asset);
         setNewAssetAmount(asset.amount);
         setNewAssetName(asset.name);
-        setIsAssetNameInvalid(false);
-        setIsAssetAmountInvalid(false);
-        setCreatingNewAsset(false);
     }
 
     const onDeleteAsset = (asset) => {
+        stateReset();
         setAssetToDelete(asset);
-        setNewAssetAmount(null);
-        setNewAssetName(null);
-        setAssetToEdit(null);
-        setIsAssetNameInvalid(false);
-        setIsAssetAmountInvalid(false);
-        setCreatingNewAsset(false);
     }
 
     return (

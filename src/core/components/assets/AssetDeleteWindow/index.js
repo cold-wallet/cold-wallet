@@ -11,16 +11,17 @@ export default function AssetDeleteWindow(
     setUserData,
     setShowCreateNewAssetWindow,
     setCreatingNewAsset,
+    stateReset,
 ) {
     const onCancel = () => {
-        setAssetToDelete(null);
+        stateReset();
     }
 
     const deleteAsset = () => {
         const userDataNew = {...userData};
         userDataNew.assets = userDataNew.assets.filter(asset => asset.id !== assetToDelete.id);
         setUserData(userDataNew);
-        setAssetToDelete(null);
+        stateReset();
 
         if (!(userDataNew.assets.length)) {
             setCreatingNewAsset(true);
