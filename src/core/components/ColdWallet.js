@@ -3,7 +3,7 @@ import BinanceLoader from "./../../web/integrations/binance/BinanceLoader";
 import MonobankLoader from "./../../web/integrations/monobank/MonobankLoader";
 import LoadingWindow from "./LoadingWindow";
 import NotLoggedIn from "./NotLoggedIn";
-import AssetsDashboard from "./assets/AssetsDashboard";
+import AssetsDashboard from "./AssetsDashboard";
 import OnStartupLoader from "./OnStartupLoader";
 import UserData from "./../../web/storage/UserData";
 
@@ -27,6 +27,7 @@ export default function ColdWallet() {
     const [isNewAssetNameInvalid, setIsNewAssetNameInvalid] = useState(false);
     const [assetToDelete, setAssetToDelete] = useState(null);
     const [assetToEdit, setAssetToEdit] = useState(null);
+    const [showConfigsWindow, setShowConfigsWindow] = useState(false);
 
     function stateReset() {
         setShowCreateNewAssetWindow(false);
@@ -38,6 +39,7 @@ export default function ColdWallet() {
         setIsNewAssetNameInvalid(false);
         setAssetToDelete(null);
         setAssetToEdit(null);
+        setShowConfigsWindow(false);
     }
 
     const loggedIn = !!userData && !userData.loginRequired;
@@ -46,7 +48,7 @@ export default function ColdWallet() {
         <div className={"application background-themed-color"}>
             {loaded
                 ? loggedIn
-                    ? AssetsDashboard(
+                    ? AssetsDashboard({
                         showCreateNewAssetWindow,
                         setShowCreateNewAssetWindow,
                         creatingNewAsset,
@@ -70,7 +72,9 @@ export default function ColdWallet() {
                         assetToEdit,
                         setAssetToEdit,
                         stateReset,
-                    )
+                        showConfigsWindow,
+                        setShowConfigsWindow,
+                    })
                     : NotLoggedIn(userData, setUserData)
                 : LoadingWindow(binancePricesLoaded,
                     binancePrices,

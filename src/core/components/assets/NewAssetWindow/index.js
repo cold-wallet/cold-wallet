@@ -134,7 +134,7 @@ export default function NewAssetWindow(
         onCancel={onClose}
         large={true}
         closeable={otherAssetsExist}
-        title={<div className="create-new-asset-window-title text-label flex-box-centered">Create new asset</div>}
+        title={"Create new asset"}
         children={
             <div className="new-asset-controls-box flex-box-centered flex-direction-row">
                 <div className="new-asset-choose-box flex-box-centered flex-direction-column">

@@ -38,14 +38,15 @@ export default function AssetDeleteWindow(
                 `Delete ${assetToDelete.amount} ${assetToDelete.normalizedName}?`
             }</div>
         }
-        bottom={
-            <div className="confirm-delete-asset-buttons flex-box-centered flex-direction-row layer-1-themed-color">
-                <NegativeButton onClick={deleteAsset}
-                                className="confirm-delete-asset-button">Delete
-                </NegativeButton>
-                <NeutralButton onClick={onCancel}
-                               className="confirm-delete-asset-button">Cancel
-                </NeutralButton>
-            </div>
+        bottom={[
+            <NegativeButton onClick={deleteAsset}
+                            key={"delete"}
+                            className="confirm-delete-asset-button">Delete
+            </NegativeButton>,
+            <NeutralButton onClick={onCancel}
+                           key={"cancel"}
+                           className="confirm-delete-asset-button">Cancel
+            </NeutralButton>
+        ]
         }/>
 }

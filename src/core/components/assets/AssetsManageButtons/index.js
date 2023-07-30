@@ -4,11 +4,12 @@ import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
 import SettingsIcon from './../../../../resources/images/icons8-settings.svg'
 
-export default function AssetsManageButtons(
-    setShowCreateNewAssetWindow,
-    setCreatingNewAsset,
-    stateReset,
-) {
+export default function AssetsManageButtons({
+                                                setShowCreateNewAssetWindow,
+                                                setCreatingNewAsset,
+                                                setShowConfigsWindow,
+                                                stateReset,
+                                            }) {
     const addNewAssetButtonClicked = () => {
         stateReset();
         setShowCreateNewAssetWindow(true);
@@ -17,6 +18,7 @@ export default function AssetsManageButtons(
 
     const showConfigsWindow = () => {
         stateReset();
+        setShowConfigsWindow(true);
     }
 
     return (
