@@ -1,4 +1,5 @@
 import axios from "axios";
+import ApiResponse from "../../domain/ApiResponse";
 
 const binanceApiDomain = 'https://api.binance.com';
 const apiV3Prefix = '/api/v3';
@@ -14,23 +15,23 @@ const binanceApiClient = {
                     result[rate.symbol] = rate.price;
                     return result
                 }, {});
-                return {
-                    success: true,
+                return ApiResponse.success({
+                    code: response.status,
                     result: prices,
-                }
+                })
             } else {
                 console.warn("received empty response:", response);
-                return {
-                    success: false,
+                return ApiResponse.fail({
+                    code: 0,
                     error: "empty response"
-                }
+                })
             }
         } catch (error) {
             console.warn('Error fetching prices from binance:', error.message || error);
-            return {
-                success: false,
+            return ApiResponse.fail({
+                code: error?.response?.status,
                 error: error.message || error.response?.data?.errorDescription
-            }
+            })
         }
     },
     fetchBinanceCurrencies: async () => {
@@ -44,22 +45,22 @@ const binanceApiClient = {
                         result[symbol.quoteAsset] = true;
                         return result
                     }, {}));
-                return {
-                    success: true,
+                return ApiResponse.success({
+                    code: response.status,
                     result: binanceCurrenciesLoaded,
-                }
+                })
             } else {
-                return {
-                    success: false,
+                return ApiResponse.fail({
+                    code: 0,
                     error: "empty response",
-                }
+                })
             }
         } catch (error) {
             console.warn('Error fetching currencies from binance:', error.message || error);
-            return {
-                success: false,
-                error: error.message || error.response?.data?.errorDescription
-            }
+            return ApiResponse.fail({
+                code: error?.response?.status,
+                error: error.message || error.response?.data?.errorDescription,
+            })
         }
     }
 }

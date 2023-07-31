@@ -1,5 +1,6 @@
 import axios from "axios";
 import fiatCurrencies from "../../fiatCurrencies";
+import ApiResponse from "../../domain/ApiResponse";
 
 const urlMonobankRates = 'https://api.monobank.ua/bank/currency';
 
@@ -19,26 +20,26 @@ const monobankApiClient = {
                     result[currencyB.code] = currencyB;
                     return result
                 }, {})
-                return {
-                    success: true,
+                return ApiResponse.success({
+                    code: response.status,
                     result: {
                         rates: response.data,
                         currencies: monobankCurrencies,
                     }
-                }
+                })
             } else {
-                return {
-                    success: false,
+                return ApiResponse.fail({
+                    code: 0,
                     error: "empty response",
-                }
+                })
             }
         } catch (error) {
-            return {
-                success: false,
+            return ApiResponse.fail({
+                code: error.response?.status,
                 error: error.response?.data?.errorDescription,
-            }
+            })
         }
-    }
+    },
 }
 
 export default monobankApiClient;
