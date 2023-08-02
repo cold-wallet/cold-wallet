@@ -11,7 +11,7 @@ const BinanceLoader = () => {
                 setBinancePrices(response.result);
                 setBinancePricesLoaded(true);
             } else {
-                console.warn('Error fetching prices from binance:', response.error);
+                console.warn('Error fetching prices from binance:', response);
             }
         })
     };

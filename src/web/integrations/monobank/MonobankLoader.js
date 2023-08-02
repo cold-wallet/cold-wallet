@@ -1,13 +1,13 @@
 import {useEffect, useState} from "react";
 import useInterval from "../../../core/utils/useInterval";
-import monobankApiCLient from "../../../core/integrations/monobank/monobankApiClient";
+import monobankApiClient from "../../../core/integrations/monobank/monobankApiClient.ts";
 
 const MonobankLoader = () => {
 
     const [monobankRates, setMonobankRates] = useState(JSON.parse(localStorage.getItem('monobankRates')));
     const [monobankCurrencies, setMonobankCurrencies] = useState(JSON.parse(localStorage.getItem('monobankCurrencies')));
     let loadMonobank = () => {
-        monobankApiCLient.fetchMonobankRatesAndCurrencies().then(response => {
+        monobankApiClient.fetchMonobankRatesAndCurrencies().then(response => {
             if (response.success) {
                 setMonobankRates(response.result.rates);
                 setMonobankCurrencies(response.result.currencies);
