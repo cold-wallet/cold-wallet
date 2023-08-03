@@ -17,6 +17,8 @@ export default function SettingsWindow({
                                            setMonobankApiTokenInputInvalid,
                                            monobankUserData,
                                            setMonobankUserData,
+                                           monobankUserDataLoading,
+                                           setMonobankUserDataLoading,
                                        }) {
     function onCancelClicked() {
         stateReset()
@@ -35,7 +37,12 @@ export default function SettingsWindow({
     async function validateSettings() {
         const settingsValidationResult = new SettingsValidationResult();
 
-        if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled) {
+        if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled
+            || (monobankSettingsEnabled || userData.settings.monobankIntegrationEnabled)
+            && !(userData.settings.monobankIntegrationEnabled && !monobankSettingsEnabled)
+            && userData.settings.monobankIntegrationToken
+            && userData.settings.monobankIntegrationToken !== monobankApiTokenInput
+        ) {
             if (!monobankApiTokenInput) {
                 settingsValidationResult.monobankTokenInputInvalid = true;
             } else {
@@ -52,6 +59,16 @@ export default function SettingsWindow({
     }
 
     function onSaveClicked() {
+        if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled
+            || (monobankSettingsEnabled || userData.settings.monobankIntegrationEnabled)
+            && !(userData.settings.monobankIntegrationEnabled && !monobankSettingsEnabled)
+            && userData.settings.monobankIntegrationToken
+            && userData.settings.monobankIntegrationToken !== monobankApiTokenInput
+        ) {
+            if (monobankApiTokenInput) {
+                setMonobankUserDataLoading(true)
+            }
+        }
         validateSettings()
             .then(settingsValidationResult => {
                 if (settingsValidationResult.isValid()) {
@@ -79,6 +96,7 @@ export default function SettingsWindow({
                 } else {
                     if (settingsValidationResult.monobankTokenInputInvalid) {
                         setMonobankApiTokenInputInvalid(true)
+                        setMonobankUserDataLoading(false)
                     }
                 }
             })
@@ -100,7 +118,7 @@ export default function SettingsWindow({
                     />&nbsp;<span>Enable monobank integration</span></label>
                 </div>
                 <div className="setting-box layer-3-themed-color flex-box flex-direction-column">
-                    <div className={"setting-row"}>
+                    <div className={"setting-row flex-box-centered flex-direction-row"}>
                         <input type="text"
                                disabled={!monobankSettingsEnabled}
                                placeholder="monobank API token"
@@ -112,12 +130,7 @@ export default function SettingsWindow({
                                }}
                                defaultValue={userData.settings.monobankIntegrationToken}
                         />
-                        {
-                            // !this.state.saveSettingsRequested ? null : (
-                            //     <span>Checking...</span>
-                            //     //    todo: add loading animation
-                            // )
-                        }
+                        {monobankUserDataLoading ? <progress className={"setting-row-progress"}/> : null}
                     </div>
                     <div className="setting-monobank-info">
                         <a target="new-window" href="https://api.monobank.ua/">Get monobank API
@@ -139,16 +152,14 @@ export default function SettingsWindow({
                     {MonobankSettings({})}
                 </div>
             }
-            bottom={[
+            bottom={<>
                 <PositiveButton onClick={onSaveClicked}
-                                key={"save"}
                                 className="settings-window-bottom-button">Save
-                </PositiveButton>,
+                </PositiveButton>
                 <NeutralButton onClick={onCancelClicked}
-                               key={"cancel"}
                                className="settings-window-bottom-button">Cancel
                 </NeutralButton>
-            ]}
+            </>}
         />
     )
 }

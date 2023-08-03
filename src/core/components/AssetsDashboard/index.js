@@ -43,6 +43,8 @@ export default function AssetsDashboard({
                                             setMonobankApiTokenInputInvalid,
                                             monobankUserData,
                                             setMonobankUserData,
+                                            monobankUserDataLoading,
+                                            setMonobankUserDataLoading,
                                         }) {
     return (
         <div className={"application-box flex-box flex-direction-row"}>
@@ -70,6 +72,8 @@ export default function AssetsDashboard({
                 setMonobankApiTokenInputInvalid,
                 monobankUserData,
                 setMonobankUserData,
+                monobankUserDataLoading,
+                setMonobankUserDataLoading,
             })}
             <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
                 {AssetsManageButtons({

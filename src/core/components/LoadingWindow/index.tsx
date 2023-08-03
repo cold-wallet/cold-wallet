@@ -15,16 +15,16 @@ export default function LoadingWindow(
         <div className={"startup-loading-box layer-1-themed-color"}>
             <p>{binancePricesLoaded && binancePrices
                 ? `BTC/USDT: ${binancePrices["BTCUSDT"]}`
-                : 'Loading binance prices...'}</p>
+                : <>Loading binance prices... <progress/></>}</p>
             <p>{binanceCurrenciesLoaded && binanceCurrencies
                 ? `binance currencies: ${Object.keys(binanceCurrencies).length}`
-                : 'Loading binance currencies...'}</p>
+                : <>Loading binance currencies... <progress/></>}</p>
             <p>{monobankRates
                 ? `USD/UAH: ${(monobankRates[0].rateSell + monobankRates[0].rateBuy) / 2}`
-                : 'Loading monobank rates...'}</p>
+                : <>Loading monobank rates... <progress/></>}</p>
             <p>{monobankCurrencies
                 ? `monobank currencies: ${Object.keys(monobankCurrencies || {}).length}`
-                : 'Loading monobank currencies...'}</p>
+                : <>Loading monobank currencies... <progress/></>}</p>
         </div>
     )
 }
