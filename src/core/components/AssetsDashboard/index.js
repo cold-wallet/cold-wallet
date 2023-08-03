@@ -57,6 +57,7 @@ export default function AssetsDashboard({
                     setCreatingNewAsset,
                     setShowConfigsWindow,
                     stateReset,
+                    userData,
                 })}
                 {!showCreateNewAssetWindow && creatingNewAsset && EditNewAsset(
                     newAssetCurrency,

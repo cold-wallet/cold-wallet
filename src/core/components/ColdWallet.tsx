@@ -1,23 +1,25 @@
 import React, {useState} from 'react';
-import BinanceLoader from "./../../web/integrations/binance/BinanceLoader";
-import MonobankLoader from "./../../web/integrations/monobank/MonobankLoader";
+import BinanceLoader from "./../integrations/binance/BinanceLoader";
+import MonobankLoader from "./../integrations/monobank/MonobankLoader";
 import LoadingWindow from "./LoadingWindow";
 import NotLoggedIn from "./NotLoggedIn";
 import AssetsDashboard from "./AssetsDashboard";
 import OnStartupLoader from "./OnStartupLoader";
-import UserDataStorage from "./../../web/storage/UserDataStorage";
+import StorageFactory from "../domain/StorageFactory";
+import UserData from "../domain/UserData";
 
-export default function ColdWallet() {
-    const {binancePrices, binancePricesLoaded, binanceCurrencies, binanceCurrenciesLoaded} = BinanceLoader();
-    const {monobankRates, monobankCurrencies} = MonobankLoader();
+export default function ColdWallet(props: StorageFactory,) {
+    const {binancePrices, binancePricesLoaded, binanceCurrencies, binanceCurrenciesLoaded} = BinanceLoader(props as StorageFactory);
+    const {monobankRates, monobankCurrencies} = MonobankLoader(props as StorageFactory);
     const {loaded} = OnStartupLoader(
         binancePricesLoaded,
         binanceCurrenciesLoaded,
         monobankRates,
         monobankCurrencies,
     );
-    const {userData, setUserData} = UserDataStorage();
-
+    const [userData, setUserData] = props.createStorage<UserData>(
+        "userData", () => new UserData()
+    );
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData.assets.length));
     const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData.assets.length));
     const [newAssetCurrency, setNewAssetCurrency] = useState(null);

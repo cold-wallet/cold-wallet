@@ -1,22 +1,24 @@
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import useInterval from "../../../core/utils/useInterval";
 import monobankApiClient from "../../../core/integrations/monobank/monobankApiClient";
 import ApiResponse from "../../../core/domain/ApiResponse";
 import MonobankPublicDataResponse from "../../../core/integrations/monobank/MonobankPublicDataResponse";
-import MonobankCurrencyResponse from "../../../core/integrations/monobank/MonobankCurrencyResponse";
 import FiatCurrency from "../../../core/fiatCurrencies/FiatCurrency";
+import MonobankCurrencyResponse from "../../../core/integrations/monobank/MonobankCurrencyResponse";
+import StorageFactory from "../../domain/StorageFactory";
 
-const ratesKey = 'monobankRates';
-const currenciesKey = 'monobankCurrencies';
+const MonobankLoader = (storageFactory: StorageFactory) => {
 
-const MonobankLoader = () => {
+    const [
+        monobankRates,
+        setMonobankRates
+    ] = storageFactory.createStorageNullable<MonobankCurrencyResponse[]>("monobankRates");
 
-    let ratesStored = localStorage.getItem(ratesKey);
-    let ratesInitialState: MonobankCurrencyResponse[] | null = ratesStored ? JSON.parse(ratesStored) : null;
-    const [monobankRates, setMonobankRates] = useState(ratesInitialState);
-    let currenciesStored = localStorage.getItem(currenciesKey);
-    let currenciesInitialState: { [index: string]: FiatCurrency } | null = currenciesStored ? JSON.parse(currenciesStored) : null;
-    const [monobankCurrencies, setMonobankCurrencies] = useState(currenciesInitialState);
+    const [
+        monobankCurrencies,
+        setMonobankCurrencies
+    ] = storageFactory.createStorageNullable<{ [index: string]: FiatCurrency }>("monobankCurrencies");
+
     let loadMonobank = () => {
         monobankApiClient.fetchMonobankRatesAndCurrencies()
             .then((response: ApiResponse<MonobankPublicDataResponse | any>) => {
@@ -31,13 +33,6 @@ const MonobankLoader = () => {
     };
     useEffect(loadMonobank, []);
     useInterval(loadMonobank, 60000);
-    useEffect(() => {
-        monobankRates && localStorage.setItem(ratesKey, JSON.stringify(monobankRates));
-    }, [monobankRates]);
-    useEffect(() => {
-        let stringify = JSON.stringify(monobankCurrencies);
-        monobankCurrencies && localStorage.setItem(currenciesKey, stringify);
-    }, [monobankCurrencies]);
 
     return {
         monobankRates,

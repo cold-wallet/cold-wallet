@@ -9,6 +9,7 @@ export default function AssetsManageButtons({
                                                 setCreatingNewAsset,
                                                 setShowConfigsWindow,
                                                 stateReset,
+                                                userData,
                                             }) {
     const addNewAssetButtonClicked = () => {
         stateReset();
@@ -21,7 +22,7 @@ export default function AssetsManageButtons({
         setShowConfigsWindow(true);
     }
 
-    return (
+    return userData.assets.length ? (
         <div className="add-new-asset-row flex-box flex-direction-row">
             <NeutralButton onClick={showConfigsWindow}
                            className={"show-configs-window-button"}
@@ -30,5 +31,5 @@ export default function AssetsManageButtons({
                             className={"add-new-asset-button layer-3-themed-color"}
             >+</PositiveButton>
         </div>
-    )
+    ) : null
 }
