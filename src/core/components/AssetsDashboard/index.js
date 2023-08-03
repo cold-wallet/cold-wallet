@@ -35,6 +35,14 @@ export default function AssetsDashboard({
                                             stateReset,
                                             showConfigsWindow,
                                             setShowConfigsWindow,
+                                            monobankSettingsEnabled,
+                                            setMonobankSettingsEnabled,
+                                            monobankApiTokenInput,
+                                            setMonobankApiTokenInput,
+                                            monobankApiTokenInputInvalid,
+                                            setMonobankApiTokenInputInvalid,
+                                            monobankUserData,
+                                            setMonobankUserData,
                                         }) {
     return (
         <div className={"application-box flex-box flex-direction-row"}>
@@ -50,7 +58,19 @@ export default function AssetsDashboard({
                 assetToDelete, setAssetToDelete, userData, setUserData, setShowCreateNewAssetWindow,
                 setCreatingNewAsset, stateReset,
             )}
-            {showConfigsWindow && <SettingsWindow stateReset={stateReset}/>}
+            {showConfigsWindow && SettingsWindow({
+                stateReset,
+                userData,
+                setUserData,
+                monobankSettingsEnabled,
+                setMonobankSettingsEnabled,
+                monobankApiTokenInput,
+                setMonobankApiTokenInput,
+                monobankApiTokenInputInvalid,
+                setMonobankApiTokenInputInvalid,
+                monobankUserData,
+                setMonobankUserData,
+            })}
             <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
                 {AssetsManageButtons({
                     setShowCreateNewAssetWindow,

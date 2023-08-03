@@ -9,16 +9,23 @@ import StorageFactory from "../domain/StorageFactory";
 import UserData from "../domain/UserData";
 
 export default function ColdWallet(props: StorageFactory,) {
-    const {binancePrices, binancePricesLoaded, binanceCurrencies, binanceCurrenciesLoaded} = BinanceLoader(props as StorageFactory);
-    const {monobankRates, monobankCurrencies} = MonobankLoader(props as StorageFactory);
+    const storageFactory: StorageFactory = props;
+    const [userData, setUserData] = props.createStorage<UserData>(
+        "userData", () => new UserData()
+    );
+    const {binancePrices, binancePricesLoaded, binanceCurrencies, binanceCurrenciesLoaded} = BinanceLoader(storageFactory);
+    const {
+        monobankRates,
+        monobankCurrencies,
+        monobankUserData,
+        setMonobankUserData,
+    } = MonobankLoader(storageFactory, userData.settings.monobankIntegrationToken);
+
     const {loaded} = OnStartupLoader(
         binancePricesLoaded,
         binanceCurrenciesLoaded,
         monobankRates,
         monobankCurrencies,
-    );
-    const [userData, setUserData] = props.createStorage<UserData>(
-        "userData", () => new UserData()
     );
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData.assets.length));
     const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData.assets.length));
@@ -30,6 +37,11 @@ export default function ColdWallet(props: StorageFactory,) {
     const [assetToDelete, setAssetToDelete] = useState(null);
     const [assetToEdit, setAssetToEdit] = useState(null);
     const [showConfigsWindow, setShowConfigsWindow] = useState(false);
+    const [monobankSettingsEnabled, setMonobankSettingsEnabled] = useState(
+        userData.settings.monobankIntegrationEnabled
+    );
+    const [monobankApiTokenInput, setMonobankApiTokenInput] = useState(userData.settings.monobankIntegrationToken);
+    const [monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid] = useState(false);
 
     function stateReset() {
         setShowCreateNewAssetWindow(false);
@@ -42,6 +54,9 @@ export default function ColdWallet(props: StorageFactory,) {
         setAssetToDelete(null);
         setAssetToEdit(null);
         setShowConfigsWindow(false);
+        setMonobankSettingsEnabled(userData.settings.monobankIntegrationEnabled);
+        setMonobankApiTokenInput(userData.settings.monobankIntegrationToken);
+        setMonobankApiTokenInputInvalid(false);
     }
 
     const loggedIn = !!(userData.id)// || !userData.loginRequired;
@@ -76,6 +91,14 @@ export default function ColdWallet(props: StorageFactory,) {
                         stateReset,
                         showConfigsWindow,
                         setShowConfigsWindow,
+                        monobankSettingsEnabled,
+                        setMonobankSettingsEnabled,
+                        monobankApiTokenInput,
+                        setMonobankApiTokenInput,
+                        monobankApiTokenInputInvalid,
+                        setMonobankApiTokenInputInvalid,
+                        monobankUserData,
+                        setMonobankUserData,
                     })
                     : NotLoggedIn(userData, setUserData)
                 : LoadingWindow(binancePricesLoaded,

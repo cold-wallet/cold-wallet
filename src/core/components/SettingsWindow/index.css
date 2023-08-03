@@ -3,3 +3,33 @@
   height: 70%;
 }
 
+.settings-box {
+  height: 100%;
+  padding: 3%;
+}
+
+.setting-unit {
+  align-items: start;
+}
+
+.setting-box {
+  padding: 2%;
+  width: 95%;
+  align-items: start;
+}
+
+.setting-row {
+  padding-bottom: 2%;
+  width: 60%;
+}
+
+.settings-checkbox-row {
+  padding-bottom: 1%;
+}
+
+.setting-monobank-token-input {
+  padding: 2%;
+  width: 100%;
+  border-radius: 4px;
+  border-color: #6f9f98;
+}

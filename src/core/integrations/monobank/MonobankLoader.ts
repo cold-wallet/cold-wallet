@@ -6,8 +6,13 @@ import MonobankPublicDataResponse from "../../../core/integrations/monobank/Mono
 import FiatCurrency from "../../../core/fiatCurrencies/FiatCurrency";
 import MonobankCurrencyResponse from "../../../core/integrations/monobank/MonobankCurrencyResponse";
 import StorageFactory from "../../domain/StorageFactory";
+import MonobankUserDataStorage from "./MonobankUserDataStorage";
+import MonobankUserDataResponse from "./MonobankUserDataResponse";
 
-const MonobankLoader = (storageFactory: StorageFactory) => {
+const MonobankLoader = (
+    storageFactory: StorageFactory,
+    monobankIntegrationToken: string | null
+) => {
 
     const [
         monobankRates,
@@ -19,11 +24,11 @@ const MonobankLoader = (storageFactory: StorageFactory) => {
         setMonobankCurrencies
     ] = storageFactory.createStorageNullable<{ [index: string]: FiatCurrency }>("monobankCurrencies");
 
-    let loadMonobank = () => {
+    const loadMonobank = () => {
         monobankApiClient.fetchMonobankRatesAndCurrencies()
             .then((response: ApiResponse<MonobankPublicDataResponse | any>) => {
                 if (response.success && response.result) {
-                    let result: MonobankPublicDataResponse = response.result;
+                    const result: MonobankPublicDataResponse = response.result;
                     setMonobankRates(result.rates);
                     setMonobankCurrencies(result.currencies);
                 } else {
@@ -34,9 +39,33 @@ const MonobankLoader = (storageFactory: StorageFactory) => {
     useEffect(loadMonobank, []);
     useInterval(loadMonobank, 60000);
 
+    const [
+        monobankUserData,
+        setMonobankUserData
+    ] = MonobankUserDataStorage(storageFactory)
+
+    const loadMonobankUserData = () => {
+        if (!monobankIntegrationToken) {
+            return
+        }
+        monobankApiClient.getUserInfo(monobankIntegrationToken)
+            .then((response: ApiResponse<MonobankUserDataResponse | any>) => {
+                if (response.success && response.result) {
+                    const result: MonobankUserDataResponse = response.result;
+                    setMonobankUserData(result);
+                } else {
+                    console.warn('Error fetching user data from monobank:', response.error);
+                }
+            });
+    };
+    useEffect(loadMonobankUserData, []);
+    useInterval(loadMonobankUserData, 60000 * 5);
+
     return {
         monobankRates,
         monobankCurrencies,
+        monobankUserData,
+        setMonobankUserData,
     }
 }
 
