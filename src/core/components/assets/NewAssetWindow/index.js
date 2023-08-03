@@ -120,7 +120,7 @@ export default function NewAssetWindow(
         },
     ];
 
-    const otherAssetsExist = !!(userData?.assets?.length);
+    const otherAssetsExist = !!(userData.assets.length);
 
     const onClose = () => {
         if (!otherAssetsExist) {

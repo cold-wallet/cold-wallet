@@ -14,7 +14,7 @@ const binanceApiClient = {
             )
         }
     },
-    fetchBinanceCurrencies: async () => {
+    fetchBinanceCurrencies: async (): Promise<ApiResponse<string[] | any>> => {
         try {
             const response = await Binance().exchangeInfo();
             const binanceCurrenciesLoaded = response.symbols

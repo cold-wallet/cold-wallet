@@ -1,14 +1,14 @@
-class AssetDTO {
+export default class AssetDTO {
+    normalizedName
 
-    id;
-    currency;
-    amount;
-    name;
-    decimalScale;
-    normalizedName;
-
-    constructor(id, currency, amount, name, decimalScale) {
-        if (!id || !currency || !amount || !name || !decimalScale || amount <= 0) {
+    constructor(
+        public id: string,
+        public currency: string,
+        public amount: string,
+        public name: string,
+        public decimalScale: number,
+    ) {
+        if (!id || !currency || !amount || !name || !decimalScale || (+amount) <= 0) {
             throw new Error(`invalid asset parameters: ${id}, ${currency}, ${amount}, ${name}, ${decimalScale}`)
         }
         this.id = id;
@@ -20,5 +20,3 @@ class AssetDTO {
             ? `${this.currency} ` : "") + name;
     }
 }
-
-export default AssetDTO;

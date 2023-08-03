@@ -5,7 +5,7 @@ import LoadingWindow from "./LoadingWindow";
 import NotLoggedIn from "./NotLoggedIn";
 import AssetsDashboard from "./AssetsDashboard";
 import OnStartupLoader from "./OnStartupLoader";
-import UserData from "./../../web/storage/UserData";
+import UserDataStorage from "./../../web/storage/UserDataStorage";
 
 export default function ColdWallet() {
     const {binancePrices, binancePricesLoaded, binanceCurrencies, binanceCurrenciesLoaded} = BinanceLoader();
@@ -16,10 +16,10 @@ export default function ColdWallet() {
         monobankRates,
         monobankCurrencies,
     );
-    const {userData, setUserData} = UserData();
+    const {userData, setUserData} = UserDataStorage();
 
-    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData?.assets?.length));
-    const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData?.assets?.length));
+    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData.assets.length));
+    const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData.assets.length));
     const [newAssetCurrency, setNewAssetCurrency] = useState(null);
     const [newAssetAmount, setNewAssetAmount] = useState(null);
     const [newAssetName, setNewAssetName] = useState(null);
@@ -42,7 +42,7 @@ export default function ColdWallet() {
         setShowConfigsWindow(false);
     }
 
-    const loggedIn = !!userData && !userData.loginRequired;
+    const loggedIn = !!(userData.id)// || !userData.loginRequired;
 
     return (
         <div className={"application background-themed-color"}>
