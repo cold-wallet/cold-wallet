@@ -36,6 +36,13 @@
   border-color: #6f9f98;
 }
 
+.setting-binance-token-input {
+  padding: 1%;
+  width: 90%;
+  border-radius: 4px;
+  border-color: #6f9f98;
+}
+
 .setting-row-progress {
   margin: 1%;
 }
@@ -61,4 +68,13 @@
 .setting-label {
   display: flex;
   margin: 0 0 1% 1%;
+}
+
+.settings-go-back-row {
+  display: flex;
+  justify-content: flex-start;
+  padding: 2%;
+  width: 95%;
+  margin-bottom: 3%;
+  font-weight: bold;
 }

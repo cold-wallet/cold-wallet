@@ -63,6 +63,7 @@
 .modal-window-title {
   height: 100%;
   width: 90%;
+  font-weight: 900;
 }
 
 .modal-window-close-button {

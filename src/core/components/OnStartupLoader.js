@@ -15,7 +15,7 @@ export default function OnStartupLoader(
         ) {
             setLoaded(true)
         }
-    }, loaded ? null : 1000);
+    }, loaded ? null : 500);
 
     return {
         loaded

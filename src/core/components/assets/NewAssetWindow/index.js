@@ -93,7 +93,8 @@ export default function NewAssetWindow(
             ),
         },
     ];
-    let totalCurrencies = Object.keys(monobankCurrencies || {}).concat(binanceCurrencies || []);
+    let totalCurrencies = Object.keys(monobankCurrencies || {})
+        .concat(Object.keys(binanceCurrencies) || []);
     const selectCurrencies = Object.keys(totalCurrencies
         .reduce((result, value) => {
             result[value] = true;

@@ -6,6 +6,7 @@
   border: 1px solid #3e3e3e;
   box-shadow: 1px 1px 3px 0 #3e3e3e;
   border-radius: 3px;
+  font-weight: 500;
 }
 
 .button:hover {

@@ -1,11 +1,15 @@
 import {useEffect, useState} from "react";
-import binanceApiClient from "../../../core/integrations/binance/binanceApiClient";
+import binanceApiClient, {AccountInfo} from "../../../core/integrations/binance/binanceApiClient";
 import useInterval from "../../../core/utils/useInterval";
 import ApiResponse from "../../../core/domain/ApiResponse";
 import StorageFactory from "../../domain/StorageFactory";
+import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
 
 const BinanceLoader = (
     storageFactory: StorageFactory,
+    binanceIntegrationEnabled: boolean,
+    binanceIntegrationApiKey: string | null,
+    binanceIntegrationApiSecret: string | null,
 ) => {
     const [
         binancePrices,
@@ -24,31 +28,58 @@ const BinanceLoader = (
         })
     };
     useEffect(loadBinancePrices, []);
-    useInterval(loadBinancePrices, 5000);
+    useInterval(loadBinancePrices, 5_000);
 
     const [
         binanceCurrencies,
         setBinanceCurrencies
-    ] = storageFactory.createStorageNullable<string[]>("binanceCurrencies");
+    ] = storageFactory.createStorageNullable<{ [index: string]: BinanceCurrencyResponse }>("binanceCurrencies");
 
     const [binanceCurrenciesLoaded, setBinanceCurrenciesLoaded] = useState(false);
     let loadBinanceCurrencies = () => {
-        binanceApiClient.fetchBinanceCurrencies().then((response: ApiResponse<string[] | any>) => {
-            if (response.success) {
-                setBinanceCurrencies(response.result);
-                setBinanceCurrenciesLoaded(true);
-            } else {
-                console.warn('Error fetching currencies from binance:', response.error);
-            }
-        });
+        binanceApiClient.fetchBinanceCurrencies()
+            .then((response: ApiResponse<{ [index: string]: BinanceCurrencyResponse } | any>) => {
+                if (response.success) {
+                    setBinanceCurrencies(response.result);
+                    setBinanceCurrenciesLoaded(true);
+                } else {
+                    console.warn('Error fetching currencies from binance:', response.error);
+                }
+            });
     };
     useEffect(loadBinanceCurrencies, []);
 
+    const [
+        binanceUserData,
+        setBinanceUserData
+    ] = storageFactory.createStorageNullable<AccountInfo>("binanceUserData");
+    let loadBinanceUserData = () => {
+        if (!binanceIntegrationEnabled
+            || !binanceIntegrationApiKey
+            || !binanceIntegrationApiSecret
+            || !binanceCurrencies) {
+            return
+        }
+        binanceApiClient.getUserInfoAsync(
+            binanceIntegrationApiKey,
+            binanceIntegrationApiSecret,
+            binanceCurrencies
+        )
+            .then((accountInfo: AccountInfo) => {
+                if (accountInfo.account?.balances) {
+                    setBinanceUserData(accountInfo);
+                } else {
+                    console.warn('Error fetching account data from binance:', accountInfo);
+                }
+            });
+    };
+    useEffect(loadBinanceUserData, []);
+    useInterval(loadBinanceUserData, 60_000);
+
     return {
-        binancePrices,
-        binancePricesLoaded,
-        binanceCurrencies,
-        binanceCurrenciesLoaded,
+        binancePrices, binancePricesLoaded,
+        binanceCurrencies, binanceCurrenciesLoaded,
+        binanceUserData, setBinanceUserData,
     }
 }
 

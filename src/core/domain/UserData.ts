@@ -4,6 +4,9 @@ export class UserSettings {
     constructor(
         public monobankIntegrationEnabled: boolean = false,
         public monobankIntegrationToken: string | null = null,
+        public binanceIntegrationEnabled: boolean = false,
+        public binanceIntegrationApiKey: string | null = null,
+        public binanceIntegrationApiSecret: string | null = null,
     ) {
     }
 }

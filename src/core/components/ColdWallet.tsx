@@ -13,13 +13,26 @@ export default function ColdWallet(props: StorageFactory,) {
     const [userData, setUserData] = props.createStorage<UserData>(
         "userData", () => new UserData()
     );
-    const {binancePrices, binancePricesLoaded, binanceCurrencies, binanceCurrenciesLoaded} = BinanceLoader(storageFactory);
+    const {
+        binancePrices, binancePricesLoaded,
+        binanceCurrencies, binanceCurrenciesLoaded,
+        binanceUserData, setBinanceUserData,
+    } = BinanceLoader(
+        storageFactory,
+        userData.settings.binanceIntegrationEnabled,
+        userData.settings.binanceIntegrationApiKey,
+        userData.settings.binanceIntegrationApiSecret,
+    );
     const {
         monobankRates,
         monobankCurrencies,
         monobankUserData,
         setMonobankUserData,
-    } = MonobankLoader(storageFactory, userData.settings.monobankIntegrationToken);
+    } = MonobankLoader(
+        storageFactory,
+        userData.settings.monobankIntegrationEnabled,
+        userData.settings.monobankIntegrationToken
+    );
 
     const {loaded} = OnStartupLoader(
         binancePricesLoaded,
@@ -43,6 +56,14 @@ export default function ColdWallet(props: StorageFactory,) {
     const [monobankApiTokenInput, setMonobankApiTokenInput] = useState(userData.settings.monobankIntegrationToken);
     const [monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid] = useState(false);
     const [monobankUserDataLoading, setMonobankUserDataLoading] = useState(false);
+    const [integrationWindowNameSelected, setIntegrationWindowNameSelected] = useState(null);
+
+
+    const [binanceSettingsEnabled, setBinanceSettingsEnabled] = useState(userData.settings.binanceIntegrationEnabled);
+    const [binanceApiKeyInput, setBinanceApiKeyInput] = useState(userData.settings.binanceIntegrationApiKey);
+    const [binanceApiSecretInput, setBinanceApiSecretInput] = useState(userData.settings.binanceIntegrationApiSecret);
+    const [binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid] = useState(false);
+    const [binanceUserDataLoading, setBinanceUserDataLoading] = useState(false);
 
     function stateReset() {
         setShowCreateNewAssetWindow(false);
@@ -59,6 +80,12 @@ export default function ColdWallet(props: StorageFactory,) {
         setMonobankApiTokenInput(userData.settings.monobankIntegrationToken);
         setMonobankApiTokenInputInvalid(false);
         setMonobankUserDataLoading(false);
+        setIntegrationWindowNameSelected(null);
+        setBinanceSettingsEnabled(userData.settings.binanceIntegrationEnabled);
+        setBinanceApiKeyInput(userData.settings.binanceIntegrationApiKey);
+        setBinanceApiSecretInput(userData.settings.binanceIntegrationApiSecret);
+        setBinanceApiKeysInputInvalid(false);
+        setBinanceUserDataLoading(false);
     }
 
     const loggedIn = !!(userData.id)// || !userData.loginRequired;
@@ -68,41 +95,32 @@ export default function ColdWallet(props: StorageFactory,) {
             {loaded
                 ? loggedIn
                     ? AssetsDashboard({
-                        showCreateNewAssetWindow,
-                        setShowCreateNewAssetWindow,
-                        creatingNewAsset,
-                        setCreatingNewAsset,
-                        userData,
-                        newAssetAmount,
-                        setNewAssetAmount,
-                        newAssetCurrency,
-                        setNewAssetCurrency,
-                        newAssetName,
-                        setNewAssetName,
-                        isNewAssetAmountInvalid,
-                        setIsNewAssetAmountInvalid,
-                        isNewAssetNameInvalid,
-                        setIsNewAssetNameInvalid,
-                        setUserData,
+                        showCreateNewAssetWindow, setShowCreateNewAssetWindow,
+                        creatingNewAsset, setCreatingNewAsset,
+                        userData, setUserData,
+                        newAssetAmount, setNewAssetAmount,
+                        newAssetCurrency, setNewAssetCurrency,
+                        newAssetName, setNewAssetName,
+                        isNewAssetAmountInvalid, setIsNewAssetAmountInvalid,
+                        isNewAssetNameInvalid, setIsNewAssetNameInvalid,
                         monobankCurrencies,
                         binanceCurrencies,
-                        assetToDelete,
-                        setAssetToDelete,
-                        assetToEdit,
-                        setAssetToEdit,
+                        assetToDelete, setAssetToDelete,
+                        assetToEdit, setAssetToEdit,
                         stateReset,
-                        showConfigsWindow,
-                        setShowConfigsWindow,
-                        monobankSettingsEnabled,
-                        setMonobankSettingsEnabled,
-                        monobankApiTokenInput,
-                        setMonobankApiTokenInput,
-                        monobankApiTokenInputInvalid,
-                        setMonobankApiTokenInputInvalid,
-                        monobankUserData,
-                        setMonobankUserData,
-                        monobankUserDataLoading,
-                        setMonobankUserDataLoading,
+                        showConfigsWindow, setShowConfigsWindow,
+                        monobankSettingsEnabled, setMonobankSettingsEnabled,
+                        monobankApiTokenInput, setMonobankApiTokenInput,
+                        monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
+                        monobankUserData, setMonobankUserData,
+                        monobankUserDataLoading, setMonobankUserDataLoading,
+                        integrationWindowNameSelected, setIntegrationWindowNameSelected,
+                        binanceSettingsEnabled, setBinanceSettingsEnabled,
+                        binanceApiKeyInput, setBinanceApiKeyInput,
+                        binanceApiSecretInput, setBinanceApiSecretInput,
+                        binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
+                        binanceUserData, setBinanceUserData,
+                        binanceUserDataLoading, setBinanceUserDataLoading,
                     })
                     : NotLoggedIn(userData, setUserData)
                 : LoadingWindow(binancePricesLoaded,

@@ -11,6 +11,7 @@ import MonobankUserDataResponse from "./MonobankUserDataResponse";
 
 const MonobankLoader = (
     storageFactory: StorageFactory,
+    monobankIntegrationEnabled: boolean,
     monobankIntegrationToken: string | null
 ) => {
 
@@ -45,7 +46,7 @@ const MonobankLoader = (
     ] = MonobankUserDataStorage(storageFactory)
 
     const loadMonobankUserData = () => {
-        if (!monobankIntegrationToken) {
+        if (!monobankIntegrationEnabled || !monobankIntegrationToken) {
             return
         }
         monobankApiClient.getUserInfo(monobankIntegrationToken)

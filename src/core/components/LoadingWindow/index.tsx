@@ -2,12 +2,13 @@ import './index.css';
 import React from "react";
 import MonobankCurrencyResponse from "../../integrations/monobank/MonobankCurrencyResponse";
 import FiatCurrency from "../../fiatCurrencies/FiatCurrency";
+import BinanceCurrencyResponse from "../../integrations/binance/BinanceCurrencyResponse";
 
 export default function LoadingWindow(
     binancePricesLoaded: boolean,
     binancePrices: { [index: string]: string } | null,
     binanceCurrenciesLoaded: boolean,
-    binanceCurrencies: string[] | null,
+    binanceCurrencies: { [index: string]: BinanceCurrencyResponse } | null,
     monobankRates: MonobankCurrencyResponse[] | null,
     monobankCurrencies: { [index: string]: FiatCurrency } | null,
 ) {

@@ -1,0 +1,5 @@
+/src/core/integrations/binance/binance-api-node/**
+/src/core/integrations/binance/cipher-base/**
+/src/core/integrations/binance/connector/**
+/src/core/integrations/binance/create-hmac/**
+/src/core/integrations/binance/crypto-browserify/**

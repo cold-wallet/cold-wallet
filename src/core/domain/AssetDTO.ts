@@ -7,6 +7,8 @@ export default class AssetDTO {
         public amount: string,
         public name: string,
         public decimalScale: number,
+        public isBinanceAsset: boolean = false,
+        public isMonobankAsset: boolean = false,
     ) {
         if (!id || !currency || !amount || !name || !decimalScale || (+amount) <= 0) {
             throw new Error(`invalid asset parameters: ${id}, ${currency}, ${amount}, ${name}, ${decimalScale}`)
@@ -18,5 +20,7 @@ export default class AssetDTO {
         this.decimalScale = decimalScale;
         this.normalizedName = ((this.name.toUpperCase().indexOf(this.currency.toUpperCase()) !== 0)
             ? `${this.currency} ` : "") + name;
+        this.isBinanceAsset = isBinanceAsset;
+        this.isMonobankAsset = isMonobankAsset;
     }
 }

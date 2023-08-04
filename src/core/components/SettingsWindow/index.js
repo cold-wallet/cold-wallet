@@ -5,37 +5,47 @@ import React from "react";
 import PositiveButton from "../buttons/PositiveButton";
 import monobankApiClient from "../../integrations/monobank/monobankApiClient.ts";
 import thirdPartyIntegrations from "../integrations/ThirdPartyIntegrations";
+import monobankIntegration from "../integrations/MonobankIntegrationPad";
+import {UserSettings} from "../../domain/UserData";
+import binanceIntegration from "../integrations/BinanceIntegrationPad";
+import qmallIntegration from "../integrations/QmallIntegrationPad";
+import binanceApiClient from "../../integrations/binance/binanceApiClient";
 
-export default function SettingsWindow({
-                                           stateReset,
-                                           userData,
-                                           setUserData,
-                                           monobankSettingsEnabled,
-                                           setMonobankSettingsEnabled,
-                                           monobankApiTokenInput,
-                                           setMonobankApiTokenInput,
-                                           monobankApiTokenInputInvalid,
-                                           setMonobankApiTokenInputInvalid,
-                                           monobankUserData,
-                                           setMonobankUserData,
-                                           monobankUserDataLoading,
-                                           setMonobankUserDataLoading,
-                                       }) {
+export default function SettingsWindow(
+    {
+        stateReset,
+        userData, setUserData,
+        monobankSettingsEnabled, setMonobankSettingsEnabled,
+        monobankApiTokenInput, setMonobankApiTokenInput,
+        monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
+        monobankUserData, setMonobankUserData,
+        monobankUserDataLoading, setMonobankUserDataLoading,
+        integrationWindowNameSelected, setIntegrationWindowNameSelected,
+        binanceCurrencies,
+        binanceSettingsEnabled, setBinanceSettingsEnabled,
+        binanceApiKeyInput, setBinanceApiKeyInput,
+        binanceApiSecretInput, setBinanceApiSecretInput,
+        binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
+        binanceUserData, setBinanceUserData,
+        binanceUserDataLoading, setBinanceUserDataLoading,
+    }
+) {
     function onCancelClicked() {
         stateReset()
     }
 
     const showMonobankSettings = userData.settings.monobankIntegrationEnabled || monobankSettingsEnabled;
+    const showBinanceSettings = userData.settings.binanceIntegrationEnabled || binanceSettingsEnabled;
 
     class SettingsValidationResult {
-        monobankTokenInputInvalid = false;
+        tokenInputInvalid = false;
 
         isValid() {
-            return !this.monobankTokenInputInvalid
+            return !this.tokenInputInvalid
         }
     }
 
-    async function validateSettings() {
+    async function validateMonobankSettings() {
         const settingsValidationResult = new SettingsValidationResult();
 
         if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled
@@ -45,21 +55,111 @@ export default function SettingsWindow({
             && userData.settings.monobankIntegrationToken !== monobankApiTokenInput
         ) {
             if (!monobankApiTokenInput) {
-                settingsValidationResult.monobankTokenInputInvalid = true;
+                settingsValidationResult.tokenInputInvalid = true;
             } else {
                 let response = await monobankApiClient.getUserInfo(monobankApiTokenInput);
                 if (response.success) {
                     setMonobankUserData(response.result)
                 } else {
-                    settingsValidationResult.monobankTokenInputInvalid = true;
+                    settingsValidationResult.tokenInputInvalid = true;
                 }
             }
         }
-        //todo: add binance settings check
+        return settingsValidationResult;
+    }
+
+    async function validateBinanceSettings() {
+        const settingsValidationResult = new SettingsValidationResult();
+
+        if (!userData.settings.binanceIntegrationEnabled && binanceSettingsEnabled
+            || (binanceSettingsEnabled || userData.settings.binanceIntegrationEnabled)
+            && !(userData.settings.binanceIntegrationEnabled && !binanceSettingsEnabled)
+            && userData.settings.binanceIntegrationApiKey
+            && userData.settings.binanceIntegrationApiSecret
+            && userData.settings.binanceIntegrationApiKey !== binanceApiKeyInput
+            && userData.settings.binanceIntegrationApiSecret !== binanceApiSecretInput
+        ) {
+            if (!binanceApiKeyInput || !binanceApiSecretInput) {
+                settingsValidationResult.tokenInputInvalid = true;
+            } else {
+                let accountInfo = await binanceApiClient.getUserInfoAsync(
+                    binanceApiKeyInput, binanceApiSecretInput, binanceCurrencies
+                );
+                if (accountInfo.account?.balances) {
+                    setBinanceUserData(accountInfo)
+                } else {
+                    settingsValidationResult.tokenInputInvalid = true;
+                }
+            }
+        }
         return settingsValidationResult;
     }
 
     function onSaveClicked() {
+        switch (integrationWindowNameSelected) {
+            case monobankIntegration.name:
+                return monobankSettingsValidation()
+            case binanceIntegration.name:
+                return binanceSettingsValidation()
+        }
+    }
+
+    function binanceSettingsValidation() {
+        if (!userData.settings.binanceIntegrationEnabled && binanceSettingsEnabled
+            || (binanceSettingsEnabled || userData.settings.binanceIntegrationEnabled)
+            && !(userData.settings.binanceIntegrationEnabled && !binanceSettingsEnabled)
+            && userData.settings.binanceIntegrationApiKey
+            && userData.settings.binanceIntegrationApiSecret
+            && userData.settings.binanceIntegrationApiKey !== binanceApiKeyInput
+            && userData.settings.binanceIntegrationApiSecret !== binanceApiSecretInput
+        ) {
+            if (binanceApiKeyInput && binanceApiSecretInput) {
+                setBinanceUserDataLoading(true)
+            }
+        }
+        validateBinanceSettings()
+            .then(settingsValidationResult => {
+                if (settingsValidationResult.isValid()) {
+                    const userDataNew = {...userData};
+                    let shouldSave = false;
+                    if (!userDataNew.settings) {
+                        userDataNew.settings = new UserSettings();
+                    }
+                    if (binanceSettingsEnabled !== null
+                        && userDataNew.settings.binanceIntegrationEnabled !== binanceSettingsEnabled
+                    ) {
+                        userDataNew.settings.binanceIntegrationEnabled = binanceSettingsEnabled;
+                        shouldSave = true;
+                    }
+                    if (binanceApiKeyInput !== null
+                        && userDataNew.settings.binanceIntegrationApiKey !== binanceApiKeyInput
+                    ) {
+                        userDataNew.settings.binanceIntegrationApiKey = binanceApiKeyInput;
+                        shouldSave = true;
+                    }
+                    if (binanceApiSecretInput !== null
+                        && userDataNew.settings.binanceIntegrationApiSecret !== binanceApiSecretInput
+                    ) {
+                        userDataNew.settings.binanceIntegrationApiSecret = binanceApiSecretInput;
+                        shouldSave = true;
+                    }
+                    if (shouldSave) {
+                        setUserData(userDataNew);
+                    }
+                    stateReset();
+                } else {
+                    if (settingsValidationResult.tokenInputInvalid) {
+                        setBinanceApiKeysInputInvalid(true)
+                        setBinanceUserDataLoading(false)
+                    }
+                }
+            })
+            .catch(reason => {
+                console.info(reason)
+            })
+    }
+
+    function monobankSettingsValidation() {
         if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled
             || (monobankSettingsEnabled || userData.settings.monobankIntegrationEnabled)
             && !(userData.settings.monobankIntegrationEnabled && !monobankSettingsEnabled)
@@ -70,13 +170,13 @@ export default function SettingsWindow({
                 setMonobankUserDataLoading(true)
             }
         }
-        validateSettings()
+        validateMonobankSettings()
             .then(settingsValidationResult => {
                 if (settingsValidationResult.isValid()) {
                     const userDataNew = {...userData};
                     let shouldSave = false;
                     if (!userDataNew.settings) {
-                        userDataNew.settings = {};
+                        userDataNew.settings = new UserSettings();
                     }
                     if (monobankSettingsEnabled !== null
                         && userDataNew.settings.monobankIntegrationEnabled !== monobankSettingsEnabled
@@ -95,7 +195,7 @@ export default function SettingsWindow({
                     }
                     stateReset();
                 } else {
-                    if (settingsValidationResult.monobankTokenInputInvalid) {
+                    if (settingsValidationResult.tokenInputInvalid) {
                         setMonobankApiTokenInputInvalid(true)
                         setMonobankUserDataLoading(false)
                     }
@@ -106,17 +206,72 @@ export default function SettingsWindow({
             })
     }
 
-    function MonobankSettings() {
-        return (<>
-            <div className={"setting-label text-label"}>Configure integration</div>
-            <div className="integration-settings">
-                {
-                    thirdPartyIntegrations.map(integration => integration.element(
-                        () => alert(integration.name)
-                    ))
-                }
+    function QmallSettings() {
+        return (
+            <></>
+        )
+    }
+
+    function BinanceSettings() {
+        return (
+            <div className="setting-unit flex-box flex-direction-column">
+                <div className="settings-go-back-row text-label pad layer-3-themed-color"
+                     onClick={() => setIntegrationWindowNameSelected(null)}>
+                    {"<< Go back"}
+                </div>
+                <div className="settings-checkbox-row">
+                    <label className="text-label clickable"><input
+                        type="checkbox"
+                        defaultChecked={showBinanceSettings}
+                        onChange={event =>
+                            setBinanceSettingsEnabled(event.target.checked)
+                        }
+                    />&nbsp;<span>Enable binance integration</span></label>
+                </div>
+                <div className="setting-box layer-3-themed-color flex-box flex-direction-column">
+                    <div className={"setting-row flex-box-centered flex-direction-row"}>
+                        <input type="text"
+                               disabled={!binanceSettingsEnabled}
+                               placeholder="binance API key"
+                               className={"setting-binance-token-input"
+                                   + (binanceApiKeysInputInvalid ? " invalid" : "")}
+                               onChange={event => {
+                                   setBinanceApiKeyInput(event.target.value)
+                                   setBinanceApiKeysInputInvalid(false)
+                               }}
+                               defaultValue={userData.settings.binanceIntegrationApiKey}
+                        />
+                    </div>
+                    <div className={"setting-row flex-box-centered flex-direction-row"}>
+                        <input type="text"
+                               disabled={!binanceSettingsEnabled}
+                               placeholder="binance API secret"
+                               className={"setting-binance-token-input"
+                                   + (binanceApiKeysInputInvalid ? " invalid" : "")}
+                               onChange={event => {
+                                   setBinanceApiSecretInput(event.target.value)
+                                   setBinanceApiKeysInputInvalid(false)
+                               }}
+                               defaultValue={userData.settings.binanceIntegrationApiSecret}
+                        />
+                    </div>
+                    {binanceUserDataLoading ? <progress className={"setting-row-progress"}/> : null}
+                    <div className="setting-integration-info">
+                        <a href="https://www.binance.com/en/support/faq/how-to-create-api-keys-on-binance-360002502072"
+                           target="new-window">How to get binance API keys</a>
+                    </div>
+                </div>
             </div>
-            <div className="setting-unit monobank-settings flex-box flex-direction-column">
+        )
+    }
+
+    function MonobankSettings() {
+        return (
+            <div className="setting-unit flex-box flex-direction-column">
+                <div className="settings-go-back-row text-label pad layer-3-themed-color"
+                     onClick={() => setIntegrationWindowNameSelected(null)}>
+                    {"<< Go back"}
+                </div>
                 <div className="settings-checkbox-row">
                     <label className="text-label clickable"><input
                         type="checkbox"
@@ -141,13 +296,32 @@ export default function SettingsWindow({
                         />
                         {monobankUserDataLoading ? <progress className={"setting-row-progress"}/> : null}
                     </div>
-                    <div className="setting-monobank-info">
-                        <a target="new-window" href="https://api.monobank.ua/">Get monobank API
-                            token here</a>
+                    <div className="setting-integration-info">
+                        <a target="new-window" href="https://api.monobank.ua/">How to get monobank API token</a>
                     </div>
                 </div>
             </div>
-        </>)
+        )
+    }
+
+    function buildWindowContent() {
+        switch (integrationWindowNameSelected) {
+            case monobankIntegration.name:
+                return MonobankSettings()
+            case binanceIntegration.name:
+                return BinanceSettings()
+            case qmallIntegration.name:
+                return QmallSettings()
+            default:
+                return (<>
+                    <div className={"setting-label text-label"}>Configure integration</div>
+                    <div className="integration-settings">{
+                        thirdPartyIntegrations.map(integration => integration.element(
+                            () => setIntegrationWindowNameSelected(integration.name)
+                        ))
+                    }</div>
+                </>)
+        }
     }
 
     return (
@@ -157,18 +331,16 @@ export default function SettingsWindow({
             onCancel={stateReset}
             title={"Settings"}
             children={
-                <div className="settings-box">
-                    {MonobankSettings({})}
-                </div>
+                <div className="settings-box">{buildWindowContent()}</div>
             }
-            bottom={<>
+            bottom={integrationWindowNameSelected !== null ? <>
                 <PositiveButton onClick={onSaveClicked}
                                 className="settings-window-bottom-button">Save
                 </PositiveButton>
                 <NeutralButton onClick={onCancelClicked}
                                className="settings-window-bottom-button">Cancel
                 </NeutralButton>
-            </>}
+            </> : null}
         />
     )
 }
