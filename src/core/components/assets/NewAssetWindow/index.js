@@ -3,11 +3,9 @@ import usdtIcon from "./../../../../resources/images/usdt.png";
 import btcIcon from "./../../../../resources/images/btc.png";
 import ethIcon from "./../../../../resources/images/eth.png";
 import compareStrings from "./../../../utils/compareStrings";
-import BinanceSvg from "./../../../../resources/images/binanceSvg";
-import QmallSvg from "./../../../../resources/images/qmallSvg";
-import MonobankSvg from "./../../../../resources/images/monobankSvg";
 import React from "react";
 import ModalWindow from "../../ModalWindow";
+import thirdPartyIntegrations from "../../integrations/ThirdPartyIntegrations";
 
 export default function NewAssetWindow(
     setNewAssetCurrency,
@@ -102,23 +100,6 @@ export default function NewAssetWindow(
             return result
         }, {}))
         .sort(compareStrings);
-    const chooseIntegrations = [
-        {
-            name: "binance",
-            logo: <BinanceSvg/>,
-            logoClass: "new-asset-integration-logo--binance",
-        },
-        {
-            name: "qmall",
-            logo: <QmallSvg/>,
-            logoClass: "new-asset-integration-logo--qmall",
-        },
-        {
-            name: "monobank",
-            logo: <MonobankSvg/>,
-            logoClass: "new-asset-integration-logo--monobank",
-        },
-    ];
 
     const otherAssetsExist = !!(userData.assets.length);
 
@@ -145,7 +126,7 @@ export default function NewAssetWindow(
                                 <div key={i}
                                      onClick={() => onNewAssetCurrencySelected(currency.name)}
                                      className={"new-asset-choose-button pad layer-3-themed-color " +
-                                     " flex-box-centered flex-direction-column"}>
+                                         " flex-box-centered flex-direction-column"}>
                                     {currency.imageElement}
                                     <div className="new-asset-choose-button-name">{currency.name}</div>
                                 </div>
@@ -168,16 +149,8 @@ export default function NewAssetWindow(
                     <div className="new-asset-choose-title text-label">Choose your integration</div>
                     <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>
                         {
-                            chooseIntegrations.map((integration, i) => (
-                                <div key={i}
-                                     onClick={() => onNewAssetIntegrationSelected(integration.name)}
-                                     className={"new-asset-integration flex-box-centered" +
-                                     " flex-direction-row pad layer-3-themed-color"}>
-                                    <div className={"new-asset-integration-logo " + integration.logoClass}
-                                         title={integration.name}>
-                                        {integration.logo}
-                                    </div>
-                                </div>
+                            thirdPartyIntegrations.map((integration, i) => integration.element(
+                                () => onNewAssetIntegrationSelected(integration.name), i
                             ))
                         }
                     </div>
@@ -186,7 +159,7 @@ export default function NewAssetWindow(
                                 onChange={e => onNewAssetIntegrationSelected(e.target.value)}>
                             <option defaultValue value> -- select integration --</option>
                             {
-                                chooseIntegrations.map(({name}, i) => (
+                                thirdPartyIntegrations.map(({name}, i) => (
                                     <option key={i} value={name}>{name}</option>
                                 ))
                             }
