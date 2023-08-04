@@ -8,7 +8,7 @@ const binanceIntegration: ThirdPartyIntegration = {
     element: (onClick: () => void) =>
         <IntegrationPad logo={<BinanceSvg/>}
                         key={name}
-                        logoClass={"new-asset-integration-logo--binance"}
+                        logoClass={"integration-logo--binance"}
                         name={name}
                         onClick={onClick}
         />,

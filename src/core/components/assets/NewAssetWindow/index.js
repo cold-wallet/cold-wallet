@@ -149,8 +149,8 @@ export default function NewAssetWindow(
                     <div className="new-asset-choose-title text-label">Choose your integration</div>
                     <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>
                         {
-                            thirdPartyIntegrations.map((integration, i) => integration.element(
-                                () => onNewAssetIntegrationSelected(integration.name), i
+                            thirdPartyIntegrations.map((integration) => integration.element(
+                                () => onNewAssetIntegrationSelected(integration.name)
                             ))
                         }
                     </div>

@@ -8,7 +8,7 @@ const monobankIntegration: ThirdPartyIntegration = {
     element: (onClick: () => void) =>
         <IntegrationPad logo={<MonobankSvg/>}
                         key={name}
-                        logoClass={"new-asset-integration-logo--monobank"}
+                        logoClass={"integration-logo--monobank"}
                         name={name}
                         onClick={onClick}
         />,

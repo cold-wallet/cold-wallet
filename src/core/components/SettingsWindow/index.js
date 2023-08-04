@@ -4,6 +4,7 @@ import NeutralButton from "../buttons/NeutralButton";
 import React from "react";
 import PositiveButton from "../buttons/PositiveButton";
 import monobankApiClient from "../../integrations/monobank/monobankApiClient.ts";
+import thirdPartyIntegrations from "../integrations/ThirdPartyIntegrations";
 
 export default function SettingsWindow({
                                            stateReset,
@@ -106,7 +107,15 @@ export default function SettingsWindow({
     }
 
     function MonobankSettings() {
-        return (
+        return (<>
+            <div className={"setting-label text-label"}>Configure integration</div>
+            <div className="integration-settings">
+                {
+                    thirdPartyIntegrations.map(integration => integration.element(
+                        () => alert(integration.name)
+                    ))
+                }
+            </div>
             <div className="setting-unit monobank-settings flex-box flex-direction-column">
                 <div className="settings-checkbox-row">
                     <label className="text-label clickable"><input
@@ -138,7 +147,7 @@ export default function SettingsWindow({
                     </div>
                 </div>
             </div>
-        )
+        </>)
     }
 
     return (

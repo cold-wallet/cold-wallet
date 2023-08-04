@@ -14,21 +14,6 @@
   width: 100%;
 }
 
-.new-asset-integration-logo--binance {
-  fill: #f3ba2f;
-  background-color: black;
-}
-
-.new-asset-integration-logo--qmall {
-  background-color: #33323e;
-}
-
-.new-asset-integration-logo--monobank {
-  fill: #f6f6f6;
-  background-color: black;
-  padding: 2%;
-}
-
 .new-asset-controls-box {
   height: 90%;
   width: 100%;
@@ -62,17 +47,6 @@
 .new-asset-choose-button-symbol {
   height: 55%;
   width: 90%;
-}
-
-.new-asset-integration {
-  width: 100%;
-  height: 30%;
-}
-
-.new-asset-integration-logo {
-  width: 60%;
-  border-radius: 5px;
-  padding: 3%;
 }
 
 .new-asset-choose-select-box {

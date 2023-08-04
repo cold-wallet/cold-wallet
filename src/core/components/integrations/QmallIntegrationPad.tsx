@@ -8,7 +8,7 @@ const qmallIntegration: ThirdPartyIntegration = {
     element: (onClick: () => void) =>
         <IntegrationPad logo={<QmallSvg/>}
                         key={name}
-                        logoClass={"new-asset-integration-logo--qmall"}
+                        logoClass={"integration-logo--qmall"}
                         name={name}
                         onClick={onClick}
         />,

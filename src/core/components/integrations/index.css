@@ -1,0 +1,25 @@
+.integration-logo--binance {
+    fill: #f3ba2f;
+    background-color: black;
+}
+
+.integration-logo--qmall {
+    background-color: #33323e;
+}
+
+.integration-logo--monobank {
+    fill: #f6f6f6;
+    background-color: black;
+    padding: 2%;
+}
+
+.integration {
+    width: 100%;
+    height: 30%;
+}
+
+.integration-logo {
+    width: 60%;
+    border-radius: 5px;
+    padding: 3%;
+}

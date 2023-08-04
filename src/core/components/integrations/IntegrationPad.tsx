@@ -1,3 +1,4 @@
+import './index.css';
 import React, {JSX} from "react";
 
 interface IntegrationData {
@@ -10,8 +11,8 @@ interface IntegrationData {
 export default function IntegrationPad(integrationData: IntegrationData) {
     return (
         <div onClick={integrationData.onClick}
-             className={"new-asset-integration flex-box-centered flex-direction-row pad layer-3-themed-color"}>
-            <div className={"new-asset-integration-logo " + integrationData.logoClass} title={integrationData.name}>
+             className={"integration flex-box-centered flex-direction-row pad layer-3-themed-color"}>
+            <div className={"integration-logo " + integrationData.logoClass} title={integrationData.name}>
                 {integrationData.logo}
             </div>
         </div>
