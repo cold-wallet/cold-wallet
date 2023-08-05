@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const removeEmptyValue = obj => {
+export const removeEmptyValue = obj => {
   if (!(obj instanceof Object)) return {}
   Object.keys(obj).forEach(key => isEmptyValue(obj[key]) && delete obj[key])
   return obj
 }
 
-const isEmptyValue = input => {
+export const isEmptyValue = input => {
   /**
    * Scope of empty value: falsy value (except for false and 0),
    * string with white space characters only, empty object, empty array
@@ -17,7 +17,7 @@ const isEmptyValue = input => {
       (Array.isArray(input) && !input.length)
 }
 
-const buildQueryString = params => {
+export const buildQueryString = params => {
   if (!params) return ''
   return Object.entries(params)
       .map(stringifyKeyValuePair)
@@ -39,7 +39,7 @@ const getRequestInstance = (config) => {
   })
 }
 
-const createRequest = (config) => {
+export const createRequest = (config) => {
   const {baseURL, apiKey, method, url} = config
   return getRequestInstance({
     baseURL,
@@ -53,14 +53,14 @@ const createRequest = (config) => {
   })
 }
 
-const flowRight = (...functions) => input => functions.reduceRight(
+export const flowRight = (...functions) => input => functions.reduceRight(
     (input, fn) => fn(input),
     input
 )
 
-const defaultLogger = console
+export const defaultLogger = console
 
-module.exports = {
+export default {
   isEmptyValue,
   removeEmptyValue,
   buildQueryString,

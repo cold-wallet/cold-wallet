@@ -83,7 +83,7 @@ export default function SettingsWindow(
                 settingsValidationResult.tokenInputInvalid = true;
             } else {
                 let accountInfo = await binanceApiClient.getUserInfoAsync(
-                    binanceApiKeyInput, binanceApiSecretInput, binanceCurrencies
+                    binanceApiKeyInput, binanceApiSecretInput, binanceCurrencies, binanceUserData
                 );
                 if (accountInfo.account?.balances) {
                     setBinanceUserData(accountInfo)

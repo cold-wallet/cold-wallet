@@ -13,7 +13,9 @@ import AssetDTO from "../../domain/AssetDTO";
 import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
 import Spot from "./connector/spot";
 
-const proxyUrl = "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod/binance";
+const proxyUrl =
+    // "https://api.binance.com"
+    "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod/binance";
 
 class BinanceApiService {
 
@@ -94,8 +96,9 @@ class BinanceApiService {
     }
 
     async futuresBalancesCoinM(): Promise<AssetDTO[]> {
-        let response: Response<FuturesAssetCoinM[]> = await this.customClient.futuresCoinMBalance();
-        return response.data.filter((f: FuturesAssetCoinM) => +f.balance)
+        // let response: Response<FuturesAssetCoinM[]> = await this.customClient.futuresCoinMBalance();
+        let response: FuturesAssetCoinM[] = await this.client.deliveryAccountBalance();
+        return response.filter((f: FuturesAssetCoinM) => +f.balance)
             .map((balance) => {
                 const name = `${balance.asset} Futures COIN-M`
                 const id = `binance ${name}`;
@@ -377,11 +380,11 @@ interface FuturesAssetCoinM {
 }
 
 interface SpotClient {
-    futuresCoinMBalance: () => Response<FuturesAssetCoinM[]>
-    stakingProductPosition: (p: string) => Response<StakingPosition[]>
-    bswapLiquidity: () => Response<LiquidityFarmingPool[]>
-    savingsCustomizedPosition: (a: string) => Response<SavingFixedPosition[]>
-    savingsFlexibleProductPosition: (a: string) => Response<SavingFlexiblePosition[]>
+    futuresCoinMBalance: () => Promise<Response<FuturesAssetCoinM[]>>
+    stakingProductPosition: (p: string) => Promise<Response<StakingPosition[]>>
+    bswapLiquidity: () => Promise<Response<LiquidityFarmingPool[]>>
+    savingsCustomizedPosition: (a: string) => Promise<Response<SavingFixedPosition[]>>
+    savingsFlexibleProductPosition: (a: string) => Promise<Response<SavingFlexiblePosition[]>>
 }
 
 export default BinanceApiService

@@ -262,7 +262,8 @@ var privateCall = function privateCall(_ref3) {
         timestamp: timestamp,
         signature: signature
       });
-      return sendResult(fetch("".concat(path.includes('/fapi') || path.includes('/futures') ? endpoints.futures : path.includes('/dapi') ? endpoints.delivery : endpoints.base).concat(path).concat(noData ? '' : makeQueryString(newData)), _objectSpread({
+      let url = "".concat(path.includes('/fapi') || path.includes('/futures') ? endpoints.futures : path.includes('/dapi') ? endpoints.delivery : endpoints.base).concat(path).concat(noData ? '' : makeQueryString(newData));
+      let call = fetch(url, _objectSpread({
         method: method,
         headers: {
           'X-MBX-APIKEY': apiKey
@@ -270,7 +271,8 @@ var privateCall = function privateCall(_ref3) {
         json: true
       }, proxy ? {
         agent: new _httpsProxyAgent.default(proxy)
-      } : {})));
+      } : {}));
+      return sendResult(call);
     });
   };
 };

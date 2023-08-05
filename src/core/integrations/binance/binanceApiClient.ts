@@ -1,5 +1,5 @@
 import ApiResponse from "../../domain/ApiResponse";
-import Binance, {Account, Symbol} from 'binance-api-node'
+import Binance, {Account, Symbol, TradingType, TradingType_LT} from 'binance-api-node'
 import BinanceApiService from "./BinanceApiService";
 import reduceToObject from "../../utils/reduceToObject";
 import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
@@ -41,12 +41,32 @@ const binanceApiClient = {
     async getUserInfoAsync(
         key: string,
         secret: string,
-        binanceCurrencies: { [index: string]: BinanceCurrencyResponse }
+        binanceCurrencies: { [index: string]: BinanceCurrencyResponse },
+        binanceUserData: AccountInfo | null,
     ) {
         const binanceApiService = new BinanceApiService(key, secret, binanceCurrencies);
-        // spot account info
-        let account = await binanceApiService.accountInfo();
-        const accountInfo = new AccountInfo(account)
+        const accountInfo = binanceUserData ? {...binanceUserData} : new AccountInfo()
+        try {
+            const account: Account = await binanceApiService.accountInfo();
+            accountInfo.account = {
+                ...account,
+                balances: account.balances
+                    .filter(balance => +balance.free + +balance.locked)
+                    .map(balance => new AssetDTO(
+                        "binance_" + account.accountType + "_" + balance.asset,
+                        balance.asset,
+                        String(+balance.free + +balance.locked),
+                        balance.asset + " " + account.accountType + " binance",
+                        binanceCurrencies[balance.asset]?.precision || ((() => {
+                            console.warn("not found precision for " + balance.asset)
+                            return 8
+                        })()),
+                        true,
+                    ))
+            } as SpotAccount
+        } catch (e) {
+            console.warn("failed to load accountInfo from binance", e)
+        }
         try {
             accountInfo.marginIsolated = await binanceApiService.isolatedMarginAssets()
         } catch (e) {
@@ -106,9 +126,23 @@ const binanceApiClient = {
     },
 }
 
+export interface SpotAccount {
+    accountType: TradingType.MARGIN | TradingType.SPOT
+    balances: AssetDTO[]
+    buyerCommission: number
+    canDeposit: boolean
+    canTrade: boolean
+    canWithdraw: boolean
+    makerCommission: number
+    permissions: TradingType_LT[]
+    sellerCommission: number
+    takerCommission: number
+    updateTime: number
+}
+
 export class AccountInfo {
     constructor(
-        public account: Account,
+        public account?: SpotAccount,
         public marginIsolated?: AssetDTO[],
         public marginCross?: AssetDTO[],
         public futuresUsdM?: AssetDTO[],

@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {Dispatch, SetStateAction, useEffect, useState} from "react";
 import binanceApiClient, {AccountInfo} from "../../../core/integrations/binance/binanceApiClient";
 import useInterval from "../../../core/utils/useInterval";
 import ApiResponse from "../../../core/domain/ApiResponse";
@@ -51,8 +51,15 @@ const BinanceLoader = (
 
     const [
         binanceUserData,
-        setBinanceUserData
+        setBinanceUserData2
     ] = storageFactory.createStorageNullable<AccountInfo>("binanceUserData");
+    const setBinanceUserData: Dispatch<SetStateAction<AccountInfo | null>>
+        = (data: SetStateAction<AccountInfo | null>): void => {
+        console.log("binanceUserDataPrew", binanceUserData)
+        console.log("binanceUserDataNew", data)
+        setBinanceUserData2(data)
+    }
+
     let loadBinanceUserData = () => {
         if (!binanceIntegrationEnabled
             || !binanceIntegrationApiKey
@@ -63,7 +70,8 @@ const BinanceLoader = (
         binanceApiClient.getUserInfoAsync(
             binanceIntegrationApiKey,
             binanceIntegrationApiSecret,
-            binanceCurrencies
+            binanceCurrencies,
+            binanceUserData
         )
             .then((accountInfo: AccountInfo) => {
                 if (accountInfo.account?.balances) {
