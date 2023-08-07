@@ -55,8 +55,6 @@ const BinanceLoader = (
     ] = storageFactory.createStorageNullable<AccountInfo>("binanceUserData");
     const setBinanceUserData: Dispatch<SetStateAction<AccountInfo | null>>
         = (data: SetStateAction<AccountInfo | null>): void => {
-        console.log("binanceUserDataPrew", binanceUserData)
-        console.log("binanceUserDataNew", data)
         setBinanceUserData2(data)
     }
 

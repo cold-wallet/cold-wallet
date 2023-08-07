@@ -12,7 +12,8 @@ export default function IntegrationPad(integrationData: IntegrationData) {
     return (
         <div onClick={integrationData.onClick}
              className={"integration flex-box-centered flex-direction-row pad layer-3-themed-color"}>
-            <div className={"integration-logo " + integrationData.logoClass} title={integrationData.name}>
+            <div className={"integration-logo flex-box-centered " + integrationData.logoClass}
+                 title={integrationData.name}>
                 {integrationData.logo}
             </div>
         </div>

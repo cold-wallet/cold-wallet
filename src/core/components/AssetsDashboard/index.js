@@ -7,7 +7,7 @@ import EditNewAsset from "./../assets/EditNewAsset";
 import NewAssetWindow from "./../assets/NewAssetWindow";
 import AssetDeleteWindow from "./../assets/AssetDeleteWindow";
 import EditAsset from "./../assets/EditAsset";
-import SettingsWindow from "../SettingsWindow";
+import SettingsWindow from "../settings/SettingsWindow";
 
 export default function AssetsDashboard(
     {

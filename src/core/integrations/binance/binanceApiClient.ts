@@ -52,6 +52,9 @@ const binanceApiClient = {
                 ...account,
                 balances: account.balances
                     .filter(balance => +balance.free + +balance.locked)
+                    .filter(balance => !(
+                        balance.asset.indexOf("LD") === 0 && !binanceCurrencies[balance.asset]
+                    ))
                     .map(balance => new AssetDTO(
                         "binance_" + account.accountType + "_" + balance.asset,
                         balance.asset,
