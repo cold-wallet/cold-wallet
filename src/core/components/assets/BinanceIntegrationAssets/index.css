@@ -1,0 +1,9 @@
+
+.asset-item-buttons-container--integration-logo--binance:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+    border-radius: 5px;
+    padding: 0 1%;
+    display: flex;
+    width: 100%;
+    fill: #F3BA2F;
+}

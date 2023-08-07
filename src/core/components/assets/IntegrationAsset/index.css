@@ -1,0 +1,58 @@
+.asset-item-buttons-container--integration-logo--wide {
+    width: 11%;
+    display: flex;
+    flex-flow: row;
+    justify-content: flex-end;
+    cursor: default;
+    font-family: 'Lucida Console', monospace;
+    fill: #2D3142;
+    height: 90%;
+}
+
+.asset-item-buttons-container--integration-logo--wide:hover {
+    width: 30%;
+    display: flex;
+}
+
+.asset-item-buttons-container--integration-logo--wide:hover .asset-item-buttons-container--integration-name {
+    display: flex;
+    padding: 0 4%;
+}
+
+.asset-item-buttons-container--integration-logo--wide:hover .asset-item-buttons-container--integration-logo--short {
+    display: none;
+}
+
+
+.asset-item-buttons-container--integration-name {
+    display: none;
+}
+
+
+.asset-item-buttons-container--integration-logo--container {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.asset-item-buttons-container--integration-logo--short {
+    width: 88%;
+    border-radius: 15%;
+}
+
+@media only screen and (max-width: 970px) {
+
+    .asset-item-buttons-container--integration-logo--wide {
+        width: 7%;
+        min-width: 7%;
+    }
+}
+
+@media only screen and (max-width: 700px) {
+
+    .asset-item-buttons-container--integration-logo--wide {
+        width: 9%;
+        min-width: 9%;
+    }
+
+}
+

@@ -8,6 +8,8 @@ import NewAssetWindow from "./../assets/NewAssetWindow";
 import AssetDeleteWindow from "./../assets/AssetDeleteWindow";
 import EditAsset from "./../assets/EditAsset";
 import SettingsWindow from "../settings/SettingsWindow";
+import BinanceIntegrationAssets from "../assets/BinanceIntegrationAssets";
+import MonobankIntegrationAssets from "../assets/MonobankIntegrationAssets";
 
 export default function AssetsDashboard(
     {
@@ -39,6 +41,7 @@ export default function AssetsDashboard(
             binanceUserDataLoading, setBinanceUserDataLoading,
     }
 ) {
+
     return (
         <div className={"application-box flex-box flex-direction-row"}>
             {showCreateNewAssetWindow && NewAssetWindow(
@@ -107,6 +110,8 @@ export default function AssetsDashboard(
                         setNewAssetName,
                         stateReset,
                     ))}
+                    {binanceSettingsEnabled ? BinanceIntegrationAssets(binanceUserData) : null}
+                    {monobankSettingsEnabled ? MonobankIntegrationAssets(monobankUserData) : null}
             </div>
         </div>
     );
