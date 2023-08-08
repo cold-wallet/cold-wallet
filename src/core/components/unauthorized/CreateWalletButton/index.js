@@ -1,7 +1,7 @@
 import './index.css';
 import React from "react";
-import UserData from "../../domain/UserData";
-import uuidGenerator from "../../utils/uuidGenerator";
+import UserData from "../../../domain/UserData";
+import uuidGenerator from "../../../utils/uuidGenerator";
 
 export default function CreateWalletButton(setUserData) {
 

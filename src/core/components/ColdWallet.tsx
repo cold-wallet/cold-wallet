@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import BinanceLoader from "./../integrations/binance/BinanceLoader";
 import MonobankLoader from "./../integrations/monobank/MonobankLoader";
 import LoadingWindow from "./LoadingWindow";
-import NotLoggedIn from "./NotLoggedIn";
+import NotLoggedIn from "./unauthorized/NotLoggedIn";
 import AssetsDashboard from "./AssetsDashboard";
 import OnStartupLoader from "./OnStartupLoader";
 import StorageFactory from "../domain/StorageFactory";
