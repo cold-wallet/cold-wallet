@@ -105,6 +105,7 @@ export default function AssetsDashboard(
                     userData, setUserData,
                     setCreatingNewAsset,
                     stateReset,
+                    anyAssetExist,
                 )}
                 {(userData.assets || []).map(asset => (assetToEdit && (asset.id === assetToEdit.id))
                     ? EditAsset(

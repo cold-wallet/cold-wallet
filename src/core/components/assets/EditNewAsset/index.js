@@ -18,6 +18,7 @@ export default function EditNewAsset(
     setUserData,
     setCreatingNewAsset,
     stateReset,
+    anyAssetExist,
 ) {
     let fiatCurrency = fiatCurrencies.getByStringCode(assetCurrency);
     const decimalScale = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
@@ -38,8 +39,8 @@ export default function EditNewAsset(
 
     const onCancel = () => {
         stateReset();
-        setCreatingNewAsset(!(userData.assets?.length));
-        setShowCreateNewAssetWindow(!(userData.assets?.length));
+        setCreatingNewAsset(!anyAssetExist);
+        setShowCreateNewAssetWindow(!anyAssetExist);
     }
 
     return AssetEditor({
