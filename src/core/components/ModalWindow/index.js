@@ -3,10 +3,15 @@ import React from "react";
 import NeutralButton from "../buttons/NeutralButton";
 
 export default function ModalWindow({closeable, large, onCancel, children, title, bottom,}) {
-    let sizeSuffix = large ? "large" : "small";
+    const sizeSuffix = large ? "large" : "small";
+    const onClickClose = () => {
+        if (closeable) {
+            onCancel()
+        }
+    };
     return (
         <div className="modal-window-box">
-            <div onClick={onCancel}
+            <div onClick={onClickClose}
                  className={"modal-window-shadow" + (closeable ? " clickable" : "")}/>
             <div className={"modal-window modal-window-" + sizeSuffix + " flex-box" +
                 " flex-direction-column layer-2-themed-color"}>

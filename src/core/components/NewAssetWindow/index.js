@@ -120,12 +120,19 @@ export default function NewAssetWindow(
         .sort(compareStrings);
 
     const onClose = () => {
+        stateReset()
         if (!anyAssetExist) {
-            return;
+            setShowCreateNewAssetWindow(true);
+            setCreatingNewAsset(true);
         }
-        setShowCreateNewAssetWindow(false);
-        setCreatingNewAsset(false);
-        setIntegrationWindowNameSelected(null)
+        // setIntegrationWindowNameSelected(null)
+        // setMonobankApiTokenInputInvalid(false)
+        // setBinanceApiKeysInputInvalid(false)
+        // if (!anyAssetExist) {
+        //     return;
+        // }
+        // setShowCreateNewAssetWindow(false);
+        // setCreatingNewAsset(false);
     }
 
     function defaultView() {

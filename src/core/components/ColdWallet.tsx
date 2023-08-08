@@ -80,8 +80,8 @@ export default function ColdWallet(props: StorageFactory,) {
     const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
 
     function stateReset() {
-        setShowCreateNewAssetWindow(false);
-        setCreatingNewAsset(false);
+        setShowCreateNewAssetWindow(!anyAssetExist);
+        setCreatingNewAsset(!anyAssetExist);
         setNewAssetCurrency(null);
         setNewAssetAmount(null);
         setNewAssetName(null);
