@@ -4,7 +4,7 @@ import React from "react";
 import AssetsManageButtons from "./../assets/AssetsManageButtons";
 import Asset from "./../assets/Asset";
 import EditNewAsset from "./../assets/EditNewAsset";
-import NewAssetWindow from "./../assets/NewAssetWindow";
+import NewAssetWindow from "../NewAssetWindow";
 import AssetDeleteWindow from "./../assets/AssetDeleteWindow";
 import EditAsset from "./../assets/EditAsset";
 import SettingsWindow from "../settings/SettingsWindow";
@@ -13,6 +13,7 @@ import MonobankIntegrationAssets from "../assets/MonobankIntegrationAssets";
 
 export default function AssetsDashboard(
     {
+            anyAssetExist,
             showCreateNewAssetWindow, setShowCreateNewAssetWindow,
             creatingNewAsset, setCreatingNewAsset,
             userData, setUserData,
@@ -49,14 +50,26 @@ export default function AssetsDashboard(
                 setShowCreateNewAssetWindow,
                 setCreatingNewAsset,
                 monobankCurrencies,
+                stateReset,
+                anyAssetExist,
+                userData, setUserData,
+                monobankSettingsEnabled, setMonobankSettingsEnabled,
+                monobankApiTokenInput, setMonobankApiTokenInput,
+                monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
+                monobankUserData, setMonobankUserData,
+                monobankUserDataLoading, setMonobankUserDataLoading,
+                integrationWindowNameSelected, setIntegrationWindowNameSelected,
                 binanceCurrencies,
-                userData,
-                binanceSettingsEnabled,
-                monobankSettingsEnabled,
+                binanceSettingsEnabled, setBinanceSettingsEnabled,
+                binanceApiKeyInput, setBinanceApiKeyInput,
+                binanceApiSecretInput, setBinanceApiSecretInput,
+                binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
+                binanceUserData, setBinanceUserData,
+                binanceUserDataLoading, setBinanceUserDataLoading,
             )}
             {assetToDelete && AssetDeleteWindow(
-                assetToDelete, setAssetToDelete, userData, setUserData, setShowCreateNewAssetWindow,
-                setCreatingNewAsset, stateReset,
+                assetToDelete, userData, setUserData, setShowCreateNewAssetWindow,
+                setCreatingNewAsset, stateReset, binanceUserData, monobankUserData,
             )}
             {showConfigsWindow && SettingsWindow({
                 stateReset,
@@ -76,13 +89,12 @@ export default function AssetsDashboard(
                     binanceUserDataLoading, setBinanceUserDataLoading,
             })}
             <div className={"assets-panel flex-box-centered flex-direction-column layer-1-themed-color"}>
-                {AssetsManageButtons({
+                    {anyAssetExist ? AssetsManageButtons({
                     setShowCreateNewAssetWindow,
                     setCreatingNewAsset,
                     setShowConfigsWindow,
                     stateReset,
-                    userData,
-                })}
+                    }) : null}
                 {!showCreateNewAssetWindow && creatingNewAsset && EditNewAsset(
                     newAssetCurrency,
                     isNewAssetAmountInvalid, setIsNewAssetAmountInvalid,
@@ -112,8 +124,8 @@ export default function AssetsDashboard(
                         setNewAssetName,
                         stateReset,
                     ))}
-                    {binanceSettingsEnabled ? BinanceIntegrationAssets(binanceUserData) : null}
-                    {monobankSettingsEnabled ? MonobankIntegrationAssets(monobankUserData) : null}
+                    {userData.settings.binanceIntegrationEnabled ? BinanceIntegrationAssets(binanceUserData) : null}
+                    {userData.settings.monobankIntegrationEnabled ? MonobankIntegrationAssets(monobankUserData) : null}
             </div>
         </div>
     );

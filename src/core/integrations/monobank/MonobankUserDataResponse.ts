@@ -36,4 +36,8 @@ export default class MonobankUserDataResponse {
         public jars: MonobankJarResponse[],
     ) {
     }
+
+    static assetsExist = (accountInfo: MonobankUserDataResponse | null) => {
+        return accountInfo && (accountInfo.accounts?.length || accountInfo.jars?.length)
+    }
 }

@@ -3,15 +3,18 @@ import './index.css'
 import ModalWindow from "../../ModalWindow";
 import NegativeButton from "../../buttons/NegativeButton";
 import NeutralButton from "../../buttons/NeutralButton";
+import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
+import MonobankUserDataResponse from "../../../integrations/monobank/MonobankUserDataResponse";
 
 export default function AssetDeleteWindow(
     assetToDelete,
-    setAssetToDelete,
     userData,
     setUserData,
     setShowCreateNewAssetWindow,
     setCreatingNewAsset,
     stateReset,
+    binanceUserData,
+    monobankUserData,
 ) {
     const onCancel = () => {
         stateReset();
@@ -23,7 +26,11 @@ export default function AssetDeleteWindow(
         setUserData(userDataNew);
         stateReset();
 
-        if (!(userDataNew.assets.length)) {
+        let anyAssetExist = !!(userDataNew.assets.length)
+            || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
+            || userData.settings.monobankIntegrationEnabled && MonobankUserDataResponse.assetsExist(monobankUserData);
+
+        if (!anyAssetExist) {
             setCreatingNewAsset(true);
             setShowCreateNewAssetWindow(true);
         }

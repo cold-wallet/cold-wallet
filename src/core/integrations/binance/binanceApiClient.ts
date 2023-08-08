@@ -159,6 +159,21 @@ export class AccountInfo {
         public savingsFlexible?: AssetDTO[],
     ) {
     }
+
+    static assetsExist = (accountInfo: AccountInfo | null) => {
+        return accountInfo && (accountInfo.account?.balances.length
+            || accountInfo.marginIsolated?.length
+            || accountInfo.marginCross?.length
+            || accountInfo.futuresUsdM?.length
+            || accountInfo.futuresCoinM?.length
+            || accountInfo.funding?.length
+            || accountInfo.lockedStaking?.length
+            || accountInfo.lockedDeFiStaking?.length
+            || accountInfo.flexibleDefiStaking?.length
+            || accountInfo.liquidityFarming?.length
+            || accountInfo.savingsFixed?.length
+            || accountInfo.savingsFlexible?.length)
+    }
 }
 
 export default binanceApiClient;

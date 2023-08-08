@@ -1,14 +1,3 @@
-.settings-window-bottom-button {
-  width: 10%;
-  height: 70%;
-}
-
-.settings-box {
-  height: 100%;
-  padding: 2% 3%;
-  overflow-y: auto;
-}
-
 .setting-unit {
   align-items: start;
 }

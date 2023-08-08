@@ -7,6 +7,8 @@ import AssetsDashboard from "./AssetsDashboard";
 import OnStartupLoader from "./OnStartupLoader";
 import StorageFactory from "../domain/StorageFactory";
 import UserData from "../domain/UserData";
+import {AccountInfo} from "../integrations/binance/binanceApiClient";
+import MonobankUserDataResponse from "../integrations/monobank/MonobankUserDataResponse";
 
 export default function ColdWallet(props: StorageFactory,) {
     const storageFactory: StorageFactory = props;
@@ -40,8 +42,6 @@ export default function ColdWallet(props: StorageFactory,) {
         monobankRates,
         monobankCurrencies,
     );
-    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!(userData.assets.length));
-    const [creatingNewAsset, setCreatingNewAsset] = useState(!(userData.assets.length));
     const [newAssetCurrency, setNewAssetCurrency] = useState(null);
     const [newAssetAmount, setNewAssetAmount] = useState(null);
     const [newAssetName, setNewAssetName] = useState(null);
@@ -53,17 +53,31 @@ export default function ColdWallet(props: StorageFactory,) {
     const [monobankSettingsEnabled, setMonobankSettingsEnabled] = useState(
         userData.settings.monobankIntegrationEnabled
     );
-    const [monobankApiTokenInput, setMonobankApiTokenInput] = useState(userData.settings.monobankIntegrationToken);
+    const [monobankApiTokenInput, setMonobankApiTokenInput] = useState(
+        userData.settings.monobankIntegrationToken
+    );
     const [monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid] = useState(false);
     const [monobankUserDataLoading, setMonobankUserDataLoading] = useState(false);
     const [integrationWindowNameSelected, setIntegrationWindowNameSelected] = useState(null);
 
 
-    const [binanceSettingsEnabled, setBinanceSettingsEnabled] = useState(userData.settings.binanceIntegrationEnabled);
-    const [binanceApiKeyInput, setBinanceApiKeyInput] = useState(userData.settings.binanceIntegrationApiKey);
-    const [binanceApiSecretInput, setBinanceApiSecretInput] = useState(userData.settings.binanceIntegrationApiSecret);
+    const [binanceSettingsEnabled, setBinanceSettingsEnabled] = useState(
+        userData.settings.binanceIntegrationEnabled
+    );
+    const [binanceApiKeyInput, setBinanceApiKeyInput] = useState(
+        userData.settings.binanceIntegrationApiKey
+    );
+    const [binanceApiSecretInput, setBinanceApiSecretInput] = useState(
+        userData.settings.binanceIntegrationApiSecret
+    );
     const [binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid] = useState(false);
     const [binanceUserDataLoading, setBinanceUserDataLoading] = useState(false);
+
+    let anyAssetExist = !!(userData.assets.length)
+        || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
+        || userData.settings.monobankIntegrationEnabled && MonobankUserDataResponse.assetsExist(monobankUserData);
+    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!anyAssetExist);
+    const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
 
     function stateReset() {
         setShowCreateNewAssetWindow(false);
@@ -95,6 +109,7 @@ export default function ColdWallet(props: StorageFactory,) {
             {loaded
                 ? loggedIn
                     ? AssetsDashboard({
+                        anyAssetExist,
                         showCreateNewAssetWindow, setShowCreateNewAssetWindow,
                         creatingNewAsset, setCreatingNewAsset,
                         userData, setUserData,
