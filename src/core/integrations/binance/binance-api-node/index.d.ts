@@ -516,6 +516,8 @@ declare module 'binance-api-node' {
       useServerTime?: boolean
     }): Promise<FundingWallet[]>
 
+    deliveryAccountBalance(): Promise<FuturesAssetCoinM[]>
+
     apiPermission(options?: { recvWindow?: number }): Promise<ApiPermission>
 
     order(options: NewOrderSpot): Promise<Order>
