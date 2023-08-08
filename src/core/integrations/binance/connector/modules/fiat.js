@@ -55,4 +55,4 @@ const Fiat = superclass => class extends superclass {
         )
     }
 }
-module.exports = Fiat
+export default Fiat

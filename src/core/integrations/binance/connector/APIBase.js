@@ -1,6 +1,5 @@
-const {buildQueryString, createRequest, defaultLogger, removeEmptyValue} = require('./helpers/utils')
-
-const crypto = require('./../crypto-browserify')
+import {buildQueryString, createRequest, defaultLogger, removeEmptyValue} from './helpers/utils'
+import crypto from './../crypto-browserify'
 
 class APIBase {
   constructor(options) {

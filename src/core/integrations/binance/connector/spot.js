@@ -1,6 +1,6 @@
-const APIBase = require('./APIBase').default
-const modules = require('./modules')
-const {flowRight} = require('./helpers/utils')
+import APIBase from './APIBase';
+import modules from './modules';
+import {flowRight} from './helpers/utils';
 
 class Spot extends flowRight(...Object.values(modules))(APIBase) {
   constructor(apiKey = '', apiSecret = '', options = {}) {

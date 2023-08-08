@@ -190,4 +190,4 @@ const Staking = superclass => class extends superclass {
     }
 }
 
-module.exports = Staking
+export default Staking

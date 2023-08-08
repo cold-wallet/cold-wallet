@@ -1,6 +1,6 @@
-const {validateRequiredParameters} = require('../helpers/validation')
-const {isEmptyValue} = require('../helpers/utils')
-const WebSocketClient = require('ws')
+import {validateRequiredParameters} from '../helpers/validation'
+import {isEmptyValue} from '../helpers/utils'
+import WebSocketClient from 'ws'
 
 /**
  * API websocket endpoints
@@ -273,4 +273,4 @@ const Websocket = superclass => class extends superclass {
     }
 }
 
-module.exports = Websocket
+export default Websocket

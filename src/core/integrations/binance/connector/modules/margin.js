@@ -1002,4 +1002,4 @@ const Margin = superclass => class extends superclass {
     }
 }
 
-module.exports = Margin
+export default Margin

@@ -164,4 +164,4 @@ const Stream = superclass => class extends superclass {
     }
 }
 
-module.exports = Stream
+export default Stream

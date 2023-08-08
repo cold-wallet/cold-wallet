@@ -98,4 +98,4 @@ CipherBase.prototype._toString = function (value, enc, fin) {
     return out
 }
 
-module.exports = CipherBase
+export default CipherBase

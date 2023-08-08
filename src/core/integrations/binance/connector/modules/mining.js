@@ -344,4 +344,4 @@ const Mining = superclass => class extends superclass {
     }
 }
 
-module.exports = Mining
+export default Mining

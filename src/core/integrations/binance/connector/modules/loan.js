@@ -32,4 +32,4 @@ const Loan = superclass => class extends superclass {
         )
     }
 }
-module.exports = Loan
+export default Loan

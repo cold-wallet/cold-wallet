@@ -32,4 +32,4 @@ const C2C = superclass => class extends superclass {
         )
     }
 }
-module.exports = C2C
+export default C2C

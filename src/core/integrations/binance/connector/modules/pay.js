@@ -26,4 +26,4 @@ const Pay = superclass => class extends superclass {
         )
     }
 }
-module.exports = Pay
+export default Pay

@@ -23,4 +23,4 @@ const PortfolioMargin = superclass => class extends superclass {
         )
     }
 }
-module.exports = PortfolioMargin
+export default PortfolioMargin

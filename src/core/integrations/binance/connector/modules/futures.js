@@ -429,4 +429,4 @@ const Futures = superclass => class extends superclass {
     }
 }
 
-module.exports = Futures
+export default Futures

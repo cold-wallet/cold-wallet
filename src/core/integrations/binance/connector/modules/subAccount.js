@@ -853,4 +853,4 @@ const SubAccount = superclass => class extends superclass {
     }
 }
 
-module.exports = SubAccount
+export default SubAccount

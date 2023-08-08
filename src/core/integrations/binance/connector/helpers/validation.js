@@ -1,7 +1,7 @@
-const {isEmptyValue} = require('./utils')
-const MissingParameterError = require('../error/missingParameterError')
+import {isEmptyValue} from './utils'
+import MissingParameterError from '../error/missingParameterError'
 
-const validateRequiredParameters = paramObject => {
+export const validateRequiredParameters = paramObject => {
     if (!paramObject || isEmptyValue(paramObject)) {
         throw new MissingParameterError()
     }
@@ -16,7 +16,7 @@ const validateRequiredParameters = paramObject => {
     }
 }
 
-const hasOneOfParameters = paramObject => {
+export const hasOneOfParameters = paramObject => {
     if (!paramObject || isEmptyValue(paramObject)) {
         throw new MissingParameterError()
     }
@@ -26,7 +26,7 @@ const hasOneOfParameters = paramObject => {
     }
 }
 
-module.exports = {
+export default {
     validateRequiredParameters,
     hasOneOfParameters
 }

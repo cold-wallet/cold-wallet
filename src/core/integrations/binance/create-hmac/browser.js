@@ -1,6 +1,6 @@
 var inherits = require('inherits')
-var Legacy = require('./legacy')
-var Base = require('./../cipher-base')
+var Legacy = require('./legacy').default
+var Base = require('./../cipher-base').default
 var Buffer = require('safe-buffer').Buffer
 var md5 = require('create-hash/md5')
 var RIPEMD160 = require('ripemd160')
@@ -49,7 +49,7 @@ Hmac.prototype._final = function () {
     return hash.update(this._opad).update(h).digest()
 }
 
-module.exports = function createHmac(alg, key) {
+export default function createHmac(alg, key) {
     alg = alg.toLowerCase()
     if (alg === 'rmd160' || alg === 'ripemd160') {
         return new Hmac('rmd160', key)

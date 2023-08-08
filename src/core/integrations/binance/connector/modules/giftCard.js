@@ -90,4 +90,4 @@ const GiftCard = superclass => class extends superclass {
     }
 }
 
-module.exports = GiftCard
+export default GiftCard

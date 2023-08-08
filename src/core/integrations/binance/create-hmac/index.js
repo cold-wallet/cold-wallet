@@ -1,1 +1,1 @@
-module.exports = require('crypto').createHmac
+export default require('crypto').createHmac

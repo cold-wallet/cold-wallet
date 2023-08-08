@@ -1,6 +1,6 @@
 exports.randomBytes = exports.rng = exports.pseudoRandomBytes = exports.prng = require('randombytes')
 exports.createHash = exports.Hash = require('create-hash')
-exports.createHmac = exports.Hmac = require('./../create-hmac/browser')
+exports.createHmac = exports.Hmac = require('./../create-hmac/browser').default
 
 var algos = require('browserify-sign/algos')
 var algoKeys = Object.keys(algos)

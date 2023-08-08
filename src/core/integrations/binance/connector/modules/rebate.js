@@ -26,4 +26,4 @@ const Rebate = superclass => class extends superclass {
         )
     }
 }
-module.exports = Rebate
+export default Rebate

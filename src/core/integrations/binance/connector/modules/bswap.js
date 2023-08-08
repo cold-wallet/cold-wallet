@@ -335,4 +335,4 @@ const Bswap = superclass => class extends superclass {
     }
 }
 
-module.exports = Bswap
+export default Bswap

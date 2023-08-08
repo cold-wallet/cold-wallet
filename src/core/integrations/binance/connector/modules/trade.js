@@ -387,4 +387,4 @@ const Trade = superclass => class extends superclass {
     }
 }
 
-module.exports = Trade
+export default Trade

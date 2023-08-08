@@ -1,4 +1,4 @@
-const Error = require('../error/error')
+import Error from '../error/error'
 
 class MissingParameterError extends Error {
     constructor(paramNames) {
@@ -7,4 +7,4 @@ class MissingParameterError extends Error {
     }
 }
 
-module.exports = MissingParameterError
+export default MissingParameterError

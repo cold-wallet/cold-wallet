@@ -42,4 +42,4 @@ Hmac.prototype._final = function () {
     var h = this._alg(Buffer.concat(this._hash))
     return this._alg(Buffer.concat([this._opad, h]))
 }
-module.exports = Hmac
+export default Hmac

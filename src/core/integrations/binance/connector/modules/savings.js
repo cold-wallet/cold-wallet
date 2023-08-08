@@ -335,4 +335,4 @@ const Savings = superclass => class extends superclass {
     }
 }
 
-module.exports = Savings
+export default Savings

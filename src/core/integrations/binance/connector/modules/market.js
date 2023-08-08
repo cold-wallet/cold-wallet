@@ -261,4 +261,4 @@ const Market = superclass => class extends superclass {
     }
 }
 
-module.exports = Market
+export default Market

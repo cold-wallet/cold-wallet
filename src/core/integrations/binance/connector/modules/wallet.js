@@ -470,4 +470,4 @@ const Wallet = superclass => class extends superclass {
     }
 }
 
-module.exports = Wallet
+export default Wallet

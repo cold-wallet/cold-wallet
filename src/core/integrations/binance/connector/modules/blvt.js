@@ -1,4 +1,4 @@
-const {validateRequiredParameters} = require('../helpers/validation')
+import {validateRequiredParameters} from '../helpers/validation'
 
 /**
  * API blvt endpoints
@@ -122,4 +122,4 @@ const Blvt = superclass => class extends superclass {
     }
 }
 
-module.exports = Blvt
+export default Blvt

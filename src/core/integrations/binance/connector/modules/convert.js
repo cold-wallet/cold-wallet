@@ -29,4 +29,4 @@ const Convert = superclass => class extends superclass {
         )
     }
 }
-module.exports = Convert
+export default Convert

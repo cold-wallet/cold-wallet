@@ -98,4 +98,4 @@ const NFT = superclass => class extends superclass {
         )
     }
 }
-module.exports = NFT
+export default NFT
