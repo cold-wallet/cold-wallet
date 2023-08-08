@@ -51,6 +51,8 @@ export default function AssetsDashboard(
                 monobankCurrencies,
                 binanceCurrencies,
                 userData,
+                binanceSettingsEnabled,
+                monobankSettingsEnabled,
             )}
             {assetToDelete && AssetDeleteWindow(
                 assetToDelete, setAssetToDelete, userData, setUserData, setShowCreateNewAssetWindow,

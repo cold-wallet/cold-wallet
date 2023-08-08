@@ -6,6 +6,9 @@ import compareStrings from "./../../../utils/compareStrings";
 import React from "react";
 import ModalWindow from "../../ModalWindow";
 import thirdPartyIntegrations from "../../integrations/ThirdPartyIntegrations";
+import binanceIntegration from "../../integrations/BinanceIntegrationPad";
+import qmallIntegration from "../../integrations/QmallIntegrationPad";
+import monobankIntegration from "../../integrations/MonobankIntegrationPad";
 
 export default function NewAssetWindow(
     setNewAssetCurrency,
@@ -14,6 +17,8 @@ export default function NewAssetWindow(
     monobankCurrencies,
     binanceCurrencies,
     userData,
+    binanceSettingsEnabled,
+    monobankSettingsEnabled,
 ) {
 
     const onNewAssetCurrencySelected = (currency) => {
@@ -148,13 +153,16 @@ export default function NewAssetWindow(
                 </div>
                 <div className="new-asset-choose-box flex-box-centered flex-direction-column">
                     <div className="new-asset-choose-title text-label">Choose your integration</div>
-                    <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>
-                        {
-                            thirdPartyIntegrations.map((integration) => integration.element(
-                                () => onNewAssetIntegrationSelected(integration.name)
-                            ))
-                        }
-                    </div>
+                    <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>{
+                        [
+                            {integration: binanceIntegration, isEnabled: binanceSettingsEnabled},
+                            {integration: qmallIntegration, isEnabled: false},
+                            {integration: monobankIntegration, isEnabled: monobankSettingsEnabled},
+
+                        ].map(({integration, isEnabled}) => integration.element(
+                            () => onNewAssetIntegrationSelected(integration.name), isEnabled)
+                        )
+                    }</div>
                     <div className="new-asset-choose-select-box">
                         <select className={"new-asset-choose-select"}
                                 onChange={e => onNewAssetIntegrationSelected(e.target.value)}>

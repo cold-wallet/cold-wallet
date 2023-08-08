@@ -3,7 +3,13 @@
     background-color: black;
 }
 
-.integration-logo--qmall {
+.integration-settings .integration-logo--qmall {
+    width: 50%;
+    height: 50%;
+}
+
+.integration-logo.integration-logo--qmall {
+    width: 53%;
     background-color: #33323e;
 }
 
@@ -14,12 +20,37 @@
 }
 
 .integration {
+    position: relative;
     width: 100%;
     height: 30%;
+}
+
+.integration-settings .integration.integration-enabled,
+.integration.integration-enabled {
+    padding-left: 35px;
+    width: calc(100% - 35px);
 }
 
 .integration-logo {
     width: 60%;
     border-radius: 5px;
     padding: 3%;
+}
+
+.integration-settings .integration.integration-enabled .integration-logo,
+.integration.integration-enabled .integration-logo {
+    margin-left: auto;
+}
+
+.integration-enabled-corner {
+    margin: 0 0 auto auto;
+    border-top: 35px solid #608A32;
+    border-left: 35px solid transparent;
+}
+
+.integration-enabled-corner-text {
+    position: absolute;
+    text-align: center;
+    top: 1%;
+    right: 1%;
 }

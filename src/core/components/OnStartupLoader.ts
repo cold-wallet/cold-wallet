@@ -1,11 +1,13 @@
 import {useState} from "react";
 import useInterval from "../utils/useInterval";
+import FiatCurrency from "../fiatCurrencies/FiatCurrency";
+import MonobankCurrencyResponse from "../integrations/monobank/MonobankCurrencyResponse";
 
 export default function OnStartupLoader(
-    binancePricesLoaded,
-    binanceCurrenciesLoaded,
-    monobankRates,
-    monobankCurrencies,
+    binancePricesLoaded: boolean,
+    binanceCurrenciesLoaded: boolean,
+    monobankRates: MonobankCurrencyResponse[] | null,
+    monobankCurrencies: { [index: string]: FiatCurrency } | null,
 ) {
 
     const [loaded, setLoaded] = useState(false);

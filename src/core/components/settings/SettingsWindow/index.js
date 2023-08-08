@@ -3,7 +3,6 @@ import ModalWindow from "../../ModalWindow";
 import NeutralButton from "../../buttons/NeutralButton";
 import React from "react";
 import PositiveButton from "../../buttons/PositiveButton";
-import thirdPartyIntegrations from "../../integrations/ThirdPartyIntegrations";
 import monobankIntegration from "../../integrations/MonobankIntegrationPad";
 import binanceIntegration from "../../integrations/BinanceIntegrationPad";
 import qmallIntegration from "../../integrations/QmallIntegrationPad";
@@ -107,9 +106,14 @@ export default function SettingsWindow(
                 return (<>
                     <div className={"setting-label text-label"}>Configure integration</div>
                     <div className="integration-settings">{
-                        thirdPartyIntegrations.map(integration => integration.element(
-                            () => setIntegrationWindowNameSelected(integration.name)
-                        ))
+                        [
+                            {integration: binanceIntegration, isEnabled: binanceSettingsEnabled},
+                            {integration: qmallIntegration, isEnabled: false},
+                            {integration: monobankIntegration, isEnabled: monobankSettingsEnabled},
+
+                        ].map(({integration, isEnabled}) => integration.element(
+                            () => setIntegrationWindowNameSelected(integration.name), isEnabled)
+                        )
                     }</div>
                 </>)
         }
