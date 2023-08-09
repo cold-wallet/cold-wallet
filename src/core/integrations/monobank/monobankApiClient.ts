@@ -7,7 +7,7 @@ import ApiResponse from "../../domain/ApiResponse";
 import FiatCurrency from "../../fiatCurrencies/FiatCurrency";
 import reduceToObject from "../../utils/reduceToObject";
 import MonobankUserData from "./MonobankUserData";
-import AssetDTO from "../../domain/AssetDTO";
+import AssetDTO, {fiat} from "../../domain/AssetDTO";
 
 let monobankBaseUrl = 'https://api.monobank.ua';
 const urlMonobankRates = monobankBaseUrl + '/bank/currency';
@@ -27,6 +27,7 @@ function extractAssetsFromMonobankAccounts(accounts: MonobankAccountResponse[]) 
                 String(account.balance / 100),
                 name,
                 fiatCurrency?.afterDecimalPoint || 2,
+                fiat,
                 false,
                 true,
             )
@@ -44,6 +45,7 @@ function extractAssetsFromMonobankJars(jars: MonobankJarResponse[]) {
                 String(jar.balance / 100),
                 name,
                 fiatCurrency?.afterDecimalPoint || 2,
+                fiat,
                 false,
                 true,
             )

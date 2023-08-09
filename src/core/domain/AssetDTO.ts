@@ -1,3 +1,11 @@
+export enum AssetType {
+    crypto,
+    fiat,
+}
+
+export const crypto = AssetType.crypto
+export const fiat = AssetType.fiat
+
 export default class AssetDTO {
     normalizedName
 
@@ -7,6 +15,7 @@ export default class AssetDTO {
         public amount: string,
         public name: string,
         public decimalScale: number,
+        public type: AssetType,
         public isBinanceAsset: boolean = false,
         public isMonobankAsset: boolean = false,
     ) {
@@ -18,6 +27,7 @@ export default class AssetDTO {
         this.amount = amount;
         this.name = name;
         this.decimalScale = decimalScale;
+        this.type = type;
         this.normalizedName = ((this.name.toUpperCase().indexOf(this.currency.toUpperCase()) !== 0)
             ? `${this.currency} ` : "") + name;
         this.isBinanceAsset = isBinanceAsset;

@@ -9,9 +9,10 @@ import {
     LendingAccount,
     positionAmount
 } from "binance-api-node";
-import AssetDTO from "../../domain/AssetDTO";
+import AssetDTO, {crypto, fiat} from "../../domain/AssetDTO";
 import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
 import Spot from "./connector/spot";
+import fiatCurrencies from "../../fiatCurrencies";
 
 const proxyUrl =
     "https://api.binance.com"
@@ -56,6 +57,7 @@ class BinanceApiService {
                     balance.netAsset,
                     name,
                     this.binanceCurrencies[balance.asset].precision,
+                    fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
             })
@@ -74,6 +76,7 @@ class BinanceApiService {
                     balance.netAsset,
                     name,
                     this.binanceCurrencies[balance.asset].precision,
+                    fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
             })
@@ -91,6 +94,7 @@ class BinanceApiService {
                     balance.balance,
                     name,
                     this.binanceCurrencies[balance.asset].precision,
+                    fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
             })
@@ -109,6 +113,7 @@ class BinanceApiService {
                     balance.balance,
                     name,
                     this.binanceCurrencies[balance.asset].precision,
+                    fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
             })
@@ -126,6 +131,7 @@ class BinanceApiService {
                     balance.free,
                     name,
                     this.binanceCurrencies[balance.asset].precision,
+                    fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
             })
@@ -143,6 +149,7 @@ class BinanceApiService {
                 balance.amount,
                 name,
                 this.binanceCurrencies[balance.asset].precision,
+                fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                 true,
             )
         })
@@ -160,6 +167,7 @@ class BinanceApiService {
                 balance.amount,
                 name,
                 this.binanceCurrencies[balance.asset].precision,
+                fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                 true,
             )
         })
@@ -177,6 +185,7 @@ class BinanceApiService {
                 balance.amount,
                 name,
                 this.binanceCurrencies[balance.asset].precision,
+                fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                 true,
             )
         })
@@ -208,6 +217,7 @@ class BinanceApiService {
                     balance.amount,
                     name,
                     this.binanceCurrencies[balance.symbol].precision,
+                    fiatCurrencies.getByStringCode(balance.symbol) ? fiat : crypto,
                     true,
                 )
             })
@@ -241,6 +251,7 @@ class BinanceApiService {
                     balance.principal,
                     name,
                     this.binanceCurrencies[balance.asset].precision,
+                    fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
             })
@@ -274,6 +285,7 @@ class BinanceApiService {
                     balance.totalAmount,
                     name,
                     this.binanceCurrencies[balance.asset].precision,
+                    fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
             })

@@ -118,6 +118,7 @@ export default function AssetsDashboard(
             setCreatingNewAsset,
             stateReset,
             anyAssetExist,
+            binanceCurrencies,
         ) : null
     }
 

@@ -3,7 +3,8 @@ import Binance, {Account, Symbol, TradingType, TradingType_LT} from 'binance-api
 import BinanceApiService from "./BinanceApiService";
 import reduceToObject from "../../utils/reduceToObject";
 import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
-import AssetDTO from "../../domain/AssetDTO";
+import AssetDTO, {crypto, fiat} from "../../domain/AssetDTO";
+import fiatCurrencies from "../../fiatCurrencies";
 
 const binanceApiClient = {
     fetchBinancePrices: async (): Promise<ApiResponse<{ [p: string]: string } | any>> => {
@@ -64,6 +65,7 @@ const binanceApiClient = {
                             console.warn("not found precision for " + balance.asset)
                             return 8
                         })()),
+                        fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                         true,
                     ))
             } as SpotAccount

@@ -1,27 +1,25 @@
 import fiatCurrencies from "./../../../fiatCurrencies";
-import AssetDTO from "./../../../domain/AssetDTO";
+import AssetDTO, {crypto, fiat} from "./../../../domain/AssetDTO";
 import uuidGenerator from "./../../../utils/uuidGenerator";
 import AssetEditor from "../AssetEditor";
 
 export default function EditNewAsset(
     assetCurrency,
-    isNewAssetAmountInvalid,
-    setIsNewAssetAmountInvalid,
-    newAssetAmount,
-    setNewAssetAmount,
-    newAssetName,
-    setNewAssetName,
+    isNewAssetAmountInvalid, setIsNewAssetAmountInvalid,
+    newAssetAmount, setNewAssetAmount,
+    newAssetName, setNewAssetName,
     setShowCreateNewAssetWindow,
-    isNewAssetNameInvalid,
-    setIsNewAssetNameInvalid,
-    userData,
-    setUserData,
+    isNewAssetNameInvalid, setIsNewAssetNameInvalid,
+    userData, setUserData,
     setCreatingNewAsset,
     stateReset,
     anyAssetExist,
+    binanceCurrencies,
 ) {
     let fiatCurrency = fiatCurrencies.getByStringCode(assetCurrency);
-    const decimalScale = fiatCurrency ? fiatCurrency.afterDecimalPoint : 8;
+    const decimalScale = fiatCurrency
+        ? fiatCurrency.afterDecimalPoint
+        : (binanceCurrencies[assetCurrency].precision || 8);
     if (newAssetName == null) {
         setNewAssetName(`${assetCurrency} amount`);
     }
@@ -31,7 +29,7 @@ export default function EditNewAsset(
             userDataNew.assets = [];
         }
         let newAsset = new AssetDTO(uuidGenerator.generateUUID(), assetCurrency, newAssetAmount,
-            newAssetName, decimalScale);
+            newAssetName, decimalScale, fiatCurrency ? fiat : crypto);
         userDataNew.assets.unshift(newAsset)
         setUserData(userDataNew);
         stateReset();
