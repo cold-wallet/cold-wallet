@@ -12,9 +12,9 @@ import QmallSettings from "./.././QmallSettings";
 import monobankSettingsValidation from "./.././MonobankSettings/monobankSettingsValidation";
 import binanceSettingsValidation from "./.././BinanceSettings/binanceSettingsValidation";
 import UserData from "./../../../domain/UserData";
-import MonobankUserDataResponse from "./../../../integrations/monobank/MonobankUserDataResponse";
 import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
 import BinanceCurrencyResponse from "./../../../integrations/binance/BinanceCurrencyResponse";
+import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 
 export default function IntegrationSettings(
     defaultViewBuilder: () => JSX.Element,
@@ -28,7 +28,7 @@ export default function IntegrationSettings(
     monobankSettingsEnabled: boolean, setMonobankSettingsEnabled: Dispatch<SetStateAction<boolean | null>>,
     monobankApiTokenInput: string, setMonobankApiTokenInput: Dispatch<SetStateAction<string | null>>,
     monobankApiTokenInputInvalid: boolean, setMonobankApiTokenInputInvalid: Dispatch<SetStateAction<boolean | null>>,
-    monobankUserData: MonobankUserDataResponse, setMonobankUserData: Dispatch<SetStateAction<MonobankUserDataResponse | null>>,
+    monobankUserData: MonobankUserData, setMonobankUserData: Dispatch<SetStateAction<MonobankUserData | null>>,
     monobankUserDataLoading: boolean, setMonobankUserDataLoading: Dispatch<SetStateAction<boolean | null>>,
     integrationWindowNameSelected: string, setIntegrationWindowNameSelected: Dispatch<SetStateAction<string | null>>,
     binanceCurrencies: { [index: string]: BinanceCurrencyResponse },

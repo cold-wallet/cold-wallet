@@ -4,7 +4,7 @@ import ModalWindow from "../../ModalWindow";
 import NegativeButton from "../../buttons/NegativeButton";
 import NeutralButton from "../../buttons/NeutralButton";
 import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
-import MonobankUserDataResponse from "../../../integrations/monobank/MonobankUserDataResponse";
+import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 
 export default function AssetDeleteWindow(
     assetToDelete,
@@ -28,7 +28,7 @@ export default function AssetDeleteWindow(
 
         let anyAssetExist = !!(userDataNew.assets.length)
             || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
-            || userData.settings.monobankIntegrationEnabled && MonobankUserDataResponse.assetsExist(monobankUserData);
+            || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData);
 
         if (!anyAssetExist) {
             setCreatingNewAsset(true);

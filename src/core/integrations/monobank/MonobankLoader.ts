@@ -7,7 +7,7 @@ import FiatCurrency from "../../../core/fiatCurrencies/FiatCurrency";
 import MonobankCurrencyResponse from "../../../core/integrations/monobank/MonobankCurrencyResponse";
 import StorageFactory from "../../domain/StorageFactory";
 import MonobankUserDataStorage from "./MonobankUserDataStorage";
-import MonobankUserDataResponse from "./MonobankUserDataResponse";
+import MonobankUserData from "./MonobankUserData";
 
 const MonobankLoader = (
     storageFactory: StorageFactory,
@@ -50,10 +50,9 @@ const MonobankLoader = (
             return
         }
         monobankApiClient.getUserInfo(monobankIntegrationToken)
-            .then((response: ApiResponse<MonobankUserDataResponse | any>) => {
+            .then((response: ApiResponse<MonobankUserData | any>) => {
                 if (response.success && response.result) {
-                    const result: MonobankUserDataResponse = response.result;
-                    setMonobankUserData(result);
+                    setMonobankUserData(response.result);
                 } else {
                     console.warn('Error fetching user data from monobank:', response.error);
                 }

@@ -1,15 +1,54 @@
 import axios, {AxiosResponse} from "axios";
 import fiatCurrencies from "../../fiatCurrencies";
 import MonobankCurrencyResponse from "./MonobankCurrencyResponse";
-import MonobankUserDataResponse from "./MonobankUserDataResponse";
+import MonobankUserDataResponse, {MonobankAccountResponse, MonobankJarResponse} from "./MonobankUserDataResponse";
 import MonobankPublicDataResponse from "./MonobankPublicDataResponse";
 import ApiResponse from "../../domain/ApiResponse";
 import FiatCurrency from "../../fiatCurrencies/FiatCurrency";
 import reduceToObject from "../../utils/reduceToObject";
+import MonobankUserData from "./MonobankUserData";
+import AssetDTO from "../../domain/AssetDTO";
 
 let monobankBaseUrl = 'https://api.monobank.ua';
 const urlMonobankRates = monobankBaseUrl + '/bank/currency';
 const urlMonobankClientInfo = monobankBaseUrl + '/personal/client-info';
+
+
+function extractAssetsFromMonobankAccounts(accounts: MonobankAccountResponse[]) {
+    return accounts.filter(account => +account.balance)
+        .map(account => {
+            let fiatCurrency = fiatCurrencies.getByNumCode(account.currencyCode);
+            const name = `${fiatCurrency?.code} ${account.maskedPan
+                ? (account.maskedPan[0] ? (account.maskedPan[0] + " ") : "")
+                : ""}${account.type}`;
+            return new AssetDTO(
+                "monobank_" + account.id,
+                fiatCurrency?.code || "",
+                String(account.balance / 100),
+                name,
+                fiatCurrency?.afterDecimalPoint || 2,
+                false,
+                true,
+            )
+        })
+}
+
+function extractAssetsFromMonobankJars(jars: MonobankJarResponse[]) {
+    return jars.filter(jar => +jar.balance)
+        .map(jar => {
+            let fiatCurrency = fiatCurrencies.getByNumCode(jar.currencyCode);
+            const name = `${fiatCurrency?.code} ${jar.title}`;
+            return new AssetDTO(
+                "monobank_jar_" + jar.id,
+                fiatCurrency?.code || "",
+                String(jar.balance / 100),
+                name,
+                fiatCurrency?.afterDecimalPoint || 2,
+                false,
+                true,
+            )
+        })
+}
 
 const monobankApiClient = {
     fetchMonobankRatesAndCurrencies: async (): Promise<ApiResponse<MonobankPublicDataResponse | any>> => {
@@ -49,7 +88,7 @@ const monobankApiClient = {
             )
         }
     },
-    getUserInfo: async (token: string): Promise<ApiResponse<MonobankUserDataResponse | any>> => {
+    getUserInfo: async (token: string): Promise<ApiResponse<MonobankUserData | any>> => {
         try {
             const response: AxiosResponse<MonobankUserDataResponse> = await axios.get(urlMonobankClientInfo, {
                 headers: {
@@ -58,9 +97,16 @@ const monobankApiClient = {
             });
             const userInfo: MonobankUserDataResponse = response.data
             if (userInfo && userInfo.name && userInfo.accounts) {
+                const accounts = extractAssetsFromMonobankAccounts(userInfo.accounts);
+                const jars = extractAssetsFromMonobankJars(userInfo.jars);
+                const accountInfo: MonobankUserData = {
+                    ...userInfo,
+                    accounts,
+                    jars,
+                }
                 return ApiResponse.success(
                     response.status,
-                    userInfo,
+                    accountInfo,
                 )
             } else {
                 console.warn("Fetching monobank user data failed", response);

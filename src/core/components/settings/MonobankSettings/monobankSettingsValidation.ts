@@ -1,13 +1,13 @@
 import monobankApiClient from "../../../integrations/monobank/monobankApiClient";
 import UserData, {UserSettings} from "../../../domain/UserData";
 import {Dispatch, SetStateAction} from "react";
-import MonobankUserDataResponse from "../../../integrations/monobank/MonobankUserDataResponse";
+import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 
 async function validateMonobankSettings(
     userData: UserData,
     monobankSettingsEnabled: boolean,
     monobankApiTokenInput: string,
-    setMonobankUserData: Dispatch<SetStateAction<MonobankUserDataResponse | null>>,
+    setMonobankUserData: Dispatch<SetStateAction<MonobankUserData | null>>,
 ) {
     let isValidSettings = true;
 
@@ -38,7 +38,7 @@ export default function monobankSettingsValidation(
     setMonobankApiTokenInputInvalid: Dispatch<SetStateAction<boolean | null>>,
     monobankSettingsEnabled: boolean,
     monobankApiTokenInput: string,
-    setMonobankUserData: Dispatch<SetStateAction<MonobankUserDataResponse | null>>,
+    setMonobankUserData: Dispatch<SetStateAction<MonobankUserData | null>>,
     setMonobankUserDataLoading: Dispatch<SetStateAction<boolean | null>>,
 ) {
     if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled

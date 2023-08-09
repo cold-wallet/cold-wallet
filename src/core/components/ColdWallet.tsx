@@ -8,7 +8,7 @@ import OnStartupLoader from "./OnStartupLoader";
 import StorageFactory from "../domain/StorageFactory";
 import UserData from "../domain/UserData";
 import {AccountInfo} from "../integrations/binance/binanceApiClient";
-import MonobankUserDataResponse from "../integrations/monobank/MonobankUserDataResponse";
+import MonobankUserData from "../integrations/monobank/MonobankUserData";
 
 export default function ColdWallet(props: StorageFactory,) {
     const storageFactory: StorageFactory = props;
@@ -75,7 +75,7 @@ export default function ColdWallet(props: StorageFactory,) {
 
     let anyAssetExist = !!(userData.assets.length)
         || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
-        || userData.settings.monobankIntegrationEnabled && MonobankUserDataResponse.assetsExist(monobankUserData);
+        || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData);
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!anyAssetExist);
     const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
 

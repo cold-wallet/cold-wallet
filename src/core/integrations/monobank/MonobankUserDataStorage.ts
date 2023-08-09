@@ -1,13 +1,13 @@
 import StorageFactory from "../../domain/StorageFactory";
-import MonobankUserDataResponse from "./MonobankUserDataResponse";
 import {Dispatch, SetStateAction} from "react";
+import MonobankUserData from "./MonobankUserData";
 
 export default function MonobankUserDataStorage(storageFactory: StorageFactory)
-    : [MonobankUserDataResponse | null, Dispatch<SetStateAction<MonobankUserDataResponse | null>>] {
+    : [MonobankUserData | null, Dispatch<SetStateAction<MonobankUserData | null>>] {
     const [
         monobankUserData,
         setMonobankUserData
-    ] = storageFactory.createStorageNullable<MonobankUserDataResponse>("monobankUserData");
+    ] = storageFactory.createStorageNullable<MonobankUserData>("monobankUserData");
 
     return [
         monobankUserData,
