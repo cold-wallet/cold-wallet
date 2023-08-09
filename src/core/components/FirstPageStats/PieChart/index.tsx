@@ -6,6 +6,7 @@ import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 import BalancePerType from "./BalancePerType";
 import BalancePerCurrency from "./BalancePerCurrency";
 import TotalPicture from "./TotalPicture";
+import AssetDTO from "../../../domain/AssetDTO";
 
 export default function PieChart(
     userData: UserData,
@@ -31,6 +32,10 @@ export default function PieChart(
         onClick: () => {
         },
     },];
+
+    const assets: AssetDTO[] = [...userData.assets]
+        .concat(MonobankUserData.getAllAssets(monobankUserData))
+        .concat(AccountInfo.getAllAssets(binanceUserData))
 
     return <div className={"chart-total-pie-box flex-box-centered flex-direction-column layer-0-themed-color"}>
         <div className="chart-total-pie-main"></div>

@@ -162,8 +162,8 @@ export class AccountInfo {
     ) {
     }
 
-    static assetsExist = (accountInfo: AccountInfo | null) => {
-        return accountInfo && (accountInfo.account?.balances.length
+    static assetsExist = (accountInfo: AccountInfo | null): boolean => {
+        return !!(accountInfo && (accountInfo.account?.balances.length
             || accountInfo.marginIsolated?.length
             || accountInfo.marginCross?.length
             || accountInfo.futuresUsdM?.length
@@ -174,7 +174,22 @@ export class AccountInfo {
             || accountInfo.flexibleDefiStaking?.length
             || accountInfo.liquidityFarming?.length
             || accountInfo.savingsFixed?.length
-            || accountInfo.savingsFlexible?.length)
+            || accountInfo.savingsFlexible?.length))
+    }
+
+    static getAllAssets = (accountInfo: AccountInfo): AssetDTO[] => {
+        return [...accountInfo.account?.balances || []]
+            .concat(accountInfo.marginIsolated || [])
+            .concat(accountInfo.marginCross || [])
+            .concat(accountInfo.futuresUsdM || [])
+            .concat(accountInfo.futuresCoinM || [])
+            .concat(accountInfo.funding || [])
+            .concat(accountInfo.lockedStaking || [])
+            .concat(accountInfo.lockedDeFiStaking || [])
+            .concat(accountInfo.flexibleDefiStaking || [])
+            .concat(accountInfo.liquidityFarming || [])
+            .concat(accountInfo.savingsFixed || [])
+            .concat(accountInfo.savingsFlexible || [])
     }
 }
 
