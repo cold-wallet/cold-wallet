@@ -125,8 +125,12 @@ export default function AssetsDashboard(
                         setNewAssetName,
                         stateReset,
                     ))}
-                    {userData.settings.binanceIntegrationEnabled ? BinanceIntegrationAssets(binanceUserData) : null}
-                    {userData.settings.monobankIntegrationEnabled ? MonobankIntegrationAssets(monobankUserData) : null}
+                    {userData.settings.binanceIntegrationEnabled && binanceUserData
+                        ? BinanceIntegrationAssets(binanceUserData)
+                        : null}
+                    {userData.settings.monobankIntegrationEnabled && monobankUserData
+                        ? MonobankIntegrationAssets(monobankUserData)
+                        : null}
             </div>
         </div>
     );
