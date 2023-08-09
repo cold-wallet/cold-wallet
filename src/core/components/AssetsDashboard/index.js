@@ -10,6 +10,7 @@ import EditAsset from "./../assets/EditAsset";
 import SettingsWindow from "../settings/SettingsWindow";
 import BinanceIntegrationAssets from "../assets/BinanceIntegrationAssets";
 import MonobankIntegrationAssets from "../assets/MonobankIntegrationAssets";
+import FirstPageStats from "../FirstPageStats";
 
 export default function AssetsDashboard(
     {
@@ -157,6 +158,12 @@ export default function AssetsDashboard(
             : null
     }
 
+    function buildFirstPageStats() {
+        return anyAssetExist ? FirstPageStats(
+            userData, monobankUserData, binanceUserData,
+        ) : null
+    }
+
     function buildFirstPage() {
         return <>
             {buildNewAssetWindow()}
@@ -169,6 +176,7 @@ export default function AssetsDashboard(
                 {buildBinanceIntegrationAssets()}
                 {buildMonobankIntegrationAssets()}
             </div>
+            {buildFirstPageStats()}
         </>
     }
 

@@ -1,0 +1,8 @@
+.first-page-stats-box {
+  width: 70%;
+  height: 100%;
+  display: flex;
+  flex-flow: row;
+  justify-content: center;
+  align-items: center;
+}
