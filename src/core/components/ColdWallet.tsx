@@ -79,6 +79,8 @@ export default function ColdWallet(props: StorageFactory,) {
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!anyAssetExist);
     const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
 
+    const [selectedPageNumber, setSelectedPageNumber] = useState(0);
+
     function stateReset() {
         setShowCreateNewAssetWindow(!anyAssetExist);
         setCreatingNewAsset(!anyAssetExist);
@@ -136,6 +138,7 @@ export default function ColdWallet(props: StorageFactory,) {
                         binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
                         binanceUserData, setBinanceUserData,
                         binanceUserDataLoading, setBinanceUserDataLoading,
+                        selectedPageNumber, setSelectedPageNumber,
                     })
                     : NotLoggedIn(userData, setUserData)
                 : LoadingWindow(binancePricesLoaded,
