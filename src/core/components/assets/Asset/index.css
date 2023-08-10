@@ -2,7 +2,8 @@
   padding: 1% 2% 1% 1%;
   margin: 1%;
   width: 95%;
-  height: 5%;
+  max-height: 4%;
+  height: 4%;
   min-height: 3.5%;
   flex-wrap: nowrap;
   justify-content: space-between;
