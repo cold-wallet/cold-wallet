@@ -3,6 +3,7 @@
   margin: 1%;
   width: 95%;
   height: 5%;
+  min-height: 3.5%;
   flex-wrap: nowrap;
   justify-content: space-between;
 }
