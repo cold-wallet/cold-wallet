@@ -18,7 +18,7 @@
   margin: 1px 0 0 1px;
 }
 
-@media only screen and (max-width: 90px) {
+@media only screen and (max-width: 900px) {
 
   .positive-button {
     font-size: 130%;
