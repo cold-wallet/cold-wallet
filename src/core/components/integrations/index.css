@@ -54,3 +54,16 @@
     top: 1%;
     right: 1%;
 }
+
+
+@media only screen and (max-width: 800px) {
+
+  .new-asset-choose-buttons .integration-logo {
+    position: absolute;
+    width: 80%;
+    height: 20%;
+    left: 7%;
+  }
+
+}
+

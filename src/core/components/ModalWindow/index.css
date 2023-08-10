@@ -84,3 +84,48 @@
   padding-bottom: 2%;
   height: 10%;
 }
+
+@media only screen and (max-width: 900px) {
+
+  .modal-window-large {
+    width: 80%;
+    height: 80%;
+    left: 10%;
+    top: 10%;
+  }
+
+}
+
+@media only screen and (max-width: 800px) {
+
+  .modal-window-small {
+    width: 60%;
+    height: 50%;
+    left: 20%;
+    top: 10%;
+  }
+
+}
+
+@media only screen and (max-width: 500px) {
+
+  .modal-window-close-button {
+    width: 15%;
+  }
+
+  .modal-window-large {
+    width: 90%;
+    height: 90%;
+    left: 5%;
+    top: 5%;
+  }
+
+  .modal-window-small {
+    width: 80%;
+    height: 60%;
+    left: 10%;
+    top: 10%;
+  }
+
+}
+

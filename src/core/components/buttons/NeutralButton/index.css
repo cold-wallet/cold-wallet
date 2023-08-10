@@ -20,3 +20,21 @@
 .neutral-button:active {
   margin: 1px 0 0 1px;
 }
+
+@media only screen and (max-width: 90px) {
+
+  .neutral-button,
+  .neutral-button.button {
+    font-size: 130%;
+  }
+
+}
+
+@media only screen and (max-width: 520px) {
+
+  .neutral-button,
+  .neutral-button.button {
+    font-size: 100%;
+  }
+
+}

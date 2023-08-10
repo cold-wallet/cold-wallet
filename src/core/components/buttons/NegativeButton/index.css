@@ -17,3 +17,20 @@
 .negative-button:active {
   margin: 1px 0 0 1px;
 }
+
+
+@media only screen and (max-width: 90px) {
+
+  .negative-button {
+    font-size: 130%;
+  }
+
+}
+
+@media only screen and (max-width: 520px) {
+
+  .negative-button {
+    font-size: 100%;
+  }
+
+}

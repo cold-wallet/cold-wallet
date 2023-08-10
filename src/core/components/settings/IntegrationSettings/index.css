@@ -8,3 +8,14 @@
     padding: 2% 3%;
     overflow-y: auto;
 }
+
+
+@media only screen and (max-width: 1200px) {
+
+  .settings-window-bottom-button {
+    width: 20%;
+    height: 100%;
+  }
+
+}
+

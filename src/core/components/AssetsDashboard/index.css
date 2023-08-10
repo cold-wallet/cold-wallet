@@ -1,13 +1,34 @@
 .application-box {
   width: 100%;
   height: 100%;
+  display: flex;
+}
+
+.application-first-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-flow: row;
   justify-content: space-between;
 }
 
 .assets-panel {
-  padding: 0.5% 0.5% 0.5% 1%;
+  margin: 0.5% 0.5% 0.5% 1%;
   width: 35%;
-  height: 100%;
+  height: 98%;
   justify-content: flex-start;
   overflow-y: auto;
+}
+
+@media only screen and (max-width: 800px) {
+
+  .application-first-page {
+    flex-flow: column;
+  }
+
+  .assets-panel {
+    width: 98%;
+    min-height: 99%;
+  }
+
 }

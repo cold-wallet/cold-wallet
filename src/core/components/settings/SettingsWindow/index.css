@@ -31,7 +31,7 @@
 
 .integration-settings {
   display: grid;
-  grid-template-rows: 48% 48%;
+  grid-auto-rows: 48%;
   grid-template-columns: 49% 49%;
   grid-column-gap: 1%;
   grid-row-gap: 4%;
@@ -60,4 +60,22 @@
   width: 95%;
   margin-bottom: 3%;
   font-weight: bold;
+}
+
+@media only screen and (max-width: 800px) {
+
+  .integration-settings .integration-logo--qmall {
+    height: 60%;
+    width: 56%;
+  }
+
+  .integration-settings {
+    grid-template-columns: 100%;
+    grid-auto-rows: 30%;
+  }
+
+  .setting-label {
+    margin: 5% 0;
+  }
+
 }

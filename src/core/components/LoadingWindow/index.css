@@ -1,3 +1,11 @@
 .startup-loading-box {
   width: 50%;
 }
+
+@media only screen and (max-width: 800px) {
+
+  .startup-loading-box {
+    width: 80%;
+  }
+
+}

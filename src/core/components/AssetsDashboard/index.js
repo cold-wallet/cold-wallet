@@ -166,7 +166,7 @@ export default function AssetsDashboard(
     }
 
     function buildFirstPage() {
-        return <>
+        return <div className={"application-first-page"}>
             {buildNewAssetWindow()}
             {buildAssetDeleteWindow()}
             {buildSettingsWindow()}
@@ -178,7 +178,7 @@ export default function AssetsDashboard(
                 {buildMonobankIntegrationAssets()}
             </div>
             {buildFirstPageStats()}
-        </>
+        </div>
     }
 
     function buildPage() {
@@ -190,7 +190,7 @@ export default function AssetsDashboard(
     }
 
     return (
-        <div className={"application-box flex-box flex-direction-row"}>{
+        <div className={"application-box"}>{
             buildPage()
         }</div>
     );

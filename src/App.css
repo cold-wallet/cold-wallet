@@ -84,3 +84,21 @@ input.invalid {
   align-items: center;
   justify-content: space-evenly;
 }
+
+@media only screen and (max-width: 800px) {
+
+  .application {
+    height: auto;
+    min-height: 100%;
+  }
+
+}
+
+@media only screen and (max-width: 600px) {
+
+  .text-label {
+    font-size: small;
+  }
+
+}
+

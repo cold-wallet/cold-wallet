@@ -17,3 +17,45 @@
   height: 90%;
   fill: darkslategrey;
 }
+
+.add-new-asset-button,
+.show-configs-window-button {
+  padding: 0.5% 0;
+}
+
+@media only screen and (max-width: 800px) {
+
+  .add-new-asset-button {
+    padding: 1% 0;
+  }
+
+  .show-configs-window-button {
+    padding: 0.3% 0;
+  }
+}
+
+@media only screen and (max-width: 680px) {
+
+  .show-configs-window-button {
+    padding: 0.5% 0;
+  }
+}
+
+@media only screen and (max-width: 620px) {
+
+  .show-configs-window-button {
+    padding: 0.7% 0;
+  }
+}
+
+@media only screen and (max-width: 520px) {
+
+  .show-configs-window-button {
+    padding: 1% 0;
+  }
+
+  .add-new-asset-button {
+    font-size: 140% !important;
+  }
+
+}
