@@ -1,5 +1,5 @@
 .chart-total-pie-box {
-  width: 50%;
+  width: 100%;
   height: 100%;
 }
 
@@ -9,7 +9,7 @@
 }
 
 .chart-total-pie-controls {
-  width: 100%;
+  width: 60%;
   height: 25%;
   padding: 2% 1%;
 }
