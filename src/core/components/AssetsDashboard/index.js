@@ -12,6 +12,7 @@ import MonobankIntegrationAssets from "../assets/MonobankIntegrationAssets";
 import FirstPageStats from "../FirstPageStats";
 import Asset from "../assets/Asset";
 import AssetControls from "../assets/AssetControls";
+import CurrencyRates from "../../currencyRates/CurrencyRates";
 
 export default function AssetsDashboard(
     {
@@ -24,8 +25,8 @@ export default function AssetsDashboard(
         newAssetName, setNewAssetName,
         isNewAssetAmountInvalid, setIsNewAssetAmountInvalid,
         isNewAssetNameInvalid, setIsNewAssetNameInvalid,
-        monobankCurrencies,
-        binanceCurrencies,
+        monobankCurrencies, monobankRates,
+        binanceCurrencies, binancePrices,
         assetToDelete, setAssetToDelete,
         assetToEdit, setAssetToEdit,
         stateReset,
@@ -45,6 +46,8 @@ export default function AssetsDashboard(
         selectedPageNumber, setSelectedPageNumber,
     }
 ) {
+
+    const rates = new CurrencyRates(binancePrices, monobankRates)
 
     function buildNewAssetWindow() {
         return showCreateNewAssetWindow ? NewAssetWindow(
@@ -167,7 +170,7 @@ export default function AssetsDashboard(
 
     function buildFirstPageStats() {
         return anyAssetExist ? FirstPageStats(
-            userData, monobankUserData, binanceUserData,
+            userData, monobankUserData, binanceUserData, rates
         ) : null
     }
 

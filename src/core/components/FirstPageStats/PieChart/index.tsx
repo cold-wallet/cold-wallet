@@ -12,6 +12,7 @@ import Highcharts from 'highcharts'
 import highCharts3d from 'highcharts/highcharts-3d'
 import './../../../utils/highChartTheme'
 import noExponents from "../../../utils/noExponents";
+import CurrencyRates from "../../../currencyRates/CurrencyRates";
 
 // -> Load Highcharts modules
 highCharts3d(Highcharts);
@@ -54,11 +55,12 @@ function buildHighChartsTitle(asset: AssetDTO) {
 
 export default function PieChart(
     {
-        userData, monobankUserData, binanceUserData
+        userData, monobankUserData, binanceUserData, rates,
     }: {
         userData: UserData,
         monobankUserData: MonobankUserData,
         binanceUserData: AccountInfo,
+        rates: CurrencyRates,
     }
 ) {
     const pieControls = [{
@@ -107,7 +109,7 @@ export default function PieChart(
             .map(asset => {
                 return {
                     x: buildHighChartsTitle(asset),
-                    y: parseFloat(asset.amount), // todo: usdAmount
+                    y: rates.transform(asset.currency, +asset.amount, "USD"),
                     type: asset.type,
                 }
             })

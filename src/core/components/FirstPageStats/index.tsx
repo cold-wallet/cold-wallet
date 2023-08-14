@@ -3,6 +3,7 @@ import React, {lazy, Suspense} from "react";
 import UserData from "../../domain/UserData";
 import {AccountInfo} from "../../integrations/binance/binanceApiClient";
 import MonobankUserData from "../../integrations/monobank/MonobankUserData";
+import CurrencyRates from "../../currencyRates/CurrencyRates";
 
 const PieChart = lazy(() => delayForDemo(import('./PieChart')));
 
@@ -20,6 +21,7 @@ export default function FirstPageStats(
     userData: UserData,
     monobankUserData: MonobankUserData,
     binanceUserData: AccountInfo,
+    rates: CurrencyRates,
 ) {
     return <>
         <div className={"first-page-stats-box"}>
@@ -28,6 +30,7 @@ export default function FirstPageStats(
                     userData={userData}
                     monobankUserData={monobankUserData}
                     binanceUserData={binanceUserData}
+                    rates={rates}
                 />
             </Suspense>}
         </div>
