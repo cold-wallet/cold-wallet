@@ -86,7 +86,7 @@
 }
 
 
-@media only screen and (orientation: portrait) {
+@media only screen and (orientation: portrait) and (max-width: 1100px) {
 
   .modal-window-close-button {
     width: 7%;
@@ -150,3 +150,21 @@
 
 }
 
+@media screen and (orientation: portrait) {
+
+  .modal-window-large {
+    width: 80%;
+    left: 10%;
+    top: 10%;
+  }
+
+}
+
+@media only screen and (max-height: 700px) {
+
+  .modal-window-large {
+    height: 90%;
+    top: 5%;
+  }
+
+}
