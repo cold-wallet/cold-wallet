@@ -73,17 +73,21 @@ export default function ColdWallet(props: StorageFactory,) {
     const [binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid] = useState(false);
     const [binanceUserDataLoading, setBinanceUserDataLoading] = useState(false);
 
-    let anyAssetExist = !!(userData.assets.length)
-        || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
-        || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData);
+    function getAnyAssetExist() {
+        return !!(userData.assets.length)
+            || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
+            || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData)
+    }
+
+    let anyAssetExist = getAnyAssetExist();
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!anyAssetExist);
     const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
 
     const [selectedPageNumber, setSelectedPageNumber] = useState(0);
 
     function stateReset() {
-        setShowCreateNewAssetWindow(!anyAssetExist);
-        setCreatingNewAsset(!anyAssetExist);
+        setShowCreateNewAssetWindow(!getAnyAssetExist());
+        setCreatingNewAsset(!getAnyAssetExist());
         setNewAssetCurrency(null);
         setNewAssetAmount(null);
         setNewAssetName(null);

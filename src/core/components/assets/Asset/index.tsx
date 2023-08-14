@@ -5,8 +5,8 @@ import React, {JSX} from "react";
 import AssetDTO from "../../../domain/AssetDTO";
 
 export default function Asset(asset: AssetDTO, controls: JSX.Element) {
-    return (<div className="asset-row-wrapper flex-box-centered">
-        <div key={asset.id} className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
+    return (<div key={asset.id} className="asset-row-wrapper flex-box-centered">
+        <div className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
             <div className={"asset-item-value"}>
                 <NumberFormat
                     allowLeadingZeros={false}
