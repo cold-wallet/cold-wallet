@@ -35,12 +35,36 @@
   height: 20%;
 }
 
-@media only screen and (max-width: 900px) {
 
-  .chart-total-pie-main .highcharts-container {
-    width: 400px !important;
-    height: 250px !important;
+@media only screen and (orientation: portrait) and (min-width: 1200px) {
+  .chart-total-pie-control-label,
+  text {
+    font-size: xx-large !important;
   }
+}
+
+@media only screen and (orientation: portrait) and (min-width: 1000px) {
+  .chart-total-pie-control-label,
+  text {
+    font-size: x-large !important;
+  }
+}
+
+@media only screen and (orientation: landscape) and (min-width: 1200px) {
+  .chart-total-pie-control-label,
+  text {
+    font-size: large !important;
+  }
+}
+
+@media only screen and (min-width: 2400px) {
+  .chart-total-pie-control-label,
+  text {
+    font-size: xx-large !important;
+  }
+}
+
+@media only screen and (max-width: 900px) {
 
   .chart-total-pie-control-label {
     font-size: small;
@@ -49,11 +73,6 @@
 }
 
 @media only screen and (max-width: 420px) {
-
-  .chart-total-pie-main .highcharts-container {
-    width: 400px !important;
-    height: 400px !important;
-  }
 
   .chart-total-pie-control {
     font-size: small;

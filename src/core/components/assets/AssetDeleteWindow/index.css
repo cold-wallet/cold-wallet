@@ -1,4 +1,11 @@
-
 .confirm-delete-asset-button {
   width: 20%;
 }
+
+
+@media only screen and (orientation: portrait) {
+  .confirm-delete-asset-button {
+    width: 30%;
+  }
+}
+

@@ -38,44 +38,46 @@ export default function AssetEditor({
 
     return (
         <div key={"edit-asset"}
-             className={"asset-row-edit-asset flex-box-centered flex-direction-row layer-2-themed-color"}>
-            <div className={"edit-asset-item-value"
-            + (isNewAssetAmountInvalid ? " edit-asset-item-value-input--invalid" : "")}>
-                <NumberFormat
-                    key={id}
-                    allowNegative={false}
-                    allowLeadingZeros={false}
-                    getInputRef={(input) => {
-                        input && !input.value && input.focus();
-                    }}
-                    isNumericString={true}
-                    displayType={"input"}
-                    decimalScale={decimalScale}
-                    thousandSeparator={true}
-                    defaultValue={defaultAmount}
-                    onValueChange={(values) => {
-                        const {value} = values;
-                        // {
-                        //     formattedValue: '$23,234,235.56', //value after applying formatting
-                        //     value: '23234235.56', //non formatted value as numeric string 23234235.56,
-                        //     // if you are setting this value to state make sure to pass isNumericString prop to true
-                        //     floatValue: 23234235.56 //floating point representation. For big numbers it
-                        //     // can have exponential syntax
-                        // }
-                        setIsNewAssetAmountInvalid(false);
-                        setNewAssetAmount(value);
-                    }}
-                    renderText={value => <div className={"edit-asset-item-value-input" +
-                    (isNewAssetAmountInvalid ? " edit-asset-item-value-input--invalid" : "")
-                    }>{value}</div>}
+             className={"asset-row-edit-asset flex-box-centered flex-direction-column layer-2-themed-color"}>
+            <div className="asset-row-edit-first-row flex-box-centered flex-direction-row ">
+                <div className={"edit-asset-item-value"
+                    + (isNewAssetAmountInvalid ? " edit-asset-item-value-input--invalid" : "")}>
+                    <NumberFormat
+                        key={id}
+                        allowNegative={false}
+                        allowLeadingZeros={false}
+                        getInputRef={(input) => {
+                            input && !input.value && input.focus();
+                        }}
+                        isNumericString={true}
+                        displayType={"input"}
+                        decimalScale={decimalScale}
+                        thousandSeparator={true}
+                        defaultValue={defaultAmount}
+                        onValueChange={(values) => {
+                            const {value} = values;
+                            // {
+                            //     formattedValue: '$23,234,235.56', //value after applying formatting
+                            //     value: '23234235.56', //non formatted value as numeric string 23234235.56,
+                            //     // if you are setting this value to state make sure to pass isNumericString prop to true
+                            //     floatValue: 23234235.56 //floating point representation. For big numbers it
+                            //     // can have exponential syntax
+                            // }
+                            setIsNewAssetAmountInvalid(false);
+                            setNewAssetAmount(value);
+                        }}
+                        renderText={value => <div className={"edit-asset-item-value-input" +
+                            (isNewAssetAmountInvalid ? " edit-asset-item-value-input--invalid" : "")
+                        }>{value}</div>}
+                    />
+                </div>
+                <div className="asset-row-currency text-label">{assetCurrency}</div>
+                <AssetControls
+                    editMode={true}
+                    onEditAsset={onAcceptAsset}
+                    onCancelOrDeleteAsset={onCancel}
                 />
             </div>
-            <div className="asset-row-currency text-label">{assetCurrency}</div>
-            <AssetControls
-                editMode={true}
-                onEditAsset={onAcceptAsset}
-                onCancelOrDeleteAsset={onCancel}
-            />
             <div className="asset-item-name-row flex-box-centered flex-direction-row">
                 <div className="asset-item-name-label text-label">name:&nbsp;</div>
                 <input key={id}
@@ -87,7 +89,7 @@ export default function AssetEditor({
                            setNewAssetName(value);
                        }}
                        className={"edit-asset-item-name-input"
-                       + (isNewAssetNameInvalid ? " edit-asset-item-name-input--invalid" : "")}/>
+                           + (isNewAssetNameInvalid ? " edit-asset-item-name-input--invalid" : "")}/>
             </div>
         </div>
     )

@@ -20,7 +20,14 @@
   overflow-y: auto;
 }
 
-@media only screen and (max-width: 800px) {
+@media only screen and (orientation: portrait) {
+  .assets-panel {
+    overflow-y: unset;
+    height: unset;
+  }
+}
+
+@media only screen and (max-width: 800px), screen and (orientation: portrait) {
 
   .application-first-page {
     flex-flow: column;
@@ -28,7 +35,6 @@
 
   .assets-panel {
     width: 98%;
-    min-height: 99%;
   }
 
 }

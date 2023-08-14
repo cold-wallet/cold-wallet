@@ -1,3 +1,12 @@
 .asset-row-controls {
   width: 20%;
+  height: 100%;
+}
+
+.asset-row-edit-first-row .asset-row-controls {
+  height: 100%;
+}
+
+.asset-row-edit-first-row .asset-row-controls-button {
+  height: 100%;
 }

@@ -1,11 +1,10 @@
 import './../Asset/index.css';
 import './index.css';
 import React from "react";
-import NumberFormat from "react-number-format";
-import noExponents from "./../../../utils/noExponents";
 import AssetDTO from "../../../domain/AssetDTO";
 import monobankLogo from "./../../../../resources/images/monobank-logo-192x192.png";
 import binanceLogo from "./../../../../resources/images/binance-logo.png";
+import Asset from "../Asset";
 
 function buildMonobankLogo() {
     return (
@@ -46,26 +45,8 @@ function buildBinanceLogo() {
 }
 
 export default function IntegrationAsset(asset: AssetDTO) {
-    return (
-        <div key={asset.id} className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
-            <div className={"asset-item-value"}>
-                <NumberFormat
-                    allowLeadingZeros={false}
-                    allowNegative={false}
-                    isNumericString={true}
-                    displayType={"text"}
-                    decimalScale={asset.decimalScale}
-                    thousandSeparator={true}
-                    value={noExponents(asset.amount)}
-                    renderText={value => (
-                        <div className={"asset-item-value-input"}>{value}</div>
-                    )}
-                />
-            </div>
-            <div className={"asset-item-name text-label"}
-                 title={asset.normalizedName}>{asset.normalizedName}</div>
+    return Asset(asset, <>
             {asset.isMonobankAsset ? buildMonobankLogo() : null}
             {asset.isBinanceAsset ? buildBinanceLogo() : null}
-        </div>
-    )
+    </>)
 }

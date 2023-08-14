@@ -42,76 +42,41 @@ export default function NewAssetWindow(
         setIntegrationWindowNameSelected(integration)
     }
 
+    function buildFiatCurrencyButton([name, child]) {
+        return {
+            name,
+            type: "fiat",
+            imageType: "text",
+            imageElement: <div className="new-asset-choose-button-symbol flex-box-centered">
+                <div className={"new-asset-choose-button-image-text"}>{child}</div>
+            </div>
+        }
+    }
+
+    function buildCryptoCurrencyButton([name, icon]) {
+        return {
+            name,
+            type: "crypto",
+            imageType: "image",
+            imageElement: <div className="new-asset-choose-button-image flex-box-centered">
+                <img src={icon} alt={name} className={"new-asset-choose-button-image-icon"}/>
+            </div>
+        }
+    }
+
     const currencies = [
-        {
-            name: "USD",
-            type: "fiat",
-            imageType: "text",
-            imageElement: (
-                <div className="new-asset-choose-button-symbol">
-                    <div className={"new-asset-choose-button-image-text"}>&#x24;</div>
-                </div>
-            ),
-        },
-        {
-            name: "EUR",
-            type: "fiat",
-            imageType: "text",
-            imageElement: (
-                <div className="new-asset-choose-button-symbol">
-                    <div className={"new-asset-choose-button-image-text"}>&euro;</div>
-                </div>
-            ),
-        },
-        {
-            name: "UAH",
-            type: "fiat",
-            imageType: "text",
-            imageElement: (
-                <div className="new-asset-choose-button-symbol">
-                    <div className={"new-asset-choose-button-image-text"}>&#8372;</div>
-                </div>
-            ),
-        },
-        {
-            name: "USDT",
-            type: "crypto",
-            imageType: "image",
-            imageElement: (
-                <div className="new-asset-choose-button-image">
-                    <img src={usdtIcon}
-                         alt="USDT"
-                         className={"new-asset-choose-button-image-icon"}/>
-                </div>
-            ),
-        },
-        {
-            name: "BTC",
-            type: "crypto",
-            imageType: "image",
-            imageElement: (
-                <div className="new-asset-choose-button-image">
-                    <img src={btcIcon}
-                         alt="BTC"
-                         className={"new-asset-choose-button-image-icon"}/>
-                </div>
-            ),
-        },
-        {
-            name: "ETH",
-            type: "crypto",
-            imageType: "image",
-            imageElement: (
-                <div className="new-asset-choose-button-image">
-                    <img src={ethIcon}
-                         alt="ETH"
-                         className={"new-asset-choose-button-image-icon"}/>
-                </div>
-            ),
-        },
-    ];
+        ["USD", (<>&#x24;</>)],
+        ["EUR", (<>&euro;</>)],
+        ["UAH", (<>&#8372;</>)],
+    ].map(buildFiatCurrencyButton).concat([
+        ["USDT", usdtIcon],
+        ["BTC", btcIcon],
+        ["ETH", ethIcon],
+    ].map(buildCryptoCurrencyButton));
+
     let totalCurrencies = Object.keys(monobankCurrencies || {})
         .concat(Object.keys(binanceCurrencies) || []);
+
     const selectCurrencies = Object.keys(totalCurrencies
         .reduce((result, value) => {
             result[value] = true;

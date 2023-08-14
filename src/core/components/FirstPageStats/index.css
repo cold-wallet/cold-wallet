@@ -15,3 +15,12 @@
   }
 
 }
+
+@media only screen and (orientation: portrait) {
+
+  .first-page-stats-box {
+    width: 100%;
+    min-height: 60%;
+  }
+
+}

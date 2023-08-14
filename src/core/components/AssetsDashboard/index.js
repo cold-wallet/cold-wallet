@@ -2,7 +2,6 @@ import './index.css';
 
 import React from "react";
 import AssetsManageButtons from "./../assets/AssetsManageButtons";
-import Asset from "./../assets/Asset";
 import EditNewAsset from "./../assets/EditNewAsset";
 import NewAssetWindow from "../NewAssetWindow";
 import AssetDeleteWindow from "./../assets/AssetDeleteWindow";
@@ -11,6 +10,8 @@ import SettingsWindow from "../settings/SettingsWindow";
 import BinanceIntegrationAssets from "../assets/BinanceIntegrationAssets";
 import MonobankIntegrationAssets from "../assets/MonobankIntegrationAssets";
 import FirstPageStats from "../FirstPageStats";
+import Asset from "../assets/Asset";
+import AssetControls from "../assets/AssetControls";
 
 export default function AssetsDashboard(
     {
@@ -133,14 +134,19 @@ export default function AssetsDashboard(
                 isNewAssetNameInvalid, setIsNewAssetNameInvalid,
                 stateReset,
             )
-            : Asset(
-                asset,
-                setAssetToDelete,
-                setAssetToEdit,
-                setNewAssetAmount,
-                setNewAssetName,
-                stateReset,
-            )
+            : Asset(asset, <AssetControls
+                editMode={false}
+                onEditAsset={() => {
+                    stateReset();
+                    setAssetToEdit(asset);
+                    setNewAssetAmount(asset.amount);
+                    setNewAssetName(asset.name);
+                }}
+                onCancelOrDeleteAsset={() => {
+                    stateReset();
+                    setAssetToDelete(asset);
+                }}
+            />)
     }
 
     function buildAssets() {

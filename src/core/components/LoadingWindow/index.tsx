@@ -14,18 +14,18 @@ export default function LoadingWindow(
 ) {
     return (
         <div className={"startup-loading-box layer-1-themed-color"}>
-            <p>{binancePricesLoaded && binancePrices
+            <div className={"loading-label text-label"}>{binancePricesLoaded && binancePrices
                 ? `BTC/USDT: ${binancePrices["BTCUSDT"]}`
-                : <>Loading binance prices... <progress/></>}</p>
-            <p>{binanceCurrenciesLoaded && binanceCurrencies
+                : <>Loading binance prices... <progress/></>}</div>
+            <div className={"loading-label text-label"}>{binanceCurrenciesLoaded && binanceCurrencies
                 ? `binance currencies: ${Object.keys(binanceCurrencies).length}`
-                : <>Loading binance currencies... <progress/></>}</p>
-            <p>{monobankRates
+                : <>Loading binance currencies... <progress/></>}</div>
+            <div className={"loading-label text-label"}>{monobankRates
                 ? `USD/UAH: ${(monobankRates[0].rateSell + monobankRates[0].rateBuy) / 2}`
-                : <>Loading monobank rates... <progress/></>}</p>
-            <p>{monobankCurrencies
+                : <>Loading monobank rates... <progress/></>}</div>
+            <div className={"loading-label text-label"}>{monobankCurrencies
                 ? `monobank currencies: ${Object.keys(monobankCurrencies || {}).length}`
-                : <>Loading monobank currencies... <progress/></>}</p>
+                : <>Loading monobank currencies... <progress/></>}</div>
         </div>
     )
 }

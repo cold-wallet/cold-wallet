@@ -16,3 +16,28 @@
 .button:active {
   opacity: 0.5;
 }
+
+@media only screen and (orientation: portrait) and (min-width: 1000px) {
+  .button {
+    font-size: xxx-large !important;
+  }
+}
+
+@media only screen and (orientation: portrait) and (max-width: 1000px) {
+  .button {
+    font-size: x-large !important;
+  }
+}
+
+@media only screen and (min-width: 2400px) {
+  .button {
+    font-size: xx-large !important;
+  }
+}
+
+@media only screen and (min-width: 3400px) {
+  .button {
+    font-size: xxx-large !important;
+  }
+}
+

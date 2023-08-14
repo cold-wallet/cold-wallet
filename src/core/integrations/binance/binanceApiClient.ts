@@ -177,19 +177,20 @@ export class AccountInfo {
             || accountInfo.savingsFlexible?.length))
     }
 
-    static getAllAssets = (accountInfo: AccountInfo): AssetDTO[] => {
-        return [...accountInfo.account?.balances || []]
-            .concat(accountInfo.marginIsolated || [])
-            .concat(accountInfo.marginCross || [])
-            .concat(accountInfo.futuresUsdM || [])
-            .concat(accountInfo.futuresCoinM || [])
-            .concat(accountInfo.funding || [])
-            .concat(accountInfo.lockedStaking || [])
-            .concat(accountInfo.lockedDeFiStaking || [])
-            .concat(accountInfo.flexibleDefiStaking || [])
-            .concat(accountInfo.liquidityFarming || [])
-            .concat(accountInfo.savingsFixed || [])
-            .concat(accountInfo.savingsFlexible || [])
+    static getAllAssets = (accountInfo: AccountInfo | null): AssetDTO[] => {
+        return accountInfo ? [...accountInfo.account?.balances || []]
+                .concat(accountInfo.marginIsolated || [])
+                .concat(accountInfo.marginCross || [])
+                .concat(accountInfo.futuresUsdM || [])
+                .concat(accountInfo.futuresCoinM || [])
+                .concat(accountInfo.funding || [])
+                .concat(accountInfo.lockedStaking || [])
+                .concat(accountInfo.lockedDeFiStaking || [])
+                .concat(accountInfo.flexibleDefiStaking || [])
+                .concat(accountInfo.liquidityFarming || [])
+                .concat(accountInfo.savingsFixed || [])
+                .concat(accountInfo.savingsFlexible || [])
+            : []
     }
 }
 

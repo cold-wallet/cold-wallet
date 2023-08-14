@@ -15,7 +15,7 @@ export default class MonobankUserData {
         return accountInfo && (accountInfo.accounts?.length || accountInfo.jars?.length)
     }
 
-    static getAllAssets = (accountInfo: MonobankUserData): AssetDTO[] => {
-        return [...accountInfo.accounts].concat(accountInfo.jars)
+    static getAllAssets = (accountInfo: MonobankUserData | null): AssetDTO[] => {
+        return accountInfo ? [...accountInfo.accounts].concat(accountInfo.jars) : []
     }
 }

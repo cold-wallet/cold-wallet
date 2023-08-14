@@ -89,7 +89,7 @@ export default function PieChart(
         allowPointSelect: true,
         name: 'TOTAL',
         innerSize: /*(pieChartType === "per-type") ? '55%' :*/ 0,
-        size: '90%',
+        size: '80%',
         accessibility: {
             announceNewData: {
                 enabled: true
@@ -117,6 +117,10 @@ export default function PieChart(
                 y: item.y,
             }))
     }];
+    const isPortrait = window.innerHeight > window.innerWidth;
+    const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.55)
+    const chartWidth = isPortrait ? (window.innerWidth * 0.8) : (window.innerWidth * 0.6)
+
     const chartOptions = {
         plotBackgroundColor: null,
         plotBorderWidth: null,
@@ -133,7 +137,8 @@ export default function PieChart(
                 }
             }
         },
-        height: '75%',
+        height: chartHeight,
+        width: chartWidth,
         style: {
             width: "100%",
             height: "100%",

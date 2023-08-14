@@ -1,0 +1,23 @@
+.startup-login-box-button {
+  padding: 5%;
+  margin: 3%;
+  width: 90%;
+  height: 30%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  box-shadow: 2px 2px 5px 2px #6b8f8a;
+}
+
+.startup-login-box-button:hover {
+  box-shadow: 2px 2px 5px 2px #597974;
+}
+
+@media only screen and (max-width: 500px) {
+  .startup-login-box-button {
+    padding: 7%;
+    margin: 10%;
+  }
+}
+

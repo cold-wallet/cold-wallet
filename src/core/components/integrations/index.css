@@ -1,58 +1,99 @@
 .integration-logo--binance {
-    fill: #f3ba2f;
-    background-color: black;
+  fill: #f3ba2f;
+  background-color: black;
 }
 
 .integration-settings .integration-logo--qmall {
-    width: 50%;
-    height: 50%;
+  width: 50%;
+  height: 50%;
 }
 
 .integration-logo.integration-logo--qmall {
-    width: 53%;
-    background-color: #33323e;
+  width: 53%;
+  background-color: #33323e;
 }
 
 .integration-logo--monobank {
-    fill: #f6f6f6;
-    background-color: black;
-    padding: 2%;
+  fill: #f6f6f6;
+  background-color: black;
+  padding: 2%;
 }
 
 .integration {
-    position: relative;
-    width: 100%;
-    height: 30%;
+  position: relative;
+  width: 100%;
+  height: 30%;
 }
 
 .integration-settings .integration.integration-enabled,
 .integration.integration-enabled {
-    padding-left: 35px;
-    width: calc(100% - 35px);
+  padding-left: 35px;
+  width: calc(100% - 35px);
+}
+
+.integration-settings .integration.integration-enabled,
+.integration.integration-enabled {
+  padding-left: 35px;
+  width: calc(100% - 35px);
 }
 
 .integration-logo {
-    width: 60%;
-    border-radius: 5px;
-    padding: 3%;
+  width: 60%;
+  border-radius: 5px;
+  padding: 3%;
 }
 
 .integration-settings .integration.integration-enabled .integration-logo,
 .integration.integration-enabled .integration-logo {
-    margin-left: auto;
+  margin-left: auto;
 }
 
 .integration-enabled-corner {
-    margin: 0 0 auto auto;
-    border-top: 35px solid #608A32;
-    border-left: 35px solid transparent;
+  margin: 0 0 auto auto;
+  border-top: 35px solid #608A32;
+  border-left: 35px solid transparent;
 }
 
 .integration-enabled-corner-text {
-    position: absolute;
-    text-align: center;
-    top: 1%;
-    right: 1%;
+  position: absolute;
+  text-align: center;
+  top: 1%;
+  right: 1%;
+}
+
+@media screen and (min-width: 1000px) {
+  .integration-settings .integration.integration-enabled,
+  .integration.integration-enabled {
+    padding-left: 70px;
+    width: calc(100% - 70px);
+  }
+
+  .integration-enabled-corner {
+    border-top-width: 70px;
+    border-left-width: 70px;
+  }
+
+}
+
+@media only screen and (orientation: portrait) {
+
+  .integration-settings .integration-logo,
+  .integration-settings .integration.integration-enabled .integration-logo {
+    height: 60%;
+  }
+
+  .integration-settings .integration.integration-enabled .integration-logo,
+  .integration.integration-enabled .integration-logo {
+    margin-left: 0;
+  }
+
+  .integration-logo {
+    width: 80%;
+  }
+
+  .integration-logo.integration-logo--qmall {
+    width: 73%;
+  }
 }
 
 

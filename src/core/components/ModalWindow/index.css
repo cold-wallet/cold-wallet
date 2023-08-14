@@ -85,7 +85,28 @@
   height: 10%;
 }
 
+
+@media only screen and (orientation: portrait) {
+
+  .modal-window-close-button {
+    width: 7%;
+  }
+
+  .modal-window-small {
+    width: 80%;
+    height: 50%;
+    left: 10%;
+    top: 10%;
+  }
+
+}
+
+
 @media only screen and (max-width: 900px) {
+
+  .modal-window-close-button {
+    width: 7%;
+  }
 
   .modal-window-large {
     width: 80%;

@@ -1,12 +1,31 @@
+.asset-row-wrapper {
+  padding: 0.5% 0 0.5% 0;
+  width: 98%;
+  /*max-height: 4%;*/
+  /*height: 4%;*/
+  min-height: 7%;
+  flex-wrap: nowrap;
+}
+
+@media only screen and (orientation: portrait) {
+  .asset-row-wrapper {
+    min-height: unset;
+  }
+}
+
 .asset-row {
-  padding: 1% 2% 1% 1%;
-  margin: 1%;
-  width: 95%;
-  max-height: 4%;
-  height: 4%;
-  min-height: 3.5%;
+  padding: 0.5% 2% 0.5% 1%;
+  width: 97%;
+  height: 90%;
+  /*max-height: 4%;*/
+  /*height: 4%;*/
+  /*min-height: 3.5%;*/
   flex-wrap: nowrap;
   justify-content: space-between;
+}
+
+.asset-row-wrapper:hover {
+
 }
 
 .asset-row:hover {
@@ -56,6 +75,19 @@
   font-size: small;
 }
 
+@media only screen and (min-width: 2400px) {
+  .asset-item-value-input {
+    font-size: xx-large;
+  }
+}
+
+@media only screen and (orientation: portrait) and (min-width: 1000px) {
+
+  .asset-item-value-input {
+    font-size: x-large;
+  }
+
+}
 
 @media only screen and (max-width: 900px) {
 

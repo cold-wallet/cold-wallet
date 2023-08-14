@@ -1,12 +1,12 @@
 .asset-item-buttons-container--integration-logo--wide {
-  width: 7%;
+  width: 10%;
   display: flex;
   flex-flow: row;
   justify-content: flex-end;
   cursor: default;
   font-family: 'Lucida Console', monospace;
   fill: #2D3142;
-  height: 100%;
+  height: 90%;
 }
 
 .asset-item-buttons-container--integration-logo--wide:hover {
@@ -80,3 +80,9 @@
 
 }
 
+
+@media only screen and (orientation: portrait) {
+  .asset-item-buttons-container--integration-logo--wide {
+    width: 5%;
+  }
+}

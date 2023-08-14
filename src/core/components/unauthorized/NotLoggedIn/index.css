@@ -1,4 +1,6 @@
 .startup-login-box {
+  padding: 5%;
+  margin: 3%;
   width: 60%;
   height: 50%;
   display: flex;

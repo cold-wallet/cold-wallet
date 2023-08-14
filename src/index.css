@@ -22,5 +22,18 @@ button {
 }
 
 input[disabled] {
-    cursor: not-allowed;
+  cursor: not-allowed;
 }
+
+@media only screen and (orientation: portrait) and (min-width: 1000px) {
+  input {
+    font-size: x-large !important;
+  }
+}
+
+@media only screen and (min-width: 2400px) {
+  input, a {
+    font-size: xx-large !important;
+  }
+}
+

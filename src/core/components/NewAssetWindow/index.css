@@ -54,6 +54,11 @@
   height: 10%;
 }
 
+@media only screen and (min-width: 2400px) {
+  .new-asset-choose-button-name {
+    font-size: xx-large;
+  }
+}
 
 @media only screen and (max-width: 800px) {
 
@@ -64,14 +69,19 @@
 
 }
 
-@media only screen and (max-width: 520px) {
+@media only screen and (max-width: 520px), screen and (orientation: portrait) {
+
+  .new-asset-choose-button-symbol {
+    height: 55%;
+    width: 40%;
+  }
 
   .new-asset-choose-buttons {
     overflow: auto;
   }
 
   .new-asset-choose-button {
-    height: 15%;
+    height: 12%;
     width: 90%;
   }
 
