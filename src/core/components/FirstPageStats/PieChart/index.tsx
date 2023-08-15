@@ -27,9 +27,9 @@ const pieColors = [
     "#5bac85",
     "#6ab791",
     "#78c19c",
-    // "#98d3b2",
-    // "#b7e4c7",
-    // "#d8f3dc",
+    "#98d3b2",
+    "#b7e4c7",
+    "#d8f3dc",
 ];
 
 const colorScale = [
@@ -87,6 +87,34 @@ export default function PieChart(
         .concat(MonobankUserData.getAllAssets(monobankUserData))
         .concat(AccountInfo.getAllAssets(binanceUserData))
 
+    interface Point {
+        name: string,
+        y: number,
+    }
+
+    const preparedAssetsData = assets
+        .map(asset => ({
+            name: buildHighChartsTitle(asset),
+            y: rates.transform(asset.currency, +asset.amount, "USD"),
+        } as Point))
+        .sort((a, b) => b.y - a.y)
+
+    const totalInUSD = preparedAssetsData.reduce((total, asset) => total + asset.y, 0)
+    const onePercentOfTotal = totalInUSD / 100
+
+    const tooSmallAssets: Point[] = [];
+    const normalAssets: Point[] = [];
+    preparedAssetsData.forEach(asset => (asset.y < onePercentOfTotal
+        ? tooSmallAssets : normalAssets).push(asset))
+
+    let unitedSmallAsset = tooSmallAssets.reduce((merged: Point | null, current: Point) => merged ? ({
+        name: `${merged.name}\n${current.name}`,
+        y: merged.y + current.y,
+    } as Point) : current, null)
+
+    const preparedAssets = normalAssets;
+    unitedSmallAsset && preparedAssets.push(unitedSmallAsset)
+
     const series = [{
         allowPointSelect: true,
         name: 'TOTAL',
@@ -105,19 +133,7 @@ export default function PieChart(
             //     value: 1
             // }
         },
-        data: assets
-            .map(asset => {
-                return {
-                    x: buildHighChartsTitle(asset),
-                    y: rates.transform(asset.currency, +asset.amount, "USD"),
-                    type: asset.type,
-                }
-            })
-            .sort((a, b) => b.y - a.y)
-            .map(item => ({
-                name: item.x,
-                y: item.y,
-            }))
+        data: preparedAssets
     }];
     const isPortrait = window.innerHeight > window.innerWidth;
     const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.55)
