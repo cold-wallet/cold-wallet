@@ -38,7 +38,7 @@ export default class CurrencyRates {
         const rate = this.monobankRates.filter(r => (r.currencyCodeA === left)
             && (r.currencyCodeB === right))[0];
 
-        return (rate.rateCross || ((rate.rateBuy + rate.rateSell) / 2));
+        return (rate.rateCross || rate.rateBuy)// ((rate.rateBuy + rate.rateSell) / 2));
     }
 
     private findFiatRateToEUR(currencyNumCode: number) {
@@ -48,7 +48,7 @@ export default class CurrencyRates {
         let currencyToUAH = (currencyNumCode === uahNumCode) ? 1
             : this.findFiatRate(currencyNumCode, uahNumCode);
         let eurToUAH = this.findFiatRate(eurNumCode, uahNumCode);
-        return currencyToUAH / eurToUAH
+        return currencyToUAH / eurToUAH;
     }
 
     private transformFiatToFiat(currencyFrom: string, amount: number, currencyTo: string): number {
