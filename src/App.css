@@ -27,6 +27,12 @@ input.invalid {
 
 @media only screen and (min-width: 1000px) {
   .pad {
+    font-size: large;
+  }
+}
+
+@media only screen and (min-width: 1500px) {
+  .pad {
     font-size: x-large;
   }
 }

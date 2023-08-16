@@ -84,6 +84,7 @@ export default function ColdWallet(props: StorageFactory,) {
     const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
 
     const [selectedPageNumber, setSelectedPageNumber] = useState(0);
+    const [firstPageChartType, setFirstPageChartType] = useState('total');
 
     function stateReset() {
         setShowCreateNewAssetWindow(!getAnyAssetExist());
@@ -143,6 +144,7 @@ export default function ColdWallet(props: StorageFactory,) {
                         binanceUserData, setBinanceUserData,
                         binanceUserDataLoading, setBinanceUserDataLoading,
                         selectedPageNumber, setSelectedPageNumber,
+                        firstPageChartType, setFirstPageChartType,
                     })
                     : NotLoggedIn(userData, setUserData)
                 : LoadingWindow(binancePricesLoaded,

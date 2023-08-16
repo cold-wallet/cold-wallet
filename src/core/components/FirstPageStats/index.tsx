@@ -22,15 +22,20 @@ export default function FirstPageStats(
     monobankUserData: MonobankUserData,
     binanceUserData: AccountInfo,
     rates: CurrencyRates,
+    firstPageChartType: string,
+    setFirstPageChartType: React.Dispatch<React.SetStateAction<string>>,
 ) {
     return <>
         <div className={"first-page-stats-box"}>
             {<Suspense fallback={<Loading/>}>
-                <PieChart
-                    userData={userData}
-                    monobankUserData={monobankUserData}
-                    binanceUserData={binanceUserData}
-                    rates={rates}
+                <PieChart props={{
+                    userData,
+                    monobankUserData,
+                    binanceUserData,
+                    rates,
+                    firstPageChartType,
+                    setFirstPageChartType,
+                }}
                 />
             </Suspense>}
         </div>

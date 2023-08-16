@@ -21,6 +21,10 @@
   box-shadow: 1px 1px 3px 0 #395e5a;
 }
 
+.chart-total-pie-control--active {
+  box-shadow: 0 0 3px 2px #78c9bc;
+}
+
 .chart-total-pie-control:hover {
   box-shadow: 2px 2px 5px 2px #264d47;
 }
@@ -50,7 +54,14 @@
   }
 }
 
-@media only screen and (orientation: landscape) and (min-width: 1200px) {
+@media only screen and (orientation: landscape) and (min-width: 1000px) {
+  .chart-total-pie-control-label,
+  text {
+    font-size: medium !important;
+  }
+}
+
+@media only screen and (orientation: landscape) and (min-width: 1500px) {
   .chart-total-pie-control-label,
   text {
     font-size: large !important;

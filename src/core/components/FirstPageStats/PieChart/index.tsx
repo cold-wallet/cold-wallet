@@ -6,7 +6,7 @@ import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 import BalancePerType from "./BalancePerType";
 import BalancePerCurrency from "./BalancePerCurrency";
 import TotalPicture from "./TotalPicture";
-import AssetDTO from "../../../domain/AssetDTO";
+import AssetDTO, {AssetType} from "../../../domain/AssetDTO";
 import HighchartsReact from "highcharts-react-official"
 import Highcharts from 'highcharts'
 import highCharts3d from 'highcharts/highcharts-3d'
@@ -20,16 +20,16 @@ highCharts3d(Highcharts);
 
 const pieColors = [
     "#103b34",
-    "#245741",
+    // "#245741",
     "#2d6a4f",
-    "#357a5b",
+    // "#357a5b",
     "#41926d",
-    "#5bac85",
+    // "#5bac85",
     "#6ab791",
-    "#78c19c",
+    // "#78c19c",
     "#98d3b2",
-    "#b7e4c7",
-    "#d8f3dc",
+    // "#b7e4c7",
+    // "#d8f3dc",
 ];
 
 const colorScale = [
@@ -42,83 +42,197 @@ const colorScale = [
     "#d8f3dc",
 ];
 
-function addCommas(toMe: string) {
+function addCommas(toMe: string | number) {
     return noExponents(toMe)
         .toString()
         .replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")
 }
 
-function buildHighChartsTitle(asset: AssetDTO) {
-    const amount = noExponents(addCommas(asset.amount));
-    return `${amount} ${asset.currency}`
+function stringifyAmount(amount: string | number) {
+    return noExponents(addCommas(amount))
+}
+
+function buildHighChartsTitle(asset: { amount: string | number, currency: string }) {
+    return `${stringifyAmount(asset.amount)} ${asset.currency}`
 }
 
 export default function PieChart(
-    {
-        userData, monobankUserData, binanceUserData, rates,
-    }: {
-        userData: UserData,
-        monobankUserData: MonobankUserData,
-        binanceUserData: AccountInfo,
-        rates: CurrencyRates,
+    {props}: {
+        props: {
+            userData: UserData,
+            monobankUserData: MonobankUserData,
+            binanceUserData: AccountInfo,
+            rates: CurrencyRates,
+            firstPageChartType: string,
+            setFirstPageChartType: React.Dispatch<React.SetStateAction<string>>,
+        },
     }
 ) {
     const pieControls = [{
+        name: 'total',
         imagePath: "./TotalPicture.svg",
         image: <TotalPicture/>,
         text: "Total",
-        onClick: () => {
-        },
+        onClick: () => props.setFirstPageChartType('total'),
     }, {
+        name: 'per-currency',
         imagePath: "./BalancePerCurrency.svg",
         image: <BalancePerCurrency/>,
         text: "Per currency",
-        onClick: () => {
-        },
+        onClick: () => props.setFirstPageChartType('per-currency'),
     }, {
+        name: 'per-type',
         imagePath: "./BalancePerType.svg",
         image: <BalancePerType/>,
         text: "Per type",
-        onClick: () => {
-        },
+        onClick: () => props.setFirstPageChartType('per-type'),
     },];
 
-    const assets: AssetDTO[] = [...userData.assets]
-        .concat(MonobankUserData.getAllAssets(monobankUserData))
-        .concat(AccountInfo.getAllAssets(binanceUserData))
+    const assets: AssetDTO[] = [...props.userData.assets]
+        .concat(MonobankUserData.getAllAssets(props.monobankUserData))
+        .concat(AccountInfo.getAllAssets(props.binanceUserData))
 
     interface Point {
         name: string,
-        y: number,
+        currency: string,
+        prefix?: string,
+        type: AssetType,
+        y: number, // point's value
     }
 
-    const preparedAssetsData = assets
-        .map(asset => ({
-            name: buildHighChartsTitle(asset),
-            y: rates.transform(asset.currency, +asset.amount, "USD"),
-        } as Point))
-        .sort((a, b) => b.y - a.y)
+    let preparedAssets: Point[] = []
+    let amountPerTypeChartData: Point[] = []
 
-    const totalInUSD = preparedAssetsData.reduce((total, asset) => total + asset.y, 0)
-    const onePercentOfTotal = totalInUSD / 100
+    switch (props.firstPageChartType) {
+        default:
+        case "total": {
+            const preparedAssetsData = assets
+                .map(asset => ({
+                    name: buildHighChartsTitle(asset),
+                    prefix: buildHighChartsTitle(asset),
+                    currency: "USD",
+                    y: props.rates.transform(asset.currency, +asset.amount, "USD"),
+                } as Point))
+                .sort((a, b) => b.y - a.y)
 
-    const tooSmallAssets: Point[] = [];
-    const normalAssets: Point[] = [];
-    preparedAssetsData.forEach(asset => (asset.y < onePercentOfTotal
-        ? tooSmallAssets : normalAssets).push(asset))
+            const totalInUSD = preparedAssetsData.reduce((total, asset) => total + asset.y, 0)
+            const onePercentOfTotal = totalInUSD / 100
 
-    let unitedSmallAsset = tooSmallAssets.reduce((merged: Point | null, current: Point) => merged ? ({
-        name: `${merged.name}\n${current.name}`,
-        y: merged.y + current.y,
-    } as Point) : current, null)
+            const tooSmallAssets: Point[] = [];
+            const normalAssets: Point[] = [];
+            preparedAssetsData.forEach(asset => (asset.y < onePercentOfTotal
+                ? tooSmallAssets : normalAssets).push(asset))
 
-    const preparedAssets = normalAssets;
-    unitedSmallAsset && preparedAssets.push(unitedSmallAsset)
+            let unitedSmallAsset = tooSmallAssets
+                .reduce((merged, current) => ({
+                    name: `${merged.name}<br>${current.name}`,
+                    prefix: "Other",
+                    currency: "USD",
+                    y: merged.y + current.y,
+                } as Point))
+
+            unitedSmallAsset && normalAssets.push(unitedSmallAsset);
+            preparedAssets = normalAssets;
+            break
+        }
+        case "per-currency": {
+            preparedAssets = Object.values(assets
+                .reduce((merged: { [index: string]: Point }, current: AssetDTO) => {
+                    const thisCurrency = merged[current.currency]
+                    if (thisCurrency) {
+                        thisCurrency.y += +current.amount
+                        thisCurrency.name = `${thisCurrency.name}<br>${stringifyAmount(current.amount)} ${current.name}`;
+                    } else {
+                        merged[current.currency] = {
+                            name: `${stringifyAmount(current.amount)} ${current.name}`,
+                            currency: current.currency,
+                            y: +current.amount,
+                        } as Point
+                    }
+                    return merged
+                }, {}))
+                .map(point => {
+                    point.prefix = `<b>${point.y} ${point.currency}</b><br/>`
+                    point.y = props.rates.transform(point.currency, point.y, "USD")
+                    return point
+                })
+                .sort((a, b) => b.y - a.y)
+            break
+        }
+        case "per-type": {
+            const preparedAssetsData = assets
+                .map(asset => ({
+                    name: buildHighChartsTitle(asset),
+                    prefix: buildHighChartsTitle(asset),
+                    currency: "USD",
+                    type: asset.type,
+                    y: props.rates.transform(asset.currency, +asset.amount, "USD"),
+                } as Point))
+                .sort((a, b) => b.y - a.y)
+
+            const fiatAssets = preparedAssetsData.filter(asset => asset.type === AssetType.fiat);
+            const cryptoAssets = preparedAssetsData.filter(asset => asset.type === AssetType.crypto);
+
+            fiatAssets.length && amountPerTypeChartData.push(fiatAssets
+                .reduce((merged, current) => ({
+                    name: `${merged.name}<br>${current.name}`,
+                    prefix: "FIAT",
+                    type: merged.type,
+                    currency: "USD",
+                    y: merged.y + current.y,
+                })))
+
+            cryptoAssets.length && amountPerTypeChartData.push(cryptoAssets
+                .reduce((merged, current) => ({
+                    name: `${merged.name}<br>${current.name}`,
+                    prefix: "CRYPTO",
+                    type: merged.type,
+                    currency: "USD",
+                    y: merged.y + current.y,
+                })))
+
+            const totalInUSD = preparedAssetsData.reduce((total, asset) => total + asset.y, 0)
+            const onePercentOfTotal = totalInUSD / 100
+
+            const tooSmallFiatAssets: Point[] = [];
+            const normalFiatAssets: Point[] = [];
+            fiatAssets.forEach(asset => (asset.y < onePercentOfTotal
+                ? tooSmallFiatAssets : normalFiatAssets).push(asset))
+
+            let unitedSmallFiatAsset = tooSmallFiatAssets
+                .reduce((merged, current) => ({
+                    name: `${merged.name}<br>${current.name}`,
+                    prefix: "Other",
+                    currency: "USD",
+                    y: merged.y + current.y,
+                } as Point))
+
+            unitedSmallFiatAsset && normalFiatAssets.push(unitedSmallFiatAsset);
+
+            const tooSmallCryptoAssets: Point[] = [];
+            const normalCryptoAssets: Point[] = [];
+            cryptoAssets.forEach(asset => (asset.y < onePercentOfTotal
+                ? tooSmallCryptoAssets : normalCryptoAssets).push(asset))
+
+            let unitedSmallCryptoAsset = tooSmallCryptoAssets
+                .reduce((merged, current) => ({
+                    name: `${merged.name}<br>${current.name}`,
+                    prefix: "Other",
+                    currency: "USD",
+                    y: merged.y + current.y,
+                } as Point))
+
+            unitedSmallCryptoAsset && normalCryptoAssets.push(unitedSmallCryptoAsset);
+
+            preparedAssets = normalFiatAssets.concat(normalCryptoAssets);
+            break
+        }
+    }
 
     const series = [{
         allowPointSelect: true,
         name: 'TOTAL',
-        innerSize: /*(pieChartType === "per-type") ? '55%' :*/ 0,
+        innerSize: (props.firstPageChartType === "per-type") ? '55%' : 0,
         size: '80%',
         accessibility: {
             announceNewData: {
@@ -127,11 +241,11 @@ export default function PieChart(
         },
         dataLabels: {
             distance: 20,
-            // filter: {
-            //     property: 'percentage',
-            //     operator: '>',
-            //     value: 1
-            // }
+            filter: {
+                property: 'percentage',
+                operator: '>',
+                value: 1
+            }
         },
         data: preparedAssets
     }];
@@ -162,7 +276,29 @@ export default function PieChart(
             height: "100%",
         },
     };
-
+    if (props.firstPageChartType === "per-type") {
+        series.push({
+            name: 'TOTAL',
+            innerSize: 0,
+            size: '40%',
+            accessibility: {
+                announceNewData: {
+                    enabled: true
+                },
+            },
+            dataLabels: {
+                distance: -20,
+                filter: {
+                    property: 'percentage',
+                    operator: '>',
+                    value: 0
+                }
+            },
+            allowPointSelect: false,
+            data: amountPerTypeChartData,
+        });
+        chartOptions.options3d.enabled = false;
+    }
     const options = {
         chart: chartOptions,
         title: {
@@ -170,6 +306,7 @@ export default function PieChart(
         },
         tooltip: {
             pointFormat: `<tspan style="color:{point.color}" x="8" dy="15">●</tspan>
+                          ${props.firstPageChartType === "per-currency" ? '{point.prefix}' : ''}
                           <span>{series.name}</span>: <b>{point.y:,.2f} USD</b> ({point.percentage:.2f}%)<br/>`,
         },
         accessibility: {
@@ -189,13 +326,13 @@ export default function PieChart(
                 colors: pieColors,
                 dataLabels: {
                     enabled: true,
-                    format: '<b>{point.name}</b>&nbsp;<br>{point.percentage:.2f} %',
+                    format: '<b>{point.prefix}</b>&nbsp;<br>{point.percentage:.2f} %',
                     distance: 20,
-                    // filter: {
-                    //     property: 'percentage',
-                    //     operator: '>',
-                    //     value: 1
-                    // }
+                    filter: {
+                        property: 'percentage',
+                        operator: '>',
+                        value: 1
+                    }
                 }
             }
         },
@@ -213,7 +350,9 @@ export default function PieChart(
         <div className="chart-total-pie-controls flex-box-centered flex-direction-row">{
             pieControls.map((control, i) => (
                 <div key={i}
-                     className="chart-total-pie-control flex-box-centered flex-direction-column pad layer-1-themed-color"
+                     className={"chart-total-pie-control"
+                         + (props.firstPageChartType === control.name ? " chart-total-pie-control--active" : "")
+                         + " flex-box-centered flex-direction-column pad layer-1-themed-color"}
                      onClick={control.onClick}>
                     <div className="chart-total-pie-control-image">{control.image}</div>
                     <div className="chart-total-pie-control-label clickable">{control.text}</div>
