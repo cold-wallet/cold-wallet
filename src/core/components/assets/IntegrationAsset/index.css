@@ -19,7 +19,8 @@
   padding: 0 4%;
 }
 
-.asset-item-buttons-container--integration-logo--wide:hover .asset-item-buttons-container--integration-logo--short {
+.asset-item-buttons-container--integration-logo--wide:hover .asset-item-buttons-container--integration-logo--short,
+.asset-item-buttons-container--integration-logo--wide:hover .asset-item-buttons-container--integration-logo--container {
   display: none;
 }
 
