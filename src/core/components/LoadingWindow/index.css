@@ -1,5 +1,7 @@
 .startup-loading-box {
   width: 50%;
+  position: absolute;
+  top: 20%;
 }
 
 .loading-label {
