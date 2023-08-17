@@ -1,0 +1,98 @@
+.chart-total-pie-box {
+    width: 100%;
+    height: 100%;
+}
+
+.chart-total-pie-main {
+    width: 100%;
+    height: 75%;
+}
+
+.chart-total-pie-controls {
+    width: 80%;
+    height: 25%;
+    padding: 2% 1%;
+}
+
+.chart-total-pie-control {
+    width: 20%;
+    height: 100%;
+    font-weight: bold;
+    box-shadow: 1px 1px 3px 0 #395e5a;
+}
+
+.chart-total-pie-control--active {
+    box-shadow: 0 0 3px 2px #78c9bc;
+}
+
+.chart-total-pie-control-image {
+    width: 80%;
+    height: 80%;
+}
+
+.chart-total-pie-control-label {
+    width: 100%;
+    height: 20%;
+}
+
+.chart-total-pie-control .highcharts-treemap-series text {
+    font-size: 1em;
+}
+
+@media only screen and (orientation: portrait) and (min-width: 1200px) {
+    .chart-total-pie-control-label,
+    text {
+        font-size: xx-large;
+    }
+}
+
+@media only screen and (orientation: portrait) and (min-width: 1000px) {
+    .chart-total-pie-control-label,
+    text {
+        font-size: x-large;
+    }
+}
+
+@media only screen and (orientation: landscape) and (min-width: 1000px) {
+    .chart-total-pie-control-label,
+    text {
+        font-size: medium;
+    }
+}
+
+@media only screen and (orientation: landscape) and (min-width: 1500px) {
+    .chart-total-pie-control-label,
+    text {
+        font-size: large;
+    }
+}
+
+@media only screen and (min-width: 2400px) {
+    .chart-total-pie-control-label,
+    text {
+        font-size: xx-large;
+    }
+}
+
+@media only screen and (max-width: 900px) {
+
+    .chart-total-pie-control-label {
+        font-size: small;
+    }
+
+}
+
+@media only screen and (max-width: 420px) {
+
+    .chart-total-pie-control {
+        font-size: small;
+    }
+
+}
+
+@media screen and (max-height: 700px) {
+
+    .chart-total-pie-control-image {
+        width: 60%;
+    }
+}

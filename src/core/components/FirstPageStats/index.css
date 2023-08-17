@@ -24,3 +24,11 @@
   }
 
 }
+
+@media only screen and (orientation: landscape) {
+
+    .first-page-stats-box {
+        padding-right: 1%;
+    }
+
+}
