@@ -57,8 +57,8 @@ export default function PieChart(
         let amountPerTypeChartData: Point[] = []
         const preparedAssetsData = assets
             .map(asset => ({
-                name: buildHighChartsTitle(asset),
                 prefix: buildHighChartsTitle(asset),
+                name: `${stringifyAmount(asset.amount)}&nbsp;&nbsp;&nbsp;–&nbsp;&nbsp;&nbsp;${asset.normalizedName}`,
                 type: asset.type,
                 currency: asset.currency,
                 trueAmount: +asset.amount,
@@ -91,23 +91,18 @@ export default function PieChart(
         let fiatAssets = preparedAssetsData.filter(asset => asset.type === AssetType.fiat);
         let cryptoAssets = preparedAssetsData.filter(asset => asset.type === AssetType.crypto);
 
-        fiatAssets.length && amountPerTypeChartData.push(fiatAssets
-            .reduce((merged, current) => ({
+        function extractAssetByType(assets: Point[]) {
+            return assets.reduce((merged, current) => ({
                 name: `${merged.name}<br>${current.name}`,
-                prefix: "FIAT",
+                prefix: AssetType[merged.type].toUpperCase(),
                 type: merged.type,
                 currency: AssetType[merged.type],
                 y: merged.y + current.y,
-            } as Point)))
+            } as Point))
+        }
 
-        cryptoAssets.length && amountPerTypeChartData.push(cryptoAssets
-            .reduce((merged, current) => ({
-                name: `${merged.name}<br>${current.name}`,
-                prefix: "CRYPTO",
-                type: merged.type,
-                currency: AssetType[merged.type],
-                y: merged.y + current.y,
-            } as Point)))
+        fiatAssets.length && amountPerTypeChartData.push(extractAssetByType(fiatAssets))
+        cryptoAssets.length && amountPerTypeChartData.push(extractAssetByType(cryptoAssets))
 
         function extractPerCurrencyAssets(assets: Point[]) {
             return separateTooSmallAssets(Object.values(assets
@@ -119,7 +114,7 @@ export default function PieChart(
                         thisCurrency.name = `${thisCurrency.name}<br>${current.name}`;
                     } else {
                         merged[current.currency] = {
-                            name: current.name,
+                            name: `${current.name}`,
                             currency: current.currency,
                             type: current.type,
                             y: +current.y,
@@ -217,7 +212,7 @@ export default function PieChart(
             credits: false,
             tooltip: {
                 pointFormat: `<tspan style="color:{point.color}" x="8" dy="15">●</tspan>
-                          <span>{series.name}</span>: <b>{point.y:,.2f} USD</b> ({point.percentage:.2f}%)<br/>`,
+                            <span>{series.name}</span>: <b>{point.y:,.2f} USD</b>&nbsp;({point.percentage:.2f}%)<br/>`,
                 backgroundColor: '#b7e4c7',
             },
             accessibility: {

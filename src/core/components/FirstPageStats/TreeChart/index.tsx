@@ -57,6 +57,7 @@ export default function TreeChart(
         name: string,
         currency: string,
         description?: string,
+        fullName?: string,
         type: AssetType,
         id?: string,
         parent?: string,
@@ -74,6 +75,7 @@ export default function TreeChart(
         const preparedAssetsData = assets
             .map(asset => ({
                 name: buildHighChartsTitle(asset),
+                fullName: `${stringifyAmount(asset.amount)}&nbsp;&nbsp;&nbsp;–&nbsp;&nbsp;&nbsp;${asset.normalizedName}`,
                 description: buildHighChartsTitle(asset),
                 type: asset.type,
                 currency: asset.currency,
@@ -95,6 +97,7 @@ export default function TreeChart(
             if (tooSmallAssets.length) {
                 let unitedSmallAsset = tooSmallAssets.reduce((merged, current) => ({
                     description: `${merged.description}<br>${current.description}`,
+                    fullName: `${merged.fullName}<br>${current.fullName}`,
                     name: "Other " + AssetType[current.type],
                     currency: "Other",
                     id: "Other" + AssetType[current.type],
@@ -111,6 +114,7 @@ export default function TreeChart(
         function buildUnifiedAssetByType(assets: Point[]) {
             const unifiedAsset = assets.reduce((merged, current) => ({
                 description: `${merged.description ? (merged.description + "<br>") : ""}${current.description}`,
+                fullName: `${merged.fullName ? (merged.fullName + "<br>") : ""}${current.fullName}`,
                 name: AssetType[current.type].toUpperCase(),
                 id: AssetType[current.type],
                 value: (merged.value || 0) + current.value,
@@ -125,11 +129,13 @@ export default function TreeChart(
                 if (thisCurrency) {
                     thisCurrency.value += +current.value
                     thisCurrency.description = `${thisCurrency.description}<br>${current.description}`;
+                    thisCurrency.fullName = `${thisCurrency.fullName}<br>${current.fullName}`;
                     thisCurrency.children?.push(current)
                 } else {
                     merged[current.currency] = {
                         id: current.currency,
                         description: current.name,
+                        fullName: current.fullName,
                         name: "Total " + current.currency,
                         currency: current.currency,
                         type: current.type,
@@ -185,7 +191,6 @@ export default function TreeChart(
                 // size: '80%',
                 allowDrillToNode: true,
                 clip: true,
-                animation: false,
                 dataLabels: {
                     enabled: true
                 },
@@ -208,7 +213,7 @@ export default function TreeChart(
                 width: chartWidth,
             },
             tooltip: {
-                pointFormat: `{point.description}<br/>
+                pointFormat: `{point.fullName}<br/>
                           <tspan style="color:{point.color}" x="8" dy="15">●</tspan>
                           <b>{point.value:,.2f} USD</b> ({point.percentage:.2f}%)<br/>`,
                 backgroundColor: '#98d3b2',
