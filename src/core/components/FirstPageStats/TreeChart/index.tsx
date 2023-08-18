@@ -181,21 +181,26 @@ export default function TreeChart(
                 return point
             })
 
-        if (preparedAssets.length >= 2) {
-            const totalAmountAsset = ([] as Point[])
-                .concat(fiatAssetsByCurrency)
-                .concat(cryptoAssetsByCurrency)
-                .reduce((merged, current) => ({
-                    fullName: `${merged.fullName}<br>${current.fullName}`,
-                    name: "Total",
-                    id: "total",
-                    currency: "Total",
-                    value: merged.value + current.value,
-                    percentage: 100,
-                } as Point))
+        // let allAssets = ([] as Point[])
+        //     .concat(fiatAssetsByCurrency)
+        //     .concat(cryptoAssetsByCurrency);
+        //
+        // const totalAmountAsset = allAssets
+        //     .reduce((merged, current) => ({
+        //         fullName: `${merged.fullName ? (merged.fullName + '<br>') : ''}${current.fullName}`,
+        //         value: (merged.value || 0) + current.value,
+        //         percentage: 100,
+        //         name: merged.name,
+        //         id: merged.id,
+        //         currency: merged.currency,
+        //     } as Point), {
+        //         name: "Total",
+        //         id: "total",
+        //         currency: "Total",
+        //     } as Point)
+        //
+        // preparedAssets.push(totalAmountAsset)
 
-            preparedAssets.push(totalAmountAsset)
-        }
         return {
             title: false,
             subtitle: false,
@@ -218,19 +223,17 @@ export default function TreeChart(
                     dataLabels: {
                         enabled: true,
                         align: 'left',
-                    },
-                    borderWidth: 3,
-                    levelIsConstant: false,
-                }, {
-                    level: 2,
-                    layoutAlgorithm: 'squarified',
-                    dataLabels: {
-                        enabled: true,
-                        align: 'left',
                         verticalAlign: 'top',
                     },
                     borderWidth: 3,
-                    levelIsConstant: true,
+                    // }, {
+                    //     level: 1,
+                    //     layoutAlgorithm: 'squarified',
+                    //     dataLabels: {
+                    //         enabled: true,
+                    //         align: 'left',
+                    //     },
+                    //     // borderWidth: 3,
                 }],
             }],
             chart: {

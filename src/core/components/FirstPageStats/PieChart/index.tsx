@@ -92,6 +92,13 @@ export default function PieChart(
         let cryptoAssets = preparedAssetsData.filter(asset => asset.type === AssetType.crypto);
 
         function extractAssetByType(assets: Point[]) {
+            if (assets.length == 1) {
+                return {
+                    ...assets[0],
+                    prefix: AssetType[assets[0].type].toUpperCase(),
+                    currency: AssetType[assets[0].type],
+                }
+            }
             return assets.reduce((merged, current) => ({
                 name: `${merged.name}<br>${current.name}`,
                 prefix: AssetType[merged.type].toUpperCase(),
@@ -141,13 +148,18 @@ export default function PieChart(
         const perCurrencyChartData = perCurrencyFiat.concat(perCurrencyCrypto);
         const preparedAssets = fiatAssets.concat(cryptoAssets);
 
+        const showPerCurrency = (perCurrencyFiat.length + perCurrencyCrypto.length < assets.length)
+        const showPerType = perCurrencyFiat.length && perCurrencyCrypto.length
+            && (perCurrencyFiat.length > 1 || perCurrencyCrypto.length > 1)
+        const showTotal = perCurrencyFiat.length + perCurrencyCrypto.length > 1;
+
         const series: any[] = [{
             allowPointSelect: true,
             name: 'Asset',
             clip: false,
             animation: false,
             size: '95%',
-            innerSize: '65%',
+            innerSize: showPerCurrency ? '65%' : showPerType ? '30%' : showTotal ? '37%' : 0,
             accessibility: {
                 announceNewData: {
                     enabled: true
@@ -162,50 +174,57 @@ export default function PieChart(
                 }
             },
             data: preparedAssets,
-        }, {
-            name: 'Per Currency',
-            size: '57%',
-            innerSize: '50%',
-            accessibility: {
-                announceNewData: {
-                    enabled: true
+        }]
+        if (showPerCurrency) {
+            series.push({
+                name: 'Per Currency',
+                size: '57%',
+                innerSize: showPerType ? '50%' : showTotal ? '15%' : 0,
+                accessibility: {
+                    announceNewData: {
+                        enabled: true
+                    },
                 },
-            },
-            dataLabels: {
-                distance: -20,
-                filter: {
-                    property: 'percentage',
-                    operator: '>',
-                    value: 1
-                }
-            },
-            allowPointSelect: false,
-            data: perCurrencyChartData,
-        }, {
-            name: 'Per Type',
-            size: '24%',
-            innerSize: (assets.length >= 2) ? '35%' : 0,
-            accessibility: {
-                announceNewData: {
-                    enabled: true
+                dataLabels: {
+                    distance: -20,
+                    filter: {
+                        property: 'percentage',
+                        operator: '>',
+                        value: 1
+                    }
                 },
-            },
-            dataLabels: {
-                distance: -20,
-                filter: {
-                    property: 'percentage',
-                    operator: '>',
-                    value: 1
-                }
-            },
-            allowPointSelect: false,
-            data: amountPerTypeChartData,
-        }];
-        if (assets.length >= 2) {
+                allowPointSelect: false,
+                data: perCurrencyChartData,
+            })
+        }
+
+        if (showPerType) {
+            series.push({
+                name: 'Per Type',
+                size: '24%',
+                innerSize: showTotal ? '35%' : 0,
+                accessibility: {
+                    announceNewData: {
+                        enabled: true
+                    },
+                },
+                dataLabels: {
+                    distance: -20,
+                    filter: {
+                        property: 'percentage',
+                        operator: '>',
+                        value: 1
+                    }
+                },
+                allowPointSelect: false,
+                data: amountPerTypeChartData,
+            });
+        }
+        if (showTotal) {
             series.push({
                 name: 'Total',
                 innerSize: 0,
-                size: '4%',
+                size: showPerCurrency || showPerType ? '4%' : '30%',
                 accessibility: {
                     announceNewData: {
                         enabled: true
