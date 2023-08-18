@@ -49,9 +49,16 @@ export default function FirstPageStatsChart(
         onClick: () => props.setFirstPageChartType('per-type'),
     },];
 
-    const assets = useMemo(() => [...props.userData.assets]
-            .concat(MonobankUserData.getAllAssets(props.monobankUserData))
-            .concat(AccountInfo.getAllAssets(props.binanceUserData)),
+    const assets = useMemo(() => {
+            let assets = [...props.userData.assets];
+            if (props.userData.settings.binanceIntegrationEnabled) {
+                assets = assets.concat(AccountInfo.getAllAssets(props.binanceUserData))
+            }
+            if (props.userData.settings.monobankIntegrationEnabled) {
+                assets = assets.concat(MonobankUserData.getAllAssets(props.monobankUserData))
+            }
+            return assets
+        },
         [
             props.userData,
             props.monobankUserData,
