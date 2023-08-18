@@ -176,7 +176,7 @@ export default function TreeChart(
         const preparedAssets = ([] as Point[])
             .concat(extractAssets(fiatAssetsByCurrency, 1))
             .concat(extractAssets(cryptoAssetsByCurrency, 2))
-            .map((point, i) => {
+            .map((point) => {
                 point.percentage = point.value / onePercentOfTotal
                 return point
             })
