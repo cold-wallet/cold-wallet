@@ -113,11 +113,12 @@ export default function TreeChart(
 
         function buildUnifiedAssetByType(assets: Point[]) {
             const unifiedAsset = assets.reduce((merged, current) => ({
-                description: `${merged.description}<br>${current.description}`,
+                description: `${merged.description ? (merged.description + "<br>") : ""}${current.description}`,
                 name: AssetType[current.type].toUpperCase(),
                 id: AssetType[current.type],
-                value: merged.value + current.value,
-            } as Point))
+                value: (merged.value || 0) + current.value,
+            } as Point), {} as Point)
+            console.log("uni", unifiedAsset)
             unifiedAsset.children = assets
             return unifiedAsset
         }
