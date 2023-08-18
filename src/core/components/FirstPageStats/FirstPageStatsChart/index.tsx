@@ -1,5 +1,5 @@
 import './index.css';
-import React from "react";
+import React, {useMemo} from "react";
 import UserData from "../../../domain/UserData";
 import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
 import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
@@ -7,7 +7,6 @@ import PieChartPerType from "../PieChartPerType";
 import PieChartPerCurrency from "../PieChartPerCurrency";
 import PieChartTotal from "../PieChartTotal";
 import SwitchToTreemapChartType from "./../SwitchToTreemapChartType";
-import AssetDTO from "../../../domain/AssetDTO";
 import CurrencyRates from "../../../currencyRates/CurrencyRates";
 import TreeChart from "../TreeChart";
 import PieChart from "../PieChart";
@@ -50,9 +49,14 @@ export default function FirstPageStatsChart(
         onClick: () => props.setFirstPageChartType('per-type'),
     },];
 
-    const assets: AssetDTO[] = [...props.userData.assets]
-        .concat(MonobankUserData.getAllAssets(props.monobankUserData))
-        .concat(AccountInfo.getAllAssets(props.binanceUserData))
+    const assets = useMemo(() => [...props.userData.assets]
+            .concat(MonobankUserData.getAllAssets(props.monobankUserData))
+            .concat(AccountInfo.getAllAssets(props.binanceUserData)),
+        [
+            props.userData,
+            props.monobankUserData,
+            props.binanceUserData,
+        ]);
 
     return <div className={"chart-total-pie-box flex-box-centered flex-direction-column layer-0-themed-color"}>
         <div className="chart-total-pie-main flex-box-centered">
