@@ -209,6 +209,7 @@ export default function PieChart(
                 },
             },
             title: false,
+            credits: false,
             tooltip: {
                 pointFormat: `<tspan style="color:{point.color}" x="8" dy="15">●</tspan>
                           ${props.firstPageChartType === "per-currency" ? '{point.prefix}' : ''}

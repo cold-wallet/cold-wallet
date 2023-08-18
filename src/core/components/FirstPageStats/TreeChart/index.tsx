@@ -210,6 +210,7 @@ export default function TreeChart(
         return {
             title: false,
             subtitle: false,
+            credits: false,
             series: [{
                 type: "treemap",
                 name: 'Assets',
@@ -231,7 +232,7 @@ export default function TreeChart(
                 },
                 levels: [{
                     level: 1,
-                    layoutAlgorithm: 'sliceAndDice',
+                    layoutAlgorithm: 'squarified',
                     dataLabels: {
                         enabled: true,
                         align: 'left',
@@ -243,9 +244,6 @@ export default function TreeChart(
             }],
             chart: {
                 backgroundColor: {},
-                // plotBackgroundColor: null,
-                // plotBorderWidth: null,
-                // plotShadow: false,
                 type: 'treemap',
                 height: chartHeight,
                 width: chartWidth,
@@ -257,14 +255,6 @@ export default function TreeChart(
                 backgroundColor: '#98d3b2',
             },
             plotOptions: {
-                drilldown: {
-                    activeAxisLabelStyle: {
-                        color: '#98d3b2'
-                    },
-                    activeDataLabelStyle: {
-                        color: '#98d3b2'
-                    }
-                },
                 treemap: {
                     colors: treemapColors,
                     dataLabels: {
