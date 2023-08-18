@@ -104,6 +104,13 @@ export default function PieChart(
         fiatAssets.length && amountPerTypeChartData.push(extractAssetByType(fiatAssets))
         cryptoAssets.length && amountPerTypeChartData.push(extractAssetByType(cryptoAssets))
 
+        const totalAmountAsset = amountPerTypeChartData.reduce((merged, current) => ({
+            name: `${merged.name}<br>${current.name}`,
+            prefix: "Total",
+            currency: "Total",
+            y: merged.y + current.y,
+        } as Point))
+
         function extractPerCurrencyAssets(assets: Point[]) {
             return separateTooSmallAssets(Object.values(assets
                 .reduce((merged: { [index: string]: Point }, current: Point) => {
@@ -136,7 +143,7 @@ export default function PieChart(
 
         const series: any[] = [{
             allowPointSelect: true,
-            name: 'TOTAL',
+            name: 'Asset',
             clip: false,
             animation: false,
             size: '95%',
@@ -176,8 +183,8 @@ export default function PieChart(
             data: perCurrencyChartData,
         }, {
             name: 'Per Type',
-            innerSize: 0,
             size: '24%',
+            innerSize: (assets.length >= 2) ? '35%' : 0,
             accessibility: {
                 announceNewData: {
                     enabled: true
@@ -194,6 +201,23 @@ export default function PieChart(
             allowPointSelect: false,
             data: amountPerTypeChartData,
         }];
+        if (assets.length >= 2) {
+            series.push({
+                name: 'Total',
+                innerSize: 0,
+                size: '4%',
+                accessibility: {
+                    announceNewData: {
+                        enabled: true
+                    },
+                },
+                dataLabels: {
+                    distance: -20
+                },
+                allowPointSelect: false,
+                data: [totalAmountAsset],
+            })
+        }
         return {
             chart: {
                 backgroundColor: {},

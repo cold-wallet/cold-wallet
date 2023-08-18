@@ -117,6 +117,7 @@ export default function TreeChart(
                 fullName: `${merged.fullName ? (merged.fullName + "<br>") : ""}${current.fullName}`,
                 name: AssetType[current.type].toUpperCase(),
                 id: AssetType[current.type],
+                parent: "total",
                 value: (merged.value || 0) + current.value,
             } as Point), {} as Point)
             unifiedAsset.children = assets
@@ -171,6 +172,7 @@ export default function TreeChart(
             }
             return resultAssets
         }
+
         const preparedAssets = ([] as Point[])
             .concat(extractAssets(fiatAssetsByCurrency, 1))
             .concat(extractAssets(cryptoAssetsByCurrency, 2))
@@ -178,6 +180,22 @@ export default function TreeChart(
                 point.percentage = point.value / onePercentOfTotal
                 return point
             })
+
+        if (preparedAssets.length >= 2) {
+            const totalAmountAsset = ([] as Point[])
+                .concat(fiatAssetsByCurrency)
+                .concat(cryptoAssetsByCurrency)
+                .reduce((merged, current) => ({
+                    fullName: `${merged.fullName}<br>${current.fullName}`,
+                    name: "Total",
+                    id: "total",
+                    currency: "Total",
+                    value: merged.value + current.value,
+                    percentage: 100,
+                } as Point))
+
+            preparedAssets.push(totalAmountAsset)
+        }
         return {
             title: false,
             subtitle: false,
@@ -200,10 +218,19 @@ export default function TreeChart(
                     dataLabels: {
                         enabled: true,
                         align: 'left',
-                        verticalAlign: 'top',
                     },
                     borderWidth: 3,
                     levelIsConstant: false,
+                }, {
+                    level: 2,
+                    layoutAlgorithm: 'squarified',
+                    dataLabels: {
+                        enabled: true,
+                        align: 'left',
+                        verticalAlign: 'top',
+                    },
+                    borderWidth: 3,
+                    levelIsConstant: true,
                 }],
             }],
             chart: {
