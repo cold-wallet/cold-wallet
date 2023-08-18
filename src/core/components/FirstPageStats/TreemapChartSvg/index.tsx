@@ -1,13 +1,14 @@
-export default function SwitchToTreemapChartType() {
+import './index.css'
+
+export default function TreemapChartSvg() {
     return (
         <svg version="1.1" className="highcharts-root"
              style={{
                  fontFamily: 'Helvetica, Arial, sans-serif',
                  fontSize: '2rem',
                  width: '100%',
-                 height: 'auto',
              }}
-             xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 320 400" aria-hidden="false"
+             xmlns="http://www.w3.org/2000/svg" width="100" height="80" viewBox="0 0 320 400" aria-hidden="false"
              aria-label="Interactive chart">
             <g className="highcharts-series-group" data-z-index="3" filter="none" aria-hidden="false">
                 <g className="highcharts-series highcharts-series-0 highcharts-treemap-series highcharts-color-0 highcharts-tracker"

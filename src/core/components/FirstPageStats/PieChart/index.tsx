@@ -1,7 +1,6 @@
 import './index.css';
 import React, {useMemo} from "react";
 import AssetDTO, {AssetType} from "../../../domain/AssetDTO";
-// import './../../../utils/highChartTheme'
 import noExponents from "../../../utils/noExponents";
 import CurrencyRates from "../../../currencyRates/CurrencyRates";
 import Highcharts from "highcharts";
@@ -37,7 +36,6 @@ export default function PieChart(
         props: {
             assets: AssetDTO[],
             rates: CurrencyRates,
-            firstPageChartType: string,
         },
     }
 ) {
@@ -47,22 +45,23 @@ export default function PieChart(
         currency: string,
         prefix?: string,
         type: AssetType,
+        trueAmount: number,
         y: number, // point's value
     }
 
     const isPortrait = window.innerHeight > window.innerWidth;
-    const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.55)
+    const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.75)
     const chartWidth = isPortrait ? (window.innerWidth * 0.8) : (window.innerWidth * 0.55)
 
     const createChartOptions = (assets: AssetDTO[]) => {
-        let preparedAssets: Point[] = []
         let amountPerTypeChartData: Point[] = []
         const preparedAssetsData = assets
             .map(asset => ({
                 name: buildHighChartsTitle(asset),
                 prefix: buildHighChartsTitle(asset),
                 type: asset.type,
-                currency: "USD",
+                currency: asset.currency,
+                trueAmount: +asset.amount,
                 y: props.rates.transform(asset.currency, +asset.amount, "USD"),
             } as Point))
             .sort((a, b) => b.y - a.y)
@@ -79,8 +78,9 @@ export default function PieChart(
             let unitedSmallAsset = tooSmallAssets.length && tooSmallAssets
                 .reduce((merged, current) => ({
                     name: `${merged.name}<br>${current.name}`,
-                    prefix: "Other",
-                    currency: "USD",
+                    prefix: "Other " + AssetType[current.type],
+                    currency: "other" + AssetType[current.type],
+                    trueAmount: merged.trueAmount + current.trueAmount,
                     y: merged.y + current.y,
                 } as Point))
 
@@ -88,74 +88,64 @@ export default function PieChart(
             return normalAssets;
         }
 
-        switch (props.firstPageChartType) {
-            default:
-            case "total": {
-                preparedAssets = separateTooSmallAssets(preparedAssetsData)
-                break
-            }
-            case "per-currency": {
-                preparedAssets = Object.values(assets
-                    .reduce((merged: { [index: string]: Point }, current: AssetDTO) => {
-                        const thisCurrency = merged[current.currency]
-                        if (thisCurrency) {
-                            thisCurrency.y += +current.amount
-                            thisCurrency.name = `${thisCurrency.name}<br>${stringifyAmount(current.amount)} ${current.name}`;
-                        } else {
-                            merged[current.currency] = {
-                                name: `${stringifyAmount(current.amount)} ${current.name}`,
-                                currency: current.currency,
-                                y: +current.amount,
-                            } as Point
-                        }
-                        return merged
-                    }, {}))
-                    .map(point => {
-                        point.prefix = `<b>${point.y} ${point.currency}</b><br/>`
-                        point.y = props.rates.transform(point.currency, point.y, "USD")
-                        return point
-                    })
-                    .sort((a, b) => b.y - a.y)
+        let fiatAssets = preparedAssetsData.filter(asset => asset.type === AssetType.fiat);
+        let cryptoAssets = preparedAssetsData.filter(asset => asset.type === AssetType.crypto);
 
-                preparedAssets = separateTooSmallAssets(preparedAssets)
-                break
-            }
-            case "per-type": {
-                let fiatAssets = preparedAssetsData.filter(asset => asset.type === AssetType.fiat);
-                let cryptoAssets = preparedAssetsData.filter(asset => asset.type === AssetType.crypto);
+        fiatAssets.length && amountPerTypeChartData.push(fiatAssets
+            .reduce((merged, current) => ({
+                name: `${merged.name}<br>${current.name}`,
+                prefix: "FIAT",
+                type: merged.type,
+                currency: AssetType[merged.type],
+                y: merged.y + current.y,
+            } as Point)))
 
-                fiatAssets.length && amountPerTypeChartData.push(fiatAssets
-                    .reduce((merged, current) => ({
-                        name: `${merged.name}<br>${current.name}`,
-                        prefix: "FIAT",
-                        type: merged.type,
-                        currency: "USD",
-                        y: merged.y + current.y,
-                    })))
+        cryptoAssets.length && amountPerTypeChartData.push(cryptoAssets
+            .reduce((merged, current) => ({
+                name: `${merged.name}<br>${current.name}`,
+                prefix: "CRYPTO",
+                type: merged.type,
+                currency: AssetType[merged.type],
+                y: merged.y + current.y,
+            } as Point)))
 
-                cryptoAssets.length && amountPerTypeChartData.push(cryptoAssets
-                    .reduce((merged, current) => ({
-                        name: `${merged.name}<br>${current.name}`,
-                        prefix: "CRYPTO",
-                        type: merged.type,
-                        currency: "USD",
-                        y: merged.y + current.y,
-                    })))
-
-                fiatAssets = separateTooSmallAssets(fiatAssets)
-                cryptoAssets = separateTooSmallAssets(cryptoAssets)
-                preparedAssets = fiatAssets.concat(cryptoAssets);
-                break
-            }
+        function extractPerCurrencyAssets(assets: Point[]) {
+            return separateTooSmallAssets(Object.values(assets
+                .reduce((merged: { [index: string]: Point }, current: Point) => {
+                    const thisCurrency = merged[current.currency]
+                    if (thisCurrency) {
+                        thisCurrency.y += +current.y
+                        thisCurrency.trueAmount += current.trueAmount
+                        thisCurrency.name = `${thisCurrency.name}<br>${current.name}`;
+                    } else {
+                        merged[current.currency] = {
+                            name: current.name,
+                            currency: current.currency,
+                            type: current.type,
+                            y: +current.y,
+                            trueAmount: current.trueAmount,
+                        } as Point
+                    }
+                    return merged
+                }, {}))
+                .map(point => {
+                    point.prefix = `<b>${stringifyAmount(point.trueAmount)} ${point.currency}</b><br/>`
+                    return point
+                }))
         }
+
+        const perCurrencyFiat = extractPerCurrencyAssets(fiatAssets)
+        const perCurrencyCrypto = extractPerCurrencyAssets(cryptoAssets)
+        const perCurrencyChartData = perCurrencyFiat.concat(perCurrencyCrypto);
+        const preparedAssets = fiatAssets.concat(cryptoAssets);
 
         const series: any[] = [{
             allowPointSelect: true,
             name: 'TOTAL',
-            innerSize: (props.firstPageChartType === "per-type") ? '55%' : 0,
             clip: false,
             animation: false,
-            size: '90%',
+            size: '95%',
+            innerSize: '65%',
             accessibility: {
                 announceNewData: {
                     enabled: true
@@ -170,30 +160,45 @@ export default function PieChart(
                 }
             },
             data: preparedAssets,
+        }, {
+            name: 'Per Currency',
+            size: '57%',
+            innerSize: '50%',
+            accessibility: {
+                announceNewData: {
+                    enabled: true
+                },
+            },
+            dataLabels: {
+                distance: -20,
+                filter: {
+                    property: 'percentage',
+                    operator: '>',
+                    value: 1
+                }
+            },
+            allowPointSelect: false,
+            data: perCurrencyChartData,
+        }, {
+            name: 'Per Type',
+            innerSize: 0,
+            size: '24%',
+            accessibility: {
+                announceNewData: {
+                    enabled: true
+                },
+            },
+            dataLabels: {
+                distance: -20,
+                filter: {
+                    property: 'percentage',
+                    operator: '>',
+                    value: 1
+                }
+            },
+            allowPointSelect: false,
+            data: amountPerTypeChartData,
         }];
-        if (props.firstPageChartType === "per-type") {
-            series.push({
-                name: 'TOTAL',
-                innerSize: 0,
-                size: '44%',
-                accessibility: {
-                    announceNewData: {
-                        enabled: true
-                    },
-                },
-                dataLabels: {
-                    distance: -20,
-                    filter: {
-                        property: 'percentage',
-                        operator: '>',
-                        value: 0
-                    }
-                },
-                allowPointSelect: false,
-                data: amountPerTypeChartData,
-            });
-        }
-
         return {
             chart: {
                 backgroundColor: {},
@@ -212,9 +217,8 @@ export default function PieChart(
             credits: false,
             tooltip: {
                 pointFormat: `<tspan style="color:{point.color}" x="8" dy="15">●</tspan>
-                          ${props.firstPageChartType === "per-currency" ? '{point.prefix}' : ''}
                           <span>{series.name}</span>: <b>{point.y:,.2f} USD</b> ({point.percentage:.2f}%)<br/>`,
-                backgroundColor: '#98d3b2',
+                backgroundColor: '#b7e4c7',
             },
             accessibility: {
                 enabled: false,

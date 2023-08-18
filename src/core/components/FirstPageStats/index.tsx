@@ -22,10 +22,7 @@ export default function FirstPageStats(
     monobankUserData: MonobankUserData,
     binanceUserData: AccountInfo,
     rates: CurrencyRates,
-    firstPageChartType: string,
-    setFirstPageChartType: React.Dispatch<React.SetStateAction<string>>,
-    firstPageChartView: string,
-    setFirstPageChartView: React.Dispatch<React.SetStateAction<string>>,
+    firstPageChartView: string, setFirstPageChartView: React.Dispatch<React.SetStateAction<string>>,
 ) {
     return <>
         <div className={"first-page-stats-box"}>
@@ -35,7 +32,6 @@ export default function FirstPageStats(
                     monobankUserData,
                     binanceUserData,
                     rates,
-                    firstPageChartType, setFirstPageChartType,
                     firstPageChartView, setFirstPageChartView,
                 }}
                 />

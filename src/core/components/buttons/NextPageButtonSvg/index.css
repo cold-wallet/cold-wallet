@@ -1,0 +1,10 @@
+.next-page-button-svg {
+  height: auto;
+}
+
+@media only screen and (orientation: portrait) {
+  .next-page-button-svg {
+    height: unset;
+  }
+}
+

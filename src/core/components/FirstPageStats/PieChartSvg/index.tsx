@@ -1,6 +1,12 @@
-export default function PieChartTotal() {
-    return <svg width="400" height="400" role="img" viewBox="0 0 400 400"
-                style={{pointerEvents: 'all', width: '100%', height: 'auto'}}>
+import './index.css'
+
+export default function PieChartSvg() {
+    return <svg width="400" className={"pie-chart-svg"} height="300" role="img" viewBox="0 0 400 400"
+                style={{
+                    pointerEvents: 'all',
+                    width: '100%',
+                    height: '100%'
+                }}>
         <g>
             <path d="M9.184850993605149e-15,-150A150,150,0,0,1,102.02591066563791,-109.95778077447395L0,0Z"
                   transform="translate(200, 200)" role="presentation" shapeRendering="auto"

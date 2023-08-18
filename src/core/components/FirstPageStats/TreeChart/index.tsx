@@ -49,7 +49,6 @@ export default function TreeChart(
         props: {
             assets: AssetDTO[],
             rates: CurrencyRates,
-            firstPageChartType: string,
         },
     }
 ) {
@@ -68,12 +67,10 @@ export default function TreeChart(
     }
 
     const isPortrait = window.innerHeight > window.innerWidth;
-    const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.55)
+    const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.65)
     const chartWidth = isPortrait ? (window.innerWidth * 0.8) : (window.innerWidth * 0.55)
 
     const createChartOptions = (assets: AssetDTO[]) => {
-        let preparedAssets: Point[] = []
-
         const preparedAssetsData = assets
             .map(asset => ({
                 name: buildHighChartsTitle(asset),
@@ -118,95 +115,63 @@ export default function TreeChart(
                 id: AssetType[current.type],
                 value: (merged.value || 0) + current.value,
             } as Point), {} as Point)
-            console.log("uni", unifiedAsset)
             unifiedAsset.children = assets
             return unifiedAsset
         }
 
-        switch (props.firstPageChartType) {
-            default:
-            case "total": {
-                preparedAssets = separateTooSmallAssets(preparedAssetsData)
-                break
-            }
-            case "per-currency": {
-                preparedAssets = Object.values(assets
-                    .reduce((merged: { [index: string]: Point }, current: AssetDTO) => {
-                        const thisCurrency = merged[current.currency]
-                        if (thisCurrency) {
-                            thisCurrency.value += +current.amount
-                            thisCurrency.name = `${thisCurrency.name}<br>${stringifyAmount(current.amount)} ${current.name}`;
-                        } else {
-                            merged[current.currency] = {
-                                name: `${stringifyAmount(current.amount)} ${current.name}`,
-                                currency: current.currency,
-                                value: +current.amount,
-                            } as Point
-                        }
-                        return merged
-                    }, {}))
-                    .map(point => {
-                        point.name = `<b>${point.value} ${point.currency}</b><br/>`
-                        point.value = props.rates.transform(point.currency, point.value, "USD")
-                        return point
-                    })
-                    .sort((a, b) => b.value - a.value)
-
-                preparedAssets = separateTooSmallAssets(preparedAssets);
-                break
-            }
-            case "per-type": {
-                const assetsByCurrency = Object.values(preparedAssetsData
-                    .reduce((merged: { [index: string]: Point }, current: Point) => {
-                        const thisCurrency = merged[current.currency]
-                        if (thisCurrency) {
-                            thisCurrency.value += +current.value
-                            thisCurrency.description = `${thisCurrency.description}<br>${current.description}`;
-                            thisCurrency.children?.push(current)
-                        } else {
-                            merged[current.currency] = {
-                                id: current.currency,
-                                description: current.name,
-                                name: "Total " + current.currency,
-                                currency: current.currency,
-                                type: current.type,
-                                value: +current.value,
-                                children: [current],
-                            } as Point
-                        }
-                        return merged
-                    }, {}))
-                    .sort((a, b) => b.value - a.value)
-                const fiatAssetsByCurrency = assetsByCurrency.filter(asset => asset.type === AssetType.fiat)
-                const cryptoAssetsByCurrency = assetsByCurrency.filter(asset => asset.type === AssetType.crypto)
-
-                const extractAssets = (assetsByCurrency: Point[], i: number) => {
-                    assetsByCurrency = separateTooSmallAssets(assetsByCurrency)
-                    const resultAssets: Point[] = []
-                    if (assetsByCurrency.length) {
-                        const unifiedAsset = buildUnifiedAssetByType(assetsByCurrency)
-                        unifiedAsset.color = treemapColors[(i % treemapColors.length)];
-                        resultAssets.push(unifiedAsset)
-
-                        unifiedAsset.children?.forEach((assetByCurrency, i) => {
-                            assetByCurrency.parent = unifiedAsset.id
-                            assetByCurrency.color = treemapColors[(i % treemapColors.length)];
-                            resultAssets.push(assetByCurrency)
-
-                            assetByCurrency.children?.forEach((point, i) => {
-                                point.parent = assetByCurrency.id
-                                point.color = treemapColors[(i % treemapColors.length)];
-                                resultAssets.push(point)
-                            })
-                        })
-                    }
-                    return resultAssets
+        const assetsByCurrency = Object.values(preparedAssetsData
+            .reduce((merged: { [index: string]: Point }, current: Point) => {
+                const thisCurrency = merged[current.currency]
+                if (thisCurrency) {
+                    thisCurrency.value += +current.value
+                    thisCurrency.description = `${thisCurrency.description}<br>${current.description}`;
+                    thisCurrency.children?.push(current)
+                } else {
+                    merged[current.currency] = {
+                        id: current.currency,
+                        description: current.name,
+                        name: "Total " + current.currency,
+                        currency: current.currency,
+                        type: current.type,
+                        value: +current.value,
+                        children: [current],
+                    } as Point
                 }
-                preparedAssets = ([] as Point[]).concat(extractAssets(fiatAssetsByCurrency, 1))
-                    .concat(extractAssets(cryptoAssetsByCurrency, 2));
-                break
+                return merged
+            }, {}))
+            .sort((a, b) => b.value - a.value)
+        const fiatAssetsByCurrency = assetsByCurrency.filter(asset => asset.type === AssetType.fiat)
+        const cryptoAssetsByCurrency = assetsByCurrency.filter(asset => asset.type === AssetType.crypto)
+
+        const extractAssets = (assetsByCurrency: Point[], i: number) => {
+            assetsByCurrency = separateTooSmallAssets(assetsByCurrency)
+            const resultAssets: Point[] = []
+            if (assetsByCurrency.length) {
+                const unifiedAsset = buildUnifiedAssetByType(assetsByCurrency)
+                unifiedAsset.color = treemapColors[(i % treemapColors.length)];
+                resultAssets.push(unifiedAsset)
+
+                unifiedAsset.children?.forEach((assetByCurrency, i) => {
+                    assetByCurrency.parent = unifiedAsset.id
+                    assetByCurrency.color = treemapColors[(i % treemapColors.length)];
+                    resultAssets.push(assetByCurrency)
+
+                    assetByCurrency.children?.forEach((point, i) => {
+                        point.parent = assetByCurrency.id
+                        point.color = treemapColors[(i % treemapColors.length)];
+                        resultAssets.push(point)
+                    })
+                })
             }
+            return resultAssets
         }
+        const preparedAssets = ([] as Point[])
+            .concat(extractAssets(fiatAssetsByCurrency, 1))
+            .concat(extractAssets(cryptoAssetsByCurrency, 2))
+            .map((point, i) => {
+                point.percentage = point.value / onePercentOfTotal
+                return point
+            })
         return {
             title: false,
             subtitle: false,
@@ -216,13 +181,7 @@ export default function TreeChart(
                 name: 'Assets',
                 layoutAlgorithm: 'squarified',
                 alternateStartingDirection: true,
-                data: preparedAssets.map((point, i) => {
-                    if (props.firstPageChartType !== "per-type") {
-                        point.color = treemapColors[(i % treemapColors.length)];
-                    }
-                    point.percentage = point.value / onePercentOfTotal
-                    return point
-                }),
+                data: preparedAssets,
                 // size: '80%',
                 allowDrillToNode: true,
                 clip: true,

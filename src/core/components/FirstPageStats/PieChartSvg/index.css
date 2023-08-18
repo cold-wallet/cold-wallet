@@ -1,0 +1,10 @@
+.pie-chart-svg {
+  height: auto;
+}
+
+@media only screen and (orientation: portrait) {
+  .pie-chart-svg {
+    height: unset;
+  }
+}
+

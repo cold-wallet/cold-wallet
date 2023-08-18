@@ -1,0 +1,10 @@
+.highcharts-root {
+  height: auto;
+}
+
+@media only screen and (orientation: portrait) {
+  .highcharts-root {
+    height: unset;
+  }
+}
+

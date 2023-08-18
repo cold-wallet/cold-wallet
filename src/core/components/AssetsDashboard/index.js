@@ -44,7 +44,6 @@ export default function AssetsDashboard(
         binanceUserData, setBinanceUserData,
         binanceUserDataLoading, setBinanceUserDataLoading,
         selectedPageNumber, setSelectedPageNumber,
-        firstPageChartType, setFirstPageChartType,
         firstPageChartView, setFirstPageChartView,
     }
 ) {
@@ -173,7 +172,6 @@ export default function AssetsDashboard(
     function buildFirstPageStats() {
         return anyAssetExist ? FirstPageStats(
             userData, monobankUserData, binanceUserData, rates,
-            firstPageChartType, setFirstPageChartType,
             firstPageChartView, setFirstPageChartView,
         ) : null
     }
