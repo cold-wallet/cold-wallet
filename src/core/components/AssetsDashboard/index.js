@@ -45,6 +45,9 @@ export default function AssetsDashboard(
         binanceUserDataLoading, setBinanceUserDataLoading,
         selectedPageNumber, setSelectedPageNumber,
         firstPageChartView, setFirstPageChartView,
+        importOrExportSettingRequested, setImportOrExportSettingRequested,
+        importDataBuffer, setImportDataBuffer,
+        loadMonobankUserData, loadBinanceUserData,
     }
 ) {
 
@@ -99,6 +102,9 @@ export default function AssetsDashboard(
             binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
             binanceUserData, setBinanceUserData,
             binanceUserDataLoading, setBinanceUserDataLoading,
+            importOrExportSettingRequested, setImportOrExportSettingRequested,
+            importDataBuffer, setImportDataBuffer,
+            loadMonobankUserData, loadBinanceUserData,
         }) : null
     }
 

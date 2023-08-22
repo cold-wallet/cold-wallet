@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import BinanceLoader from "./../integrations/binance/BinanceLoader";
 import MonobankLoader from "./../integrations/monobank/MonobankLoader";
 import LoadingWindow from "./LoadingWindow";
@@ -19,6 +19,7 @@ export default function ColdWallet(props: StorageFactory,) {
         binancePrices, binancePricesLoaded,
         binanceCurrencies, binanceCurrenciesLoaded,
         binanceUserData, setBinanceUserData,
+        loadBinanceUserData,
     } = BinanceLoader(
         storageFactory,
         userData.settings.binanceIntegrationEnabled,
@@ -30,6 +31,7 @@ export default function ColdWallet(props: StorageFactory,) {
         monobankCurrencies,
         monobankUserData,
         setMonobankUserData,
+        loadMonobankUserData,
     } = MonobankLoader(
         storageFactory,
         userData.settings.monobankIntegrationEnabled,
@@ -80,11 +82,19 @@ export default function ColdWallet(props: StorageFactory,) {
     }
 
     let anyAssetExist = getAnyAssetExist();
+
+    useEffect(() => {
+        anyAssetExist = getAnyAssetExist()
+    }, [userData])
+
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!anyAssetExist);
     const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
 
     const [selectedPageNumber, setSelectedPageNumber] = useState(0);
     const [firstPageChartView, setFirstPageChartView] = useState('pie');
+
+    const [importOrExportSettingRequested, setImportOrExportSettingRequested] = useState(null);
+    const [importDataBuffer, setImportDataBuffer] = useState(null);
 
     function stateReset() {
         setShowCreateNewAssetWindow(!getAnyAssetExist());
@@ -107,6 +117,8 @@ export default function ColdWallet(props: StorageFactory,) {
         setBinanceApiSecretInput(userData.settings.binanceIntegrationApiSecret);
         setBinanceApiKeysInputInvalid(false);
         setBinanceUserDataLoading(false);
+        setImportOrExportSettingRequested(null);
+        setImportDataBuffer(null)
     }
 
     const loggedIn = !!(userData.id)// || !userData.loginRequired;
@@ -145,8 +157,16 @@ export default function ColdWallet(props: StorageFactory,) {
                         binanceUserDataLoading, setBinanceUserDataLoading,
                         selectedPageNumber, setSelectedPageNumber,
                         firstPageChartView, setFirstPageChartView,
+                        importOrExportSettingRequested, setImportOrExportSettingRequested,
+                        importDataBuffer, setImportDataBuffer,
+                        loadMonobankUserData, loadBinanceUserData,
                     })
-                    : NotLoggedIn(userData, setUserData)
+                    : NotLoggedIn(
+                        userData, setUserData, importDataBuffer, setImportDataBuffer,
+                        importOrExportSettingRequested, setImportOrExportSettingRequested,
+                        loadMonobankUserData, loadBinanceUserData,
+                        stateReset, setShowCreateNewAssetWindow, setCreatingNewAsset,
+                    )
                 : LoadingWindow(binancePricesLoaded,
                     binancePrices,
                     binanceCurrenciesLoaded,

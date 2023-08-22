@@ -59,6 +59,12 @@ input.invalid {
   align-items: center;
 }
 
+.flex-box-start {
+  display: flex;
+  justify-content: start;
+  align-items: start;
+}
+
 .flex-direction-column {
   flex-direction: column;
 }

@@ -66,6 +66,7 @@ const MonobankLoader = (
         monobankCurrencies,
         monobankUserData,
         setMonobankUserData,
+        loadMonobankUserData,
     }
 }
 

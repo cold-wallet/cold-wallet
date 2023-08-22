@@ -10,3 +10,23 @@
   position: absolute;
   top: 20%;
 }
+
+.import-box {
+  width: 100%;
+  height: 100%;
+}
+
+.import-text-area {
+  width: 95%;
+  margin: 2%;
+  height: 90px;
+}
+
+.import-box--controls {
+  width: 100%;
+}
+
+.import-box--control {
+  width: 20%;
+}
+

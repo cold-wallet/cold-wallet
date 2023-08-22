@@ -82,6 +82,7 @@ const BinanceLoader = (
         binancePrices, binancePricesLoaded,
         binanceCurrencies, binanceCurrenciesLoaded,
         binanceUserData, setBinanceUserData,
+        loadBinanceUserData,
     }
 }
 
