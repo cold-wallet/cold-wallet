@@ -16,40 +16,23 @@ export default function QmallSettings(
                 <label className="text-label clickable"><input
                     type="checkbox"
                     disabled={true}
-                    // defaultChecked={showBinanceSettings}
-                    // onChange={event =>
-                    //     setBinanceSettingsEnabled(event.target.checked)
-                    // }
                 />&nbsp;<span>Enable qmall integration</span></label>
             </div>
             <div className="setting-box layer-3-themed-color flex-box flex-direction-column">
                 <div className={"setting-row flex-box-centered flex-direction-row"}>
                     <input type="text"
-                           disabled={true/*!binanceSettingsEnabled*/}
+                           disabled={true}
                            placeholder="qmall API key"
-                           className={"setting-qmall-token-input"
-                               /*+ (binanceApiKeysInputInvalid ? " invalid" : "")*/}
-                        // onChange={event => {
-                        //     setBinanceApiKeyInput(event.target.value)
-                        //     setBinanceApiKeysInputInvalid(false)
-                        // }}
-                        // defaultValue={userData.settings.binanceIntegrationApiKey}
+                           className={"setting-qmall-token-input"}
                     />
                 </div>
                 <div className={"setting-row flex-box-centered flex-direction-row"}>
                     <input type="text"
-                           disabled={true/*!binanceSettingsEnabled*/}
+                           disabled={true}
                            placeholder="qmall API secret"
-                           className={"setting-qmall-token-input"
-                               /*+ (binanceApiKeysInputInvalid ? " invalid" : "")*/}
-                        // onChange={event => {
-                        //     setBinanceApiSecretInput(event.target.value)
-                        //     setBinanceApiKeysInputInvalid(false)
-                        // }}
-                        // defaultValue={userData.settings.binanceIntegrationApiSecret}
+                           className={"setting-qmall-token-input"}
                     />
                 </div>
-                {/*{binanceUserDataLoading ? <progress className={"setting-row-progress"}/> : null}*/}
             </div>
         </div>
     )
