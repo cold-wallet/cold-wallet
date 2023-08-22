@@ -10,7 +10,7 @@ import HighchartsReact from "highcharts-react-official";
 highCharts3d(Highcharts);
 
 const pieColors = [
-    "#103b34",
+    "#1a5048",
     "#2d6a4f",
     "#41926d",
     "#6ab791",
