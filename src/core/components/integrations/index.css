@@ -89,7 +89,7 @@
 
 }
 
-@media screen and (max-height: 900px) {
+@media screen and (min-height: 900px) {
   .integration-settings .integration.integration-enabled,
   .integration.integration-enabled {
     padding-left: 75px;
