@@ -5,6 +5,6 @@ export default function AcceptButton({onClick}) {
     return (
         <PositiveButton className={"asset-row-controls-button asset-row-button-accept"}
                         onClick={onClick}
-        >✔</PositiveButton>
+        >✓</PositiveButton>
     )
 }
