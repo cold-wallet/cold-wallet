@@ -71,120 +71,124 @@ export default function SettingsWindow(
     const showBinanceSettings = userData.settings.binanceIntegrationEnabled || binanceSettingsEnabled;
 
     function onSaveClicked() {
-        switch (integrationWindowNameSelected) {
-            case monobankIntegration.name:
-                return monobankSettingsValidation(
-                    userData,
-                    setUserData,
-                    stateReset,
-                    setMonobankApiTokenInputInvalid,
-                    monobankSettingsEnabled,
-                    monobankApiTokenInput,
-                    setMonobankUserData,
-                    setMonobankUserDataLoading,
-                )
-            case binanceIntegration.name:
-                return binanceSettingsValidation(
-                    userData,
-                    setUserData,
-                    binanceSettingsEnabled,
-                    binanceApiKeyInput,
-                    binanceApiSecretInput,
-                    setBinanceUserDataLoading,
-                    stateReset,
-                    setBinanceApiKeysInputInvalid,
-                    binanceCurrencies,
-                    binanceUserData,
-                    setBinanceUserData,
-                )
-            default:
-                switch (importOrExportSettingRequested) {
-                    case 'import': {
-                        if (importDataBuffer) {
-                            dataImporter.readImportedData(importDataBuffer, setUserData)
-                            loadBinanceUserData();
-                            loadMonobankUserData();
-                            stateReset();
-                        }
-                        break
+        if (integrationWindowNameSelected) {
+            switch (integrationWindowNameSelected) {
+                case monobankIntegration.name:
+                    return monobankSettingsValidation(
+                        userData,
+                        setUserData,
+                        stateReset,
+                        setMonobankApiTokenInputInvalid,
+                        monobankSettingsEnabled,
+                        monobankApiTokenInput,
+                        setMonobankUserData,
+                        setMonobankUserDataLoading,
+                    )
+                case binanceIntegration.name:
+                    return binanceSettingsValidation(
+                        userData,
+                        setUserData,
+                        binanceSettingsEnabled,
+                        binanceApiKeyInput,
+                        binanceApiSecretInput,
+                        setBinanceUserDataLoading,
+                        stateReset,
+                        setBinanceApiKeysInputInvalid,
+                        binanceCurrencies,
+                        binanceUserData,
+                        setBinanceUserData,
+                    )
+            }
+        } else if (importOrExportSettingRequested) {
+            switch (importOrExportSettingRequested) {
+                case 'import': {
+                    if (importDataBuffer) {
+                        dataImporter.readImportedData(importDataBuffer, setUserData)
+                        loadBinanceUserData();
+                        loadMonobankUserData();
+                        stateReset();
                     }
-                    default:
-                        stateReset()
+                    break
                 }
+            }
+        } else {
+            stateReset()
         }
     }
 
     function buildWindowContent() {
-        switch (integrationWindowNameSelected) {
-            case monobankIntegration.name:
-                return MonobankSettings(
-                    userData,
-                    setIntegrationWindowNameSelected,
-                    showMonobankSettings,
-                    monobankSettingsEnabled,
-                    setMonobankSettingsEnabled,
-                    monobankApiTokenInputInvalid,
-                    setMonobankApiTokenInputInvalid,
-                    setMonobankApiTokenInput,
-                    monobankUserDataLoading,
-                )
-            case binanceIntegration.name:
-                return BinanceSettings(
-                    userData,
-                    setIntegrationWindowNameSelected,
-                    showBinanceSettings,
-                    binanceSettingsEnabled,
-                    setBinanceSettingsEnabled,
-                    setBinanceApiKeyInput,
-                    setBinanceApiSecretInput,
-                    binanceApiKeysInputInvalid,
-                    setBinanceApiKeysInputInvalid,
-                    binanceUserDataLoading,
-                )
-            case qmallIntegration.name:
-                return QmallSettings(
-                    userData,
-                    setIntegrationWindowNameSelected,
-                )
-            default:
-                switch (importOrExportSettingRequested) {
-                    case 'import': {
-                        return <div className="setting-unit flex-box flex-direction-column">
-                            <div className="settings-go-back-row text-label pad layer-3-themed-color"
-                                 onClick={() => setImportOrExportSettingRequested(null)}>
-                                {"<< Go back"}
-                            </div>
-                            <div className={"setting-row flex-box-start flex-direction-column"}>
-                                <div className={"text-label"}>Import</div>
-                            </div>
-                            <div className={"setting-row flex-box-start flex-direction-column"}>
-                                <textarea placeholder={"Copy text from 'Export'"}
-                                          onChange={event => setImportDataBuffer(event.target.value)}
-                                          style={{resize: 'none'}}
-                                          className={"export-text-area"}/>
-                            </div>
+        if (integrationWindowNameSelected) {
+            switch (integrationWindowNameSelected) {
+                case monobankIntegration.name:
+                    return MonobankSettings(
+                        userData,
+                        setIntegrationWindowNameSelected,
+                        showMonobankSettings,
+                        monobankSettingsEnabled,
+                        setMonobankSettingsEnabled,
+                        monobankApiTokenInputInvalid,
+                        setMonobankApiTokenInputInvalid,
+                        setMonobankApiTokenInput,
+                        monobankUserDataLoading,
+                    )
+                case binanceIntegration.name:
+                    return BinanceSettings(
+                        userData,
+                        setIntegrationWindowNameSelected,
+                        showBinanceSettings,
+                        binanceSettingsEnabled,
+                        setBinanceSettingsEnabled,
+                        setBinanceApiKeyInput,
+                        setBinanceApiSecretInput,
+                        binanceApiKeysInputInvalid,
+                        setBinanceApiKeysInputInvalid,
+                        binanceUserDataLoading,
+                    )
+                case qmallIntegration.name:
+                    return QmallSettings(
+                        userData,
+                        setIntegrationWindowNameSelected,
+                    )
+            }
+        } else if (importOrExportSettingRequested) {
+            switch (importOrExportSettingRequested) {
+                case 'import': {
+                    return <div className="setting-unit flex-box flex-direction-column">
+                        <div className="settings-go-back-row text-label pad layer-3-themed-color"
+                             onClick={() => setImportOrExportSettingRequested(null)}>
+                            {"<< Go back"}
                         </div>
-                    }
-                    case 'export': {
-                        return <div className="setting-unit flex-box flex-direction-column">
-                            <div className="settings-go-back-row text-label pad layer-3-themed-color"
-                                 onClick={() => setImportOrExportSettingRequested(null)}>
-                                {"<< Go back"}
-                            </div>
-                            <div className={"setting-row flex-box-start flex-direction-column"}>
-                                <div className={"text-label"}>Export</div>
-                            </div>
-                            <div className={"setting-row flex-box-start flex-direction-column"}>
-                                <textarea readOnly={true}
-                                          value={dataImporter.generateExportData(userData)}
-                                          style={{resize: 'none'}}
-                                          className={"export-text-area"}/>
-                            </div>
+                        <div className={"setting-row flex-box-start flex-direction-column"}>
+                            <div className={"text-label"}>Import</div>
                         </div>
-                    }
-                    default:
-                        return buildDefaultView()
+                        <div className={"setting-row flex-box-start flex-direction-column"}>
+                            <textarea placeholder={"Copy text from 'Export'"}
+                                      onChange={event => setImportDataBuffer(event.target.value)}
+                                      style={{resize: 'none'}}
+                                      className={"export-text-area"}/>
+                        </div>
+                    </div>
                 }
+                case 'export': {
+                    return <div className="setting-unit flex-box flex-direction-column">
+                        <div className="settings-go-back-row text-label pad layer-3-themed-color"
+                             onClick={() => setImportOrExportSettingRequested(null)}>
+                            {"<< Go back"}
+                        </div>
+                        <div className={"setting-row flex-box-start flex-direction-column"}>
+                            <div className={"text-label"}>Export</div>
+                        </div>
+                        <div className={"setting-row flex-box-start flex-direction-column"}>
+                            <textarea readOnly={true}
+                                      value={dataImporter.generateExportData(userData)}
+                                      style={{resize: 'none'}}
+                                      className={"export-text-area"}/>
+                        </div>
+                    </div>
+                }
+            }
+        } else {
+            return buildDefaultView()
         }
     }
 
