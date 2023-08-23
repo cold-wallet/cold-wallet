@@ -14,10 +14,8 @@ import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
 import Spot from "./connector/spot";
 import fiatCurrencies from "../../fiatCurrencies";
 
-const proxyUrl =
-    "https://api.binance.com"
-
-// "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod/binance";
+const proxyUrl = //"https://api.binance.com"
+    "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod/binance";
 
 class BinanceApiService {
 
