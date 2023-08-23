@@ -290,7 +290,9 @@ export default function PieChart(
         };
     }
 
-    const options = useMemo(() => createChartOptions(props.assets), [props.assets]);
+    const options = useMemo(() => createChartOptions(props.assets), [
+        props.assets, isPortrait, chartHeight, chartWidth,
+    ]);
 
     return <HighchartsReact highcharts={Highcharts} options={options}/>
 }
