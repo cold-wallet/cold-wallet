@@ -96,6 +96,15 @@ export default function ColdWallet(props: StorageFactory,) {
     const [importOrExportSettingRequested, setImportOrExportSettingRequested] = useState(null);
     const [importDataBuffer, setImportDataBuffer] = useState(null);
 
+    const [pinCodeSettingsRequested, setPinCodeSettingsRequested] = useState(false);
+    const [pinCodeEntered, setPinCodeEntered] = useState<string | null>(null);
+    const [pinCodeEnteringFinished, setPinCodeEnteringFinished] = useState(false);
+    const [currentPinCodeConfirmed, setCurrentPinCodeConfirmed] = useState(false);
+    const [pinCodeRepeatEntered, setPinCodeRepeatEntered] = useState<string | null>(null);
+    const [invalidPinCode, setInvalidPinCode] = useState(false);
+
+    const [deletePinCodeRequested, setDeletePinCodeRequested] = useState(false);
+
     function stateReset() {
         setShowCreateNewAssetWindow(!getAnyAssetExist());
         setCreatingNewAsset(!getAnyAssetExist());
@@ -118,7 +127,14 @@ export default function ColdWallet(props: StorageFactory,) {
         setBinanceApiKeysInputInvalid(false);
         setBinanceUserDataLoading(false);
         setImportOrExportSettingRequested(null);
-        setImportDataBuffer(null)
+        setImportDataBuffer(null);
+        setPinCodeSettingsRequested(false);
+        setPinCodeEntered(null);
+        setPinCodeEnteringFinished(false);
+        setCurrentPinCodeConfirmed(false);
+        setPinCodeRepeatEntered(null);
+        setInvalidPinCode(false);
+        setDeletePinCodeRequested(false);
     }
 
     const loggedIn = !!(userData.id)// || !userData.loginRequired;
@@ -160,6 +176,13 @@ export default function ColdWallet(props: StorageFactory,) {
                         importOrExportSettingRequested, setImportOrExportSettingRequested,
                         importDataBuffer, setImportDataBuffer,
                         loadMonobankUserData, loadBinanceUserData,
+                        pinCodeSettingsRequested, setPinCodeSettingsRequested,
+                        pinCodeEntered, setPinCodeEntered,
+                        pinCodeEnteringFinished, setPinCodeEnteringFinished,
+                        pinCodeRepeatEntered, setPinCodeRepeatEntered,
+                        invalidPinCode, setInvalidPinCode,
+                        currentPinCodeConfirmed, setCurrentPinCodeConfirmed,
+                        deletePinCodeRequested, setDeletePinCodeRequested,
                     })
                     : NotLoggedIn(
                         userData, setUserData, importDataBuffer, setImportDataBuffer,

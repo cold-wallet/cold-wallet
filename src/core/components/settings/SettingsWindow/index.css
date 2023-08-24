@@ -77,6 +77,10 @@
   height: 90px;
 }
 
+.setting-separate-line {
+  margin-bottom: 1%;
+}
+
 @media only screen and (orientation: portrait) {
 
   .integration-settings .integration-logo--qmall {

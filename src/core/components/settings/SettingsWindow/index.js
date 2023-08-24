@@ -12,6 +12,7 @@ import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
 import ModalWindow from "../../ModalWindow";
 import {dataImporter} from "../ImportData";
+import PinCodeSetting from "../PinCode";
 
 export default function SettingsWindow(
     {
@@ -33,6 +34,13 @@ export default function SettingsWindow(
         importOrExportSettingRequested, setImportOrExportSettingRequested,
         importDataBuffer, setImportDataBuffer,
         loadMonobankUserData, loadBinanceUserData,
+        pinCodeSettingsRequested, setPinCodeSettingsRequested,
+        pinCodeEntered, setPinCodeEntered,
+        pinCodeEnteringFinished, setPinCodeEnteringFinished,
+        pinCodeRepeatEntered, setPinCodeRepeatEntered,
+        invalidPinCode, setInvalidPinCode,
+        currentPinCodeConfirmed, setCurrentPinCodeConfirmed,
+        deletePinCodeRequested, setDeletePinCodeRequested,
     }
 ) {
 
@@ -62,6 +70,41 @@ export default function SettingsWindow(
                 <div
                     onClick={() => setImportOrExportSettingRequested('import')}
                     className="choose-setting--setting pad layer-3-themed-color">Import
+                </div>
+            </div>
+            <div className={"setting-label text-label"}>Security options</div>
+            <div className={"choose-setting--row flex-box"}>
+                <div
+                    onClick={() => setPinCodeSettingsRequested(true)}
+                    className="choose-setting--setting pad layer-3-themed-color">{
+                    (userData.settings.pinCode ? 'Change' : 'Add') + ' PIN-code'
+                }
+                </div>
+                <div
+                    onClick={() => {
+                        if (userData.settings.pinCode) {
+                            setDeletePinCodeRequested(true)
+                        }
+                    }}
+                    className={"choose-setting--setting pad layer-3-themed-color"
+                        + (userData.settings.pinCode ? '' : ' disabled')}>Delete PIN-code
+                </div>
+            </div>
+            <div className={"setting-separate-line"}></div>
+            <div className={"choose-setting--row flex-box"}>
+                <div
+                    onClick={() => {
+                    }}
+                    title={"coming soon"}
+                    className="choose-setting--setting pad layer-3-themed-color disabled">
+                    Add pass-phrase (coming soon)
+                </div>
+                <div
+                    onClick={() => {
+                    }}
+                    title={"coming soon"}
+                    className="choose-setting--setting pad layer-3-themed-color disabled">
+                    Add second factor authentication (coming soon)
                 </div>
             </div>
         </>)
@@ -187,6 +230,17 @@ export default function SettingsWindow(
                     </div>
                 }
             }
+        } else if (pinCodeSettingsRequested || deletePinCodeRequested) {
+            return <PinCodeSetting props={{
+                userData, setUserData,
+                setPinCodeSettingsRequested,
+                pinCodeEntered, setPinCodeEntered,
+                pinCodeEnteringFinished, setPinCodeEnteringFinished,
+                pinCodeRepeatEntered, setPinCodeRepeatEntered,
+                invalidPinCode, setInvalidPinCode,
+                currentPinCodeConfirmed, setCurrentPinCodeConfirmed,
+                deletePinCodeRequested, setDeletePinCodeRequested,
+            }}/>
         } else {
             return buildDefaultView()
         }

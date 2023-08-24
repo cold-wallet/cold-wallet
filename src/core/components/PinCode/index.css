@@ -1,0 +1,26 @@
+.pin-code-points {
+    width: 40%;
+    height: 5%;
+    min-height: 5%;
+    margin-bottom: 4%;
+}
+
+.pin-code-point {
+    width: 7%;
+    height: 100%;
+    background-color: #aeece2;
+    border-radius: 15px;
+    box-shadow: 0 0 3px 0 #78c9bc;
+}
+
+.pin-code-point--active {
+    background-color: #395e5a;
+    box-shadow: 0 0 3px 0 #092c26;
+}
+
+@media screen and (orientation: portrait) {
+    .pin-code-points {
+        width: 90%;
+        margin-bottom: 10%;
+    }
+}

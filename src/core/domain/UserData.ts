@@ -7,6 +7,7 @@ export class UserSettings {
         public binanceIntegrationEnabled: boolean = false,
         public binanceIntegrationApiKey: string | null = null,
         public binanceIntegrationApiSecret: string | null = null,
+        public pinCode: string | null = null,
     ) {
     }
 }

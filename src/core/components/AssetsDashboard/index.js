@@ -48,6 +48,13 @@ export default function AssetsDashboard(
         importOrExportSettingRequested, setImportOrExportSettingRequested,
         importDataBuffer, setImportDataBuffer,
         loadMonobankUserData, loadBinanceUserData,
+        pinCodeSettingsRequested, setPinCodeSettingsRequested,
+        pinCodeEntered, setPinCodeEntered,
+        pinCodeEnteringFinished, setPinCodeEnteringFinished,
+        pinCodeRepeatEntered, setPinCodeRepeatEntered,
+        invalidPinCode, setInvalidPinCode,
+        currentPinCodeConfirmed, setCurrentPinCodeConfirmed,
+        deletePinCodeRequested, setDeletePinCodeRequested,
     }
 ) {
 
@@ -105,6 +112,13 @@ export default function AssetsDashboard(
             importOrExportSettingRequested, setImportOrExportSettingRequested,
             importDataBuffer, setImportDataBuffer,
             loadMonobankUserData, loadBinanceUserData,
+            pinCodeSettingsRequested, setPinCodeSettingsRequested,
+            pinCodeEntered, setPinCodeEntered,
+            pinCodeEnteringFinished, setPinCodeEnteringFinished,
+            pinCodeRepeatEntered, setPinCodeRepeatEntered,
+            invalidPinCode, setInvalidPinCode,
+            currentPinCodeConfirmed, setCurrentPinCodeConfirmed,
+            deletePinCodeRequested, setDeletePinCodeRequested,
         }) : null
     }
 
