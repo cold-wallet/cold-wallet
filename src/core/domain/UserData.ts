@@ -17,6 +17,7 @@ export default class UserData {
         public id: string | null = null,
         public settings: UserSettings = new UserSettings(),
         public assets: AssetDTO[] = [],
+        public lastOnline: number = 0,
     ) {
     }
 }

@@ -9,6 +9,8 @@ import StorageFactory from "../domain/StorageFactory";
 import UserData from "../domain/UserData";
 import {AccountInfo} from "../integrations/binance/binanceApiClient";
 import MonobankUserData from "../integrations/monobank/MonobankUserData";
+import LoginWatcher from "./LoginWatcher";
+import PinCodeOnLogin from "./unauthorized/PinCodeOnLogin";
 
 export default function ColdWallet(
     {props}: {
@@ -21,11 +23,17 @@ export default function ColdWallet(
         "userData", () => new UserData()
     );
     const {
+        shouldEnterPinCode,
+        pinCodeEnteredSuccessfully, setPinCodeEnteredSuccessfully,
+    } = LoginWatcher({userData, setUserData,})
+
+    const {
         binancePrices, binancePricesLoaded,
         binanceCurrencies, binanceCurrenciesLoaded,
         binanceUserData, setBinanceUserData,
         loadBinanceUserData,
     } = BinanceLoader(
+        !shouldEnterPinCode,
         props.storageFactory,
         userData.settings.binanceIntegrationEnabled,
         userData.settings.binanceIntegrationApiKey,
@@ -38,6 +46,7 @@ export default function ColdWallet(
         setMonobankUserData,
         loadMonobankUserData,
     } = MonobankLoader(
+        !shouldEnterPinCode,
         props.storageFactory,
         userData.settings.monobankIntegrationEnabled,
         userData.settings.monobankIntegrationToken
@@ -146,7 +155,10 @@ export default function ColdWallet(
 
     return (
         <div className={"application layer-0-themed-color"}>
-            {loaded
+            {shouldEnterPinCode ? <PinCodeOnLogin props={{
+                userData, setPinCodeEnteredSuccessfully,
+                pinCodeEntered, setPinCodeEntered,
+            }}/> : loaded
                 ? loggedIn
                     ? AssetsDashboard({
                         anyAssetExist,

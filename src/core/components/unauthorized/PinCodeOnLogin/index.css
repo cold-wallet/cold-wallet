@@ -1,0 +1,62 @@
+.pin-code-wrapper {
+    width: 90%;
+    height: 90%;
+    margin: 5%;
+}
+
+.pin-code-points,
+.dial-container {
+    width: 50%;
+}
+
+@media screen and (max-width: 1100px) {
+
+    .pin-code-points,
+    .dial-container {
+        width: 60%;
+    }
+
+}
+
+@media screen and (max-width: 1000px) {
+
+    .pin-code-points,
+    .dial-container {
+        width: 70%;
+    }
+
+}
+
+@media screen and (max-width: 900px) {
+
+    .pin-code-points,
+    .dial-container {
+        width: 80%;
+    }
+
+}
+
+@media screen and (max-width: 800px) {
+
+    .pin-code-points,
+    .dial-container {
+        width: 90%;
+    }
+
+}
+
+@media screen and (orientation: portrait) {
+    .modal-window-long {
+        height: 70%;
+    }
+
+    .dial-container {
+        width: 80%;
+        grid-auto-rows: 15%;
+    }
+
+    .pin-code-points {
+        width: 80%;
+        margin-bottom: 10%;
+    }
+}

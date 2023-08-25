@@ -6,6 +6,7 @@ import StorageFactory from "../../domain/StorageFactory";
 import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
 
 const BinanceLoader = (
+    loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
     binanceIntegrationEnabled: boolean,
     binanceIntegrationApiKey: string | null,
@@ -58,7 +59,9 @@ const BinanceLoader = (
         if (!binanceIntegrationEnabled
             || !binanceIntegrationApiKey
             || !binanceIntegrationApiSecret
-            || !binanceCurrencies) {
+            || !binanceCurrencies
+            || !loadingUserDataAllowed
+        ) {
             return
         }
         binanceApiClient.getUserInfoAsync(
