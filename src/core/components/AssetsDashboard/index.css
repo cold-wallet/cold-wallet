@@ -25,6 +25,10 @@
     overflow-y: unset;
     height: unset;
   }
+
+  .application-first-page:has(.modal-window-shadow) {
+    overflow: hidden;
+  }
 }
 
 @media only screen and (max-width: 800px), screen and (orientation: portrait) {
