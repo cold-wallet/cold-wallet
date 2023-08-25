@@ -1,8 +1,6 @@
 .asset-row-wrapper {
   padding: 0.5% 0 0.5% 0;
   width: 98%;
-  /*max-height: 4%;*/
-  /*height: 4%;*/
   min-height: 7%;
   flex-wrap: nowrap;
 }
@@ -10,6 +8,7 @@
 @media only screen and (orientation: portrait) {
   .asset-row-wrapper {
     min-height: unset;
+    width: 95%;
   }
 }
 
@@ -17,9 +16,6 @@
   padding: 0.5% 2% 0.5% 1%;
   width: 97%;
   height: 90%;
-  /*max-height: 4%;*/
-  /*height: 4%;*/
-  /*min-height: 3.5%;*/
   flex-wrap: nowrap;
   justify-content: space-between;
 }
