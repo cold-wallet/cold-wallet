@@ -19,7 +19,7 @@ export default function Dial(
         }
     }
 ) {
-    const changingPinCode = props.userData.settings.pinCode !== null
+    const changingPinCode = !!(props.userData.settings.pinCode)
     const pinCode = props.pinCodeEnteringFinished ? props.pinCodeRepeatEntered : props.pinCodeEntered
     const setPinCode = props.pinCodeEnteringFinished
         ? props.setPinCodeRepeatEntered : props.setPinCodeEntered
