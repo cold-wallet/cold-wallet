@@ -76,19 +76,17 @@ export default function SettingsWindow(
             <div className={"choose-setting--row flex-box"}>
                 <div
                     onClick={() => setPinCodeSettingsRequested(true)}
-                    className="choose-setting--setting pad layer-3-themed-color">{
-                    (userData.settings.pinCode ? 'Change' : 'Add') + ' PIN-code'
-                }
+                    className="choose-setting--setting pad layer-3-themed-color">
+                    {(userData.settings.pinCode ? 'Change' : 'Add') + ' PIN-code'}
                 </div>
-                <div
+                {userData.settings.pinCode ? <div
                     onClick={() => {
                         if (userData.settings.pinCode) {
                             setDeletePinCodeRequested(true)
                         }
                     }}
-                    className={"choose-setting--setting pad layer-3-themed-color"
-                        + (userData.settings.pinCode ? '' : ' disabled')}>Delete PIN-code
-                </div>
+                    className={"choose-setting--setting pad layer-3-themed-color"}>Delete PIN-code
+                </div> : null}
             </div>
             <div className={"setting-separate-line"}></div>
             <div className={"choose-setting--row flex-box"}>
