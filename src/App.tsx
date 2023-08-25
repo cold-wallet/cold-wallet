@@ -5,8 +5,7 @@ import storageFactory from './impl/Storage';
 
 function App() {
     return (
-        <ColdWallet createStorage={storageFactory.createStorage}
-                    createStorageNullable={storageFactory.createStorageNullable}/>
+        <ColdWallet props={{storageFactory}}/>
     );
 }
 

@@ -10,9 +10,14 @@ import UserData from "../domain/UserData";
 import {AccountInfo} from "../integrations/binance/binanceApiClient";
 import MonobankUserData from "../integrations/monobank/MonobankUserData";
 
-export default function ColdWallet(props: StorageFactory,) {
-    const storageFactory: StorageFactory = props;
-    const [userData, setUserData] = props.createStorage<UserData>(
+export default function ColdWallet(
+    {props}: {
+        props: {
+            storageFactory: StorageFactory
+        },
+    }
+) {
+    const [userData, setUserData] = props.storageFactory.createStorage<UserData>(
         "userData", () => new UserData()
     );
     const {
@@ -21,7 +26,7 @@ export default function ColdWallet(props: StorageFactory,) {
         binanceUserData, setBinanceUserData,
         loadBinanceUserData,
     } = BinanceLoader(
-        storageFactory,
+        props.storageFactory,
         userData.settings.binanceIntegrationEnabled,
         userData.settings.binanceIntegrationApiKey,
         userData.settings.binanceIntegrationApiSecret,
@@ -33,7 +38,7 @@ export default function ColdWallet(props: StorageFactory,) {
         setMonobankUserData,
         loadMonobankUserData,
     } = MonobankLoader(
-        storageFactory,
+        props.storageFactory,
         userData.settings.monobankIntegrationEnabled,
         userData.settings.monobankIntegrationToken
     );
