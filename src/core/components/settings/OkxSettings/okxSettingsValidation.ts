@@ -56,6 +56,8 @@ export default function okxSettingsValidation(
     okxCurrencies: { [index: string]: OkxCurrencyResponse },
     okxUserData: OkxAccount | null, setOkxUserData: Dispatch<SetStateAction<OkxAccount | null>>,
     stateReset: Dispatch<SetStateAction<void>>,
+    setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
+    setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
 ) {
     if (!userData.settings.okxIntegrationEnabled && okxSettingsEnabled
         || (okxSettingsEnabled || userData.settings.okxIntegrationEnabled)
@@ -124,6 +126,8 @@ export default function okxSettingsValidation(
                     setUserData(userDataNew);
                 }
                 stateReset();
+                setCreatingNewAsset(false);
+                setShowCreateNewAssetWindow(false)
             } else {
                 setOkxApiKeysInputInvalid(true)
                 setOkxUserDataLoading(false)

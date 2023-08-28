@@ -18,6 +18,7 @@ import okxSettingsValidation from "../OkxSettings/okxSettingsValidation";
 export default function SettingsWindow(
     {
         stateReset,
+        setCreatingNewAsset, setShowCreateNewAssetWindow,
         userData, setUserData,
 
         monobankSettingsEnabled, setMonobankSettingsEnabled,
@@ -141,6 +142,8 @@ export default function SettingsWindow(
                         monobankApiTokenInput,
                         setMonobankUserData,
                         setMonobankUserDataLoading,
+                        setCreatingNewAsset,
+                        setShowCreateNewAssetWindow,
                     )
                 case binanceIntegration.name:
                     return binanceSettingsValidation(
@@ -155,6 +158,8 @@ export default function SettingsWindow(
                         binanceCurrencies,
                         binanceUserData,
                         setBinanceUserData,
+                        setCreatingNewAsset,
+                        setShowCreateNewAssetWindow,
                     )
                 case okxIntegration.name:
                     return okxSettingsValidation(
@@ -169,6 +174,8 @@ export default function SettingsWindow(
                         okxCurrencies,
                         okxUserData, setOkxUserData,
                         stateReset,
+                        setCreatingNewAsset,
+                        setShowCreateNewAssetWindow,
                     )
             }
         } else if (importOrExportSettingRequested) {

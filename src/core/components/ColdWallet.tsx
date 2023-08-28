@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import BinanceLoader from "./../integrations/binance/BinanceLoader";
 import MonobankLoader from "./../integrations/monobank/MonobankLoader";
 import LoadingWindow from "./LoadingWindow";
@@ -130,12 +130,13 @@ export default function ColdWallet(
             || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData)
     }
 
-    let anyAssetExist = getAnyAssetExist();
-
-    useEffect(() => {
-        anyAssetExist = getAnyAssetExist()
-    }, [userData])
-
+    const anyAssetExist = useMemo(() => {
+            const result = getAnyAssetExist();
+            // if (anyAssetExist)
+            return result
+        },
+        [userData, binanceUserData, okxUserData, monobankUserData,]
+    )
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!anyAssetExist);
     const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
 
@@ -155,6 +156,7 @@ export default function ColdWallet(
     const [deletePinCodeRequested, setDeletePinCodeRequested] = useState(false);
 
     function stateReset() {
+        console.log("setShowCreateNewAssetWindow", !getAnyAssetExist())
         setShowCreateNewAssetWindow(!getAnyAssetExist());
         setCreatingNewAsset(!getAnyAssetExist());
         setNewAssetCurrency(null);

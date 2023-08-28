@@ -176,6 +176,8 @@ export default function NewAssetWindow(
         onClose,
         (integrationWindowNameSelected !== null),
         stateReset,
+        setCreatingNewAsset,
+        setShowCreateNewAssetWindow,
         userData, setUserData,
 
         monobankSettingsEnabled, setMonobankSettingsEnabled,

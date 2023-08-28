@@ -27,6 +27,8 @@ export default function IntegrationSettings(
     onClose: () => void,
     withBottom: boolean,
     stateReset: () => void,
+    setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
+    setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
     userData: UserData, setUserData: Dispatch<SetStateAction<UserData | null>>,
 
     monobankSettingsEnabled: boolean, setMonobankSettingsEnabled: Dispatch<SetStateAction<boolean | null>>,
@@ -44,6 +46,7 @@ export default function IntegrationSettings(
     binanceApiKeysInputInvalid: boolean, setBinanceApiKeysInputInvalid: Dispatch<SetStateAction<boolean | null>>,
     binanceUserData: AccountInfo, setBinanceUserData: Dispatch<SetStateAction<AccountInfo | null>>,
     binanceUserDataLoading: boolean, setBinanceUserDataLoading: Dispatch<SetStateAction<boolean | null>>,
+
     okxCurrencies: { [index: string]: OkxCurrencyResponse },
     okxSettingsEnabled: boolean, setOkxSettingsEnabled: Dispatch<SetStateAction<boolean | null>>,
     okxApiKeyInput: string, setOkxApiKeyInput: Dispatch<SetStateAction<string | null>>,
@@ -71,6 +74,8 @@ export default function IntegrationSettings(
                     monobankApiTokenInput,
                     setMonobankUserData,
                     setMonobankUserDataLoading,
+                    setCreatingNewAsset,
+                    setShowCreateNewAssetWindow,
                 )
             case binanceIntegration.name:
                 return binanceSettingsValidation(
@@ -85,6 +90,8 @@ export default function IntegrationSettings(
                     binanceCurrencies,
                     binanceUserData,
                     setBinanceUserData,
+                    setCreatingNewAsset,
+                    setShowCreateNewAssetWindow,
                 )
             case okxIntegration.name:
                 return okxSettingsValidation(
@@ -99,6 +106,8 @@ export default function IntegrationSettings(
                     okxCurrencies,
                     okxUserData, setOkxUserData,
                     stateReset,
+                    setCreatingNewAsset,
+                    setShowCreateNewAssetWindow,
                 )
             default:
                 stateReset()

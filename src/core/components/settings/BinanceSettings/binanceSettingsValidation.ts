@@ -50,6 +50,8 @@ export default function binanceSettingsValidation(
     binanceCurrencies: { [index: string]: BinanceCurrencyResponse },
     binanceUserData: AccountInfo | null,
     setBinanceUserData: Dispatch<SetStateAction<AccountInfo | null>>,
+    setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
+    setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
 ) {
     if (!userData.settings.binanceIntegrationEnabled && binanceSettingsEnabled
         || (binanceSettingsEnabled || userData.settings.binanceIntegrationEnabled)
@@ -101,6 +103,8 @@ export default function binanceSettingsValidation(
                     setUserData(userDataNew);
                 }
                 stateReset();
+                setCreatingNewAsset(false)
+                setShowCreateNewAssetWindow(false)
             } else {
                 setBinanceApiKeysInputInvalid(true)
                 setBinanceUserDataLoading(false)

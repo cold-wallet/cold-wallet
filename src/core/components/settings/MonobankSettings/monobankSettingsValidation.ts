@@ -40,6 +40,8 @@ export default function monobankSettingsValidation(
     monobankApiTokenInput: string,
     setMonobankUserData: Dispatch<SetStateAction<MonobankUserData | null>>,
     setMonobankUserDataLoading: Dispatch<SetStateAction<boolean | null>>,
+    setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
+    setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
 ) {
     if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled
         || (monobankSettingsEnabled || userData.settings.monobankIntegrationEnabled)
@@ -76,6 +78,8 @@ export default function monobankSettingsValidation(
                     setUserData(userDataNew);
                 }
                 stateReset();
+                setCreatingNewAsset(false)
+                setShowCreateNewAssetWindow(false)
             } else {
                 setMonobankApiTokenInputInvalid(true)
                 setMonobankUserDataLoading(false)

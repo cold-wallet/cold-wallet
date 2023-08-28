@@ -127,6 +127,7 @@ export default function AssetsDashboard(
     function buildSettingsWindow() {
         return showConfigsWindow ? SettingsWindow({
             stateReset,
+            setCreatingNewAsset, setShowCreateNewAssetWindow,
             userData, setUserData,
 
             monobankSettingsEnabled, setMonobankSettingsEnabled,
