@@ -1,18 +1,25 @@
 .startup-loading-box {
   width: 50%;
+  height: 80%;
   position: absolute;
-  top: 20%;
+  justify-content: space-evenly;
 }
 
 .loading-label {
-  padding: 4%;
-  margin: 4%;
 }
 
 @media only screen and (max-width: 800px) {
 
   .startup-loading-box {
     width: 80%;
+  }
+
+}
+
+@media only screen and (orientation: portrait) {
+
+  .startup-loading-box {
+    width: 90%;
   }
 
 }

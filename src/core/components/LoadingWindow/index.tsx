@@ -16,7 +16,7 @@ export default function LoadingWindow(
     monobankCurrencies: { [index: string]: FiatCurrency } | null,
 ) {
     return (
-        <div className={"startup-loading-box layer-1-themed-color"}>
+        <div className={"startup-loading-box layer-1-themed-color flex-box-centered flex-direction-column"}>
             <div className={"loading-label text-label"}>{binancePricesLoaded && binancePrices
                 ? `Binance BTC/USDT: ${binancePrices["BTCUSDT"]}`
                 : <>Loading binance prices... <progress/></>}</div>

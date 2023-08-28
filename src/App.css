@@ -118,6 +118,11 @@ input.invalid {
   .application {
     justify-content: unset;
   }
+
+  .application:has(.startup-loading-box) {
+    justify-content: center;
+  }
+
 }
 
 @media only screen and (min-width: 2400px) {
