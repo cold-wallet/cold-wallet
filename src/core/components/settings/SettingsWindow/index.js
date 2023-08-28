@@ -70,7 +70,7 @@ export default function SettingsWindow(
             <div className="integration-settings">{
                 [
                     {integration: binanceIntegration, isEnabled: binanceSettingsEnabled},
-                    {integration: okxIntegration, isEnabled: false},
+                    {integration: okxIntegration, isEnabled: okxSettingsEnabled},
                     {integration: monobankIntegration, isEnabled: monobankSettingsEnabled},
 
                 ].map(({integration, isEnabled}) => integration.element(

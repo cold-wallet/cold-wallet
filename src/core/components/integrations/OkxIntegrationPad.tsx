@@ -7,7 +7,7 @@ const name: string = "okx";
 
 const okxIntegration: ThirdPartyIntegration = {
     element: (onClick: () => void, isEnabled: boolean) =>
-        <IntegrationPad logo={<img src={OkxLogo} alt={name}/>}
+        <IntegrationPad logo={<img className={"okx-integration-logo"} src={OkxLogo} alt={name}/>}
                         key={name}
                         logoClass={"integration-logo--okx"}
                         name={name}

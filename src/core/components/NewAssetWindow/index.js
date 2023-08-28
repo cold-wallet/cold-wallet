@@ -146,7 +146,7 @@ export default function NewAssetWindow(
                 <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>{
                     [
                         {integration: binanceIntegration, isEnabled: binanceSettingsEnabled},
-                        {integration: okxIntegration, isEnabled: false},
+                        {integration: okxIntegration, isEnabled: okxSettingsEnabled},
                         {integration: monobankIntegration, isEnabled: monobankSettingsEnabled},
 
                     ].map(({integration, isEnabled}) => integration.element(

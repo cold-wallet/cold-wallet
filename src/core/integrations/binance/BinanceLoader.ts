@@ -29,7 +29,7 @@ const BinanceLoader = (
         })
     };
     useEffect(loadBinancePrices, []);
-    useInterval(loadBinancePrices, 5_000);
+    useInterval(loadBinancePrices, 15_000);
 
     const [
         binanceCurrencies,

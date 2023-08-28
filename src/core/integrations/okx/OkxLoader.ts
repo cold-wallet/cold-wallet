@@ -31,7 +31,7 @@ const OkxLoader = (
         })
     };
     useEffect(loadOkxPrices, []);
-    useInterval(loadOkxPrices, 5_000);
+    useInterval(loadOkxPrices, 15_000);
 
     const [
         okxCurrencies,
