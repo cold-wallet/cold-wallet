@@ -30,6 +30,12 @@ const treemapColors = [
     // "#d8f3dc",
 ];
 
+let colorIndex = 0;
+
+function pickUpNextColor() {
+    return treemapColors[(colorIndex++ % treemapColors.length)];
+}
+
 function addCommas(toMe: string | number) {
     return noExponents(toMe)
         .toString()
@@ -165,7 +171,7 @@ export default function TreeChart(
 
                     assetByCurrency.children?.forEach((point, i) => {
                         point.parent = assetByCurrency.id
-                        point.color = treemapColors[(i % treemapColors.length)];
+                        point.color = pickUpNextColor();
                         resultAssets.push(point)
                     })
                 })
