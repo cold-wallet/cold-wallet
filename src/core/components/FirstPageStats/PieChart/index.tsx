@@ -125,12 +125,16 @@ export default function PieChart(
             y: merged.y + current.y,
         } as Point))
 
-        function extractPerCurrencyAssets(assets: Point[]) {
-            return separateTooSmallAssets(Object.values(assets
+        function extractPerCurrencyAssets(assets: Point[]): [Point[], boolean] {
+            let atLeastOneIsBiggerThatOnePercent = false;
+            const assetsPerCurrency = Object.values(assets
                 .reduce((merged: { [index: string]: Point }, current: Point) => {
                     const thisCurrency = merged[current.currency]
                     if (thisCurrency) {
-                        thisCurrency.y += +current.y
+                        if (current.y >= 0.01) {
+                            atLeastOneIsBiggerThatOnePercent = true
+                        }
+                        thisCurrency.y += current.y
                         thisCurrency.trueAmount += current.trueAmount
                         thisCurrency.name = `${thisCurrency.name}<br>${current.name}`;
                     } else {
@@ -138,7 +142,7 @@ export default function PieChart(
                             name: `${current.name}`,
                             currency: current.currency,
                             type: current.type,
-                            y: +current.y,
+                            y: current.y,
                             trueAmount: current.trueAmount,
                         } as Point
                     }
@@ -147,15 +151,17 @@ export default function PieChart(
                 .map(point => {
                     point.prefix = `<b>${stringifyAmount(point.trueAmount)} ${point.currency}</b><br/>`
                     return point
-                }))
+                });
+            return [separateTooSmallAssets(assetsPerCurrency), atLeastOneIsBiggerThatOnePercent]
         }
 
-        const perCurrencyFiat = extractPerCurrencyAssets(fiatAssets)
-        const perCurrencyCrypto = extractPerCurrencyAssets(cryptoAssets)
+        const [perCurrencyFiat, shouldShowPerGroupFiat] = extractPerCurrencyAssets(fiatAssets)
+        const [perCurrencyCrypto, shouldShowPerGroupCrypto] = extractPerCurrencyAssets(cryptoAssets)
         const perCurrencyChartData = perCurrencyFiat.concat(perCurrencyCrypto);
         const preparedAssets = fiatAssets.concat(cryptoAssets);
 
         const showPerCurrency = (perCurrencyFiat.length + perCurrencyCrypto.length < assets.length)
+            && (shouldShowPerGroupFiat || shouldShowPerGroupCrypto)
         const showPerType = perCurrencyFiat.length && perCurrencyCrypto.length
             && (perCurrencyFiat.length > 1 || perCurrencyCrypto.length > 1)
         const showTotal = perCurrencyFiat.length + perCurrencyCrypto.length > 1;
