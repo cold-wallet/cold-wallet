@@ -33,7 +33,8 @@ const treemapColors = [
 let colorIndex = 0;
 
 function pickUpNextColor() {
-    return treemapColors[(colorIndex++ % treemapColors.length)];
+    const index = colorIndex++ % treemapColors.length;
+    return treemapColors[index];
 }
 
 function addCommas(toMe: string | number) {
@@ -156,20 +157,20 @@ export default function TreeChart(
         const fiatAssetsByCurrency = assetsByCurrency.filter(asset => asset.type === AssetType.fiat)
         const cryptoAssetsByCurrency = assetsByCurrency.filter(asset => asset.type === AssetType.crypto)
 
-        const extractAssets = (assetsByCurrency: Point[], i: number) => {
+        const extractAssets = (assetsByCurrency: Point[], i: number, bothTypesExist: boolean) => {
             assetsByCurrency = separateTooSmallAssets(assetsByCurrency)
             const resultAssets: Point[] = []
             if (assetsByCurrency.length) {
                 const unifiedAsset = buildUnifiedAssetByType(assetsByCurrency)
-                unifiedAsset.color = treemapColors[(i % treemapColors.length)];
-                resultAssets.push(unifiedAsset)
+                unifiedAsset.color = treemapColors[2];
+                bothTypesExist && resultAssets.push(unifiedAsset)
 
                 unifiedAsset.children?.forEach((assetByCurrency, i) => {
                     assetByCurrency.parent = unifiedAsset.id
                     assetByCurrency.color = treemapColors[(i % treemapColors.length)];
                     resultAssets.push(assetByCurrency)
 
-                    assetByCurrency.children?.forEach((point, i) => {
+                    assetByCurrency.children?.forEach(point => {
                         point.parent = assetByCurrency.id
                         point.color = pickUpNextColor();
                         resultAssets.push(point)
@@ -178,10 +179,11 @@ export default function TreeChart(
             }
             return resultAssets
         }
+        const bothTypesExist = !!(fiatAssetsByCurrency.length && cryptoAssetsByCurrency.length);
 
         const preparedAssets = ([] as Point[])
-            .concat(extractAssets(fiatAssetsByCurrency, 1))
-            .concat(extractAssets(cryptoAssetsByCurrency, 2))
+            .concat(extractAssets(fiatAssetsByCurrency, 0, bothTypesExist))
+            .concat(extractAssets(cryptoAssetsByCurrency, 1, bothTypesExist))
             .map((point) => {
                 point.percentage = point.value / onePercentOfTotal
                 return point
@@ -224,14 +226,14 @@ export default function TreeChart(
                     enabled: true
                 },
                 levels: [{
-                    level: 1,
+                    level: bothTypesExist ? 1 : 2,
                     layoutAlgorithm: 'squarified',
                     dataLabels: {
                         enabled: true,
-                        align: 'left',
-                        verticalAlign: 'top',
+                        align: bothTypesExist ? 'left' : 'center',
+                        verticalAlign: bothTypesExist ? 'top' : 'center',
                     },
-                    borderWidth: 3,
+                    borderWidth: bothTypesExist ? 3 : 2,
                     // }, {
                     //     level: 1,
                     //     layoutAlgorithm: 'squarified',
@@ -256,7 +258,7 @@ export default function TreeChart(
             },
             plotOptions: {
                 treemap: {
-                    colors: treemapColors,
+                    // colors: treemapColors,
                     dataLabels: {
                         fontSize: '2rem',
                         format: '<b>{point.name}</b> <br>{point.percentage:.2f} %',
