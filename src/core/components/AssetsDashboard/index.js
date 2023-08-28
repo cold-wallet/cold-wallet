@@ -7,12 +7,14 @@ import NewAssetWindow from "../NewAssetWindow";
 import AssetDeleteWindow from "./../assets/AssetDeleteWindow";
 import EditAsset from "./../assets/EditAsset";
 import SettingsWindow from "../settings/SettingsWindow";
-import BinanceIntegrationAssets from "../assets/BinanceIntegrationAssets";
-import MonobankIntegrationAssets from "../assets/MonobankIntegrationAssets";
 import FirstPageStats from "../FirstPageStats";
 import Asset from "../assets/Asset";
 import AssetControls from "../assets/AssetControls";
 import CurrencyRates from "../../currencyRates/CurrencyRates";
+import {AccountInfo} from "../../integrations/binance/binanceApiClient";
+import IntegrationAsset from "../assets/IntegrationAsset";
+import {OkxAccount} from "../../integrations/okx/okxApiClient";
+import MonobankUserData from "../../integrations/monobank/MonobankUserData";
 
 export default function AssetsDashboard(
     {
@@ -48,6 +50,7 @@ export default function AssetsDashboard(
         binanceUserDataLoading, setBinanceUserDataLoading,
 
         okxCurrencies,
+        okxPrices,
         okxSettingsEnabled, setOkxSettingsEnabled,
         okxApiKeyInput, setOkxApiKeyInput,
         okxApiSecretInput, setOkxApiSecretInput,
@@ -74,7 +77,7 @@ export default function AssetsDashboard(
     }
 ) {
 
-    const rates = new CurrencyRates(binancePrices, monobankRates)
+    const rates = new CurrencyRates(binancePrices, monobankRates, okxPrices)
 
     function buildNewAssetWindow() {
         return showCreateNewAssetWindow ? NewAssetWindow(
@@ -117,7 +120,7 @@ export default function AssetsDashboard(
     function buildAssetDeleteWindow() {
         return assetToDelete ? AssetDeleteWindow(
             assetToDelete, userData, setUserData, setShowCreateNewAssetWindow,
-            setCreatingNewAsset, stateReset, binanceUserData, monobankUserData,
+            setCreatingNewAsset, stateReset, binanceUserData, monobankUserData, okxUserData,
         ) : null
     }
 
@@ -223,19 +226,25 @@ export default function AssetsDashboard(
 
     function buildBinanceIntegrationAssets() {
         return userData.settings.binanceIntegrationEnabled && binanceUserData
-            ? BinanceIntegrationAssets(binanceUserData)
+            ? AccountInfo.getAllAssets(binanceUserData).map(IntegrationAsset)
+            : null
+    }
+
+    function buildOkxIntegrationAssets() {
+        return userData.settings.okxIntegrationEnabled && okxUserData
+            ? OkxAccount.getAllAssets(okxUserData).map(IntegrationAsset)
             : null
     }
 
     function buildMonobankIntegrationAssets() {
         return userData.settings.monobankIntegrationEnabled && monobankUserData
-            ? MonobankIntegrationAssets(monobankUserData)
+            ? MonobankUserData.getAllAssets(monobankUserData).map(IntegrationAsset)
             : null
     }
 
     function buildFirstPageStats() {
         return anyAssetExist ? FirstPageStats(
-            userData, monobankUserData, binanceUserData, rates,
+            userData, monobankUserData, binanceUserData, okxUserData, rates,
             firstPageChartView, setFirstPageChartView,
         ) : null
     }
@@ -250,6 +259,7 @@ export default function AssetsDashboard(
                 {buildEditNewAsset()}
                 {buildAssets()}
                 {buildBinanceIntegrationAssets()}
+                {buildOkxIntegrationAssets()}
                 {buildMonobankIntegrationAssets()}
             </div>
             {buildFirstPageStats()}

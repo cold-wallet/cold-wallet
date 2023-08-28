@@ -23,12 +23,19 @@ const okxApiClient = {
     },
     fetchCurrencies: async (): Promise<ApiResponse<{ [index: string]: OkxCurrencyResponse } | any>> => {
         try {
+            const extractPrecision = (lotSize: string) => {
+                if (+lotSize >= 1) {
+                    return 1
+                } else {
+                    return lotSize.split(".")[1].length;
+                }
+            }
             const instruments: Instrument[] = await new RestClient().getInstruments("SPOT")
             const currencies = instruments
                 .reduce((merged: { [p: string]: OkxCurrencyResponse }, instrument) => {
                     merged[instrument.baseCcy] = {
                         symbol: instrument.baseCcy,
-                        precision: Number(instrument.lotSz)
+                        precision: extractPrecision(instrument.lotSz)
                     }
                     return merged
                 }, {});
@@ -49,18 +56,26 @@ const okxApiClient = {
         okxCurrencies: { [index: string]: OkxCurrencyResponse },
         okxAccount: OkxAccount | null,
     ) {
-        const extractAsset = (balance: { ccy: string, eq: string }) => new AssetDTO(
-            "okx_spot_" + balance.ccy,
-            balance.ccy,
-            String(balance.eq),
-            balance.ccy + " SPOT OKX",
-            okxCurrencies[balance.ccy]?.precision || ((() => {
+        const extractAsset = (type: string, balance: { ccy: string, eq: string }) => {
+            let decimalScale = okxCurrencies[balance.ccy]?.precision || ((() => {
                 console.warn("not found precision for " + balance.ccy)
                 return 8
-            })()),
-            fiatCurrencies.getByStringCode(balance.ccy) ? fiat : crypto,
-            true,
-        );
+            })());
+            if (!+(+balance.eq).toFixed(decimalScale)) {
+                decimalScale = balance.eq.split(".")[1].length
+            }
+            return new AssetDTO(
+                `okx_${type}_${balance.ccy}`,
+                balance.ccy,
+                String(balance.eq),
+                `${balance.ccy} ${type} OKX`,
+                decimalScale,
+                fiatCurrencies.getByStringCode(balance.ccy) ? fiat : crypto,
+                false,
+                false,
+                true,
+            )
+        };
 
         const client = new RestClient({apiKey, apiSecret, apiPass});
         const accountInfo = okxAccount ? {...okxAccount} : new OkxAccount()
@@ -68,7 +83,7 @@ const okxApiClient = {
             const balances: AccountBalance[] = await client.getBalance();
             accountInfo.spotAccountBalances = balances[0].details
                 .filter(balance => Number(balance.eq))
-                .map(extractAsset)
+                .map(asset => extractAsset("spot", asset))
         } catch (e) {
             console.warn("failed to load balances from OKX", e)
         }
@@ -77,7 +92,7 @@ const okxApiClient = {
                 const subAccountBalances: SubAccountBalances[] = await client.getSubAccountBalances(subAccountName);
                 accountInfo.subAccountBalances = subAccountBalances[0].details
                     .filter(balance => Number(balance.eq))
-                    .map(extractAsset)
+                    .map(asset => extractAsset("sub", asset))
             } catch (e) {
                 console.warn("failed to load subAccount balances from OKX", e)
             }

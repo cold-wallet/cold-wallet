@@ -5,6 +5,7 @@ import NegativeButton from "../../buttons/NegativeButton";
 import NeutralButton from "../../buttons/NeutralButton";
 import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
 import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
+import {OkxAccount} from "../../../integrations/okx/okxApiClient";
 
 export default function AssetDeleteWindow(
     assetToDelete,
@@ -15,6 +16,7 @@ export default function AssetDeleteWindow(
     stateReset,
     binanceUserData,
     monobankUserData,
+    okxUserData,
 ) {
     const onCancel = () => {
         stateReset();
@@ -28,7 +30,8 @@ export default function AssetDeleteWindow(
 
         let anyAssetExist = !!(userDataNew.assets.length)
             || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
-            || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData);
+            || userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData)
+            || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData)
 
         if (!anyAssetExist) {
             setCreatingNewAsset(true);

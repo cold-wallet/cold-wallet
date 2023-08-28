@@ -4,6 +4,8 @@ import React from "react";
 import AssetDTO from "../../../domain/AssetDTO";
 import monobankLogo from "./../../../../resources/images/monobank-logo-192x192.png";
 import binanceLogo from "./../../../../resources/images/binance_logo.png";
+import okxIcon from "./../../../../resources/images/okx_icon.png";
+import okxLogo from "./../../../../resources/images/okx_logo_full.png";
 import Asset from "../Asset";
 
 function buildMonobankLogo() {
@@ -44,9 +46,26 @@ function buildBinanceLogo() {
     )
 }
 
+function buildOkxLogo() {
+    return (
+        <div title={"OKX integration"}
+             className={"asset-item-buttons-container--integration-logo--wide asset-item-buttons-container--integration-logo--okx"}>
+            <div className={"asset-item-buttons-container--integration-name"}>
+                <img src={okxLogo} alt="OKX logo"/>
+            </div>
+            <div className={"asset-item-buttons-container--integration-logo--container okx-logo"}>
+                <img alt="OKX logo"
+                     className={"asset-item-buttons-container--integration-logo--short"}
+                     src={okxIcon}/>
+            </div>
+        </div>
+    )
+}
+
 export default function IntegrationAsset(asset: AssetDTO) {
     return Asset(asset, <>
             {asset.isMonobankAsset ? buildMonobankLogo() : null}
             {asset.isBinanceAsset ? buildBinanceLogo() : null}
+        {asset.isOkxAsset ? buildOkxLogo() : null}
     </>)
 }

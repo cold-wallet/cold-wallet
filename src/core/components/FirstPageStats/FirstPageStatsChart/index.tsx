@@ -9,6 +9,7 @@ import CurrencyRates from "../../../currencyRates/CurrencyRates";
 import TreeChart from "../TreeChart";
 import PieChart from "../PieChart";
 import NextPageButtonSvg from "../../buttons/NextPageButtonSvg/NextPageButton.svg";
+import {OkxAccount} from "../../../integrations/okx/okxApiClient";
 
 export default function FirstPageStatsChart(
     {props}: {
@@ -16,6 +17,7 @@ export default function FirstPageStatsChart(
             userData: UserData,
             monobankUserData: MonobankUserData,
             binanceUserData: AccountInfo,
+            okxUserData: OkxAccount,
             rates: CurrencyRates,
             firstPageChartView: string, setFirstPageChartView: React.Dispatch<React.SetStateAction<string>>,
         },
@@ -42,6 +44,9 @@ export default function FirstPageStatsChart(
             }
             if (props.userData.settings.monobankIntegrationEnabled) {
                 assets = assets.concat(MonobankUserData.getAllAssets(props.monobankUserData))
+            }
+            if (props.userData.settings.okxIntegrationEnabled) {
+                assets = assets.concat(OkxAccount.getAllAssets(props.okxUserData))
             }
             return assets
         },

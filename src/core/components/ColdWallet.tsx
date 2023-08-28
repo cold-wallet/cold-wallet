@@ -12,6 +12,7 @@ import MonobankUserData from "../integrations/monobank/MonobankUserData";
 import LoginWatcher from "./LoginWatcher";
 import PinCodeOnLogin from "./unauthorized/PinCodeOnLogin";
 import OkxLoader from "../integrations/okx/OkxLoader";
+import {OkxAccount} from "../integrations/okx/okxApiClient";
 
 export default function ColdWallet(
     {props}: {
@@ -125,6 +126,7 @@ export default function ColdWallet(
     function getAnyAssetExist() {
         return !!(userData.assets.length)
             || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
+            || userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData)
             || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData)
     }
 
@@ -238,6 +240,7 @@ export default function ColdWallet(
                         binanceUserDataLoading, setBinanceUserDataLoading,
 
                         okxCurrencies,
+                        okxPrices,
                         okxSettingsEnabled, setOkxSettingsEnabled,
                         okxApiKeyInput, setOkxApiKeyInput,
                         okxApiSecretInput, setOkxApiSecretInput,

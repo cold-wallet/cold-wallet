@@ -1,3 +1,41 @@
+.asset-item-buttons-container--integration-logo--binance:hover {
+  background-color: #181A20;
+  border-radius: 5px;
+  padding: 0 1%;
+  display: flex;
+  width: 100%;
+  fill: #F3BA2F;
+}
+
+.binance-logo {
+  background-color: #181A20;
+  border-radius: 5px;
+  padding: 10%;
+}
+
+.asset-item-buttons-container--integration-logo--okx:hover {
+  background-color: #121212;
+  border-radius: 5px;
+  padding: 0 1%;
+  display: flex;
+  width: 100%;
+}
+
+.okx-logo {
+  background-color: #121212;
+  border-radius: 5px;
+  padding: 10%;
+}
+
+.asset-item-buttons-container--integration-logo--monobank:hover {
+  fill: #f6f6f6;
+  background-color: #191a1e;
+  border-radius: 5px;
+  padding: 0 1%;
+  display: flex;
+  width: 30%;
+}
+
 .asset-item-buttons-container--integration-logo--wide {
   width: 10%;
   display: flex;

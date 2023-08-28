@@ -56,14 +56,21 @@ export default function PieChart(
     const createChartOptions = (assets: AssetDTO[]) => {
         let amountPerTypeChartData: Point[] = []
         const preparedAssetsData = assets
-            .map(asset => ({
-                prefix: buildHighChartsTitle(asset),
-                name: `${stringifyAmount(asset.amount)}&nbsp;&nbsp;&nbsp;–&nbsp;&nbsp;&nbsp;${asset.normalizedName}`,
-                type: asset.type,
-                currency: asset.currency,
-                trueAmount: +asset.amount,
-                y: props.rates.transform(asset.currency, +asset.amount, "USD"),
-            } as Point))
+            .map(asset => {
+                let y = props.rates.transform(asset.currency, +asset.amount, "USD");
+                if (isNaN(y)) {
+                    console.warn("!!!!!")
+                    y = props.rates.transform(asset.currency, +asset.amount, "USD");
+                }
+                return ({
+                    prefix: buildHighChartsTitle(asset),
+                    name: `${stringifyAmount(asset.amount)}&nbsp;&nbsp;&nbsp;–&nbsp;&nbsp;&nbsp;${asset.normalizedName}`,
+                    type: asset.type,
+                    currency: asset.currency,
+                    trueAmount: +asset.amount,
+                    y: y,
+                } as Point)
+            })
             .sort((a, b) => b.y - a.y)
 
         const totalInUSD = preparedAssetsData.reduce((total, asset) => total + asset.y, 0)

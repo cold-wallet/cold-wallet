@@ -4,6 +4,7 @@ import UserData from "../../domain/UserData";
 import {AccountInfo} from "../../integrations/binance/binanceApiClient";
 import MonobankUserData from "../../integrations/monobank/MonobankUserData";
 import CurrencyRates from "../../currencyRates/CurrencyRates";
+import {OkxAccount} from "../../integrations/okx/okxApiClient";
 
 const FirstPageStatsChart = lazy(() => delayForDemo(import('./FirstPageStatsChart')));
 
@@ -21,6 +22,7 @@ export default function FirstPageStats(
     userData: UserData,
     monobankUserData: MonobankUserData,
     binanceUserData: AccountInfo,
+    okxUserData: OkxAccount,
     rates: CurrencyRates,
     firstPageChartView: string, setFirstPageChartView: React.Dispatch<React.SetStateAction<string>>,
 ) {
@@ -31,6 +33,7 @@ export default function FirstPageStats(
                     userData,
                     monobankUserData,
                     binanceUserData,
+                    okxUserData,
                     rates,
                     firstPageChartView, setFirstPageChartView,
                 }}

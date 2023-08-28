@@ -16,6 +16,7 @@ export default class CurrencyRates {
     constructor(
         private binancePrices: { [index: string]: string },
         private monobankRates: MonobankCurrencyResponse[],
+        private okxPrices: { [index: string]: string },
     ) {
     }
 
@@ -81,6 +82,25 @@ export default class CurrencyRates {
         }
         const price1 = +(this.binancePrices[`${left}${USDT}`]);
         const price2 = +(this.binancePrices[`${right}${USDT}`]);
+        price = price1 / price2;
+        if (isNaN(price)) {
+            price = this.getCryptoPriceOKX(left, right)
+        }
+        return price;
+    }
+
+    private getCryptoPriceOKX(left: string, right: string) {
+        let price = +(this.okxPrices[`${left}-${right}`]);
+        if (price && !isNaN(price)) {
+            return price;
+        }
+        price = +(this.okxPrices[`${right}-${left}`]);
+
+        if (price && !isNaN(price)) {
+            return 1 / price;
+        }
+        const price1 = +(this.okxPrices[`${left}-${USDT}`]);
+        const price2 = +(this.okxPrices[`${right}-${USDT}`]);
         price = price1 / price2;
         return price;
     }

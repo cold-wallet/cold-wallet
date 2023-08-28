@@ -18,6 +18,7 @@ export default class AssetDTO {
         public type: AssetType,
         public isBinanceAsset: boolean = false,
         public isMonobankAsset: boolean = false,
+        public isOkxAsset: boolean = false,
     ) {
         if (!id || !currency || !amount || !name || !decimalScale || (+amount) <= 0) {
             throw new Error(`invalid asset parameters: ${id}, ${currency}, ${amount}, ${name}, ${decimalScale}`)
@@ -32,5 +33,6 @@ export default class AssetDTO {
             ? `${this.currency} ` : "") + name;
         this.isBinanceAsset = isBinanceAsset;
         this.isMonobankAsset = isMonobankAsset;
+        this.isOkxAsset = isOkxAsset;
     }
 }
