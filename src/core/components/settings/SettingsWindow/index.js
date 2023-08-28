@@ -2,28 +2,32 @@ import './index.css';
 import React from "react";
 import monobankIntegration from "../../integrations/MonobankIntegrationPad";
 import binanceIntegration from "../../integrations/BinanceIntegrationPad";
-import qmallIntegration from "../../integrations/QmallIntegrationPad";
+import okxIntegration from "../../integrations/OkxIntegrationPad";
 import monobankSettingsValidation from "../MonobankSettings/monobankSettingsValidation";
 import binanceSettingsValidation from "../BinanceSettings/binanceSettingsValidation";
 import MonobankSettings from "../MonobankSettings";
 import BinanceSettings from "../BinanceSettings";
-import QmallSettings from "../QmallSettings";
+import OkxSettings from "../OkxSettings";
 import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
 import ModalWindow from "../../ModalWindow";
 import {dataImporter} from "../ImportData";
 import PinCodeSetting from "../PinCode";
+import okxSettingsValidation from "../OkxSettings/okxSettingsValidation";
 
 export default function SettingsWindow(
     {
         stateReset,
         userData, setUserData,
+
         monobankSettingsEnabled, setMonobankSettingsEnabled,
         monobankApiTokenInput, setMonobankApiTokenInput,
         monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
         monobankUserData, setMonobankUserData,
         monobankUserDataLoading, setMonobankUserDataLoading,
+
         integrationWindowNameSelected, setIntegrationWindowNameSelected,
+
         binanceCurrencies,
         binanceSettingsEnabled, setBinanceSettingsEnabled,
         binanceApiKeyInput, setBinanceApiKeyInput,
@@ -31,9 +35,21 @@ export default function SettingsWindow(
         binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
         binanceUserData, setBinanceUserData,
         binanceUserDataLoading, setBinanceUserDataLoading,
+
+        okxCurrencies,
+        okxSettingsEnabled, setOkxSettingsEnabled,
+        okxApiKeyInput, setOkxApiKeyInput,
+        okxApiSecretInput, setOkxApiSecretInput,
+        okxApiPassPhraseInput, setOkxApiPassPhraseInput,
+        okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
+        okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
+        okxUserData, setOkxUserData,
+        okxUserDataLoading, setOkxUserDataLoading,
+
         importOrExportSettingRequested, setImportOrExportSettingRequested,
         importDataBuffer, setImportDataBuffer,
-        loadMonobankUserData, loadBinanceUserData,
+        loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
+
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
         pinCodeEntered, setPinCodeEntered,
         pinCodeEnteringFinished, setPinCodeEnteringFinished,
@@ -54,7 +70,7 @@ export default function SettingsWindow(
             <div className="integration-settings">{
                 [
                     {integration: binanceIntegration, isEnabled: binanceSettingsEnabled},
-                    {integration: qmallIntegration, isEnabled: false},
+                    {integration: okxIntegration, isEnabled: false},
                     {integration: monobankIntegration, isEnabled: monobankSettingsEnabled},
 
                 ].map(({integration, isEnabled}) => integration.element(
@@ -110,6 +126,7 @@ export default function SettingsWindow(
 
     const showMonobankSettings = userData.settings.monobankIntegrationEnabled || monobankSettingsEnabled;
     const showBinanceSettings = userData.settings.binanceIntegrationEnabled || binanceSettingsEnabled;
+    const showOkxSettings = userData.settings.okxIntegrationEnabled || okxSettingsEnabled;
 
     function onSaveClicked() {
         if (integrationWindowNameSelected) {
@@ -139,6 +156,20 @@ export default function SettingsWindow(
                         binanceUserData,
                         setBinanceUserData,
                     )
+                case okxIntegration.name:
+                    return okxSettingsValidation(
+                        userData, setUserData,
+                        okxSettingsEnabled,
+                        okxApiKeyInput,
+                        okxApiSecretInput,
+                        okxApiPassPhraseInput,
+                        okxApiSubAccountNameInput,
+                        setOkxApiKeysInputInvalid,
+                        setOkxUserDataLoading,
+                        okxCurrencies,
+                        okxUserData, setOkxUserData,
+                        stateReset,
+                    )
             }
         } else if (importOrExportSettingRequested) {
             switch (importOrExportSettingRequested) {
@@ -147,6 +178,7 @@ export default function SettingsWindow(
                         dataImporter.readImportedData(importDataBuffer, setUserData)
                         loadBinanceUserData();
                         loadMonobankUserData();
+                        loadOkxUserData();
                         stateReset();
                     }
                     break
@@ -185,10 +217,18 @@ export default function SettingsWindow(
                         setBinanceApiKeysInputInvalid,
                         binanceUserDataLoading,
                     )
-                case qmallIntegration.name:
-                    return QmallSettings(
+                case okxIntegration.name:
+                    return OkxSettings(
                         userData,
                         setIntegrationWindowNameSelected,
+                        showOkxSettings,
+                        okxSettingsEnabled, setOkxSettingsEnabled,
+                        setOkxApiKeyInput,
+                        setOkxApiSecretInput,
+                        setOkxApiPassPhraseInput,
+                        setOkxApiSubAccountNameInput,
+                        okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
+                        okxUserDataLoading,
                     )
             }
         } else if (importOrExportSettingRequested) {

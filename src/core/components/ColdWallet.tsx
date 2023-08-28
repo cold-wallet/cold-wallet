@@ -11,6 +11,7 @@ import {AccountInfo} from "../integrations/binance/binanceApiClient";
 import MonobankUserData from "../integrations/monobank/MonobankUserData";
 import LoginWatcher from "./LoginWatcher";
 import PinCodeOnLogin from "./unauthorized/PinCodeOnLogin";
+import OkxLoader from "../integrations/okx/OkxLoader";
 
 export default function ColdWallet(
     {props}: {
@@ -38,6 +39,20 @@ export default function ColdWallet(
         userData.settings.binanceIntegrationEnabled,
         userData.settings.binanceIntegrationApiKey,
         userData.settings.binanceIntegrationApiSecret,
+    );
+    const {
+        okxPrices, okxPricesLoaded,
+        okxCurrencies, okxCurrenciesLoaded,
+        okxUserData, setOkxUserData,
+        loadOkxUserData,
+    } = OkxLoader(
+        !shouldEnterPinCode,
+        props.storageFactory,
+        userData.settings.okxIntegrationEnabled,
+        userData.settings.okxIntegrationApiKey,
+        userData.settings.okxIntegrationApiSecret,
+        userData.settings.okxIntegrationPassPhrase,
+        userData.settings.okxIntegrationSubAccountName,
     );
     const {
         monobankRates,
@@ -89,6 +104,24 @@ export default function ColdWallet(
     const [binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid] = useState(false);
     const [binanceUserDataLoading, setBinanceUserDataLoading] = useState(false);
 
+    const [okxSettingsEnabled, setOkxSettingsEnabled] = useState(
+        userData.settings.okxIntegrationEnabled
+    );
+    const [okxApiKeyInput, setOkxApiKeyInput] = useState(
+        userData.settings.okxIntegrationApiKey
+    );
+    const [okxApiSecretInput, setOkxApiSecretInput] = useState(
+        userData.settings.okxIntegrationApiSecret
+    );
+    const [okxApiPassPhraseInput, setOkxApiPassPhraseInput] = useState(
+        userData.settings.okxIntegrationPassPhrase
+    );
+    const [okxApiSubAccountNameInput, setOkxApiSubAccountNameInput] = useState(
+        userData.settings.okxIntegrationSubAccountName
+    );
+    const [okxApiKeysInputInvalid, setOkxApiKeysInputInvalid] = useState(false);
+    const [okxUserDataLoading, setOkxUserDataLoading] = useState(false);
+
     function getAnyAssetExist() {
         return !!(userData.assets.length)
             || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
@@ -130,18 +163,30 @@ export default function ColdWallet(
         setAssetToDelete(null);
         setAssetToEdit(null);
         setShowConfigsWindow(false);
+        setIntegrationWindowNameSelected(null);
+
         setMonobankSettingsEnabled(userData.settings.monobankIntegrationEnabled);
         setMonobankApiTokenInput(userData.settings.monobankIntegrationToken);
         setMonobankApiTokenInputInvalid(false);
         setMonobankUserDataLoading(false);
-        setIntegrationWindowNameSelected(null);
+
         setBinanceSettingsEnabled(userData.settings.binanceIntegrationEnabled);
         setBinanceApiKeyInput(userData.settings.binanceIntegrationApiKey);
         setBinanceApiSecretInput(userData.settings.binanceIntegrationApiSecret);
         setBinanceApiKeysInputInvalid(false);
         setBinanceUserDataLoading(false);
+
+        setOkxSettingsEnabled(userData.settings.okxIntegrationEnabled)
+        setOkxApiKeyInput(userData.settings.okxIntegrationApiKey)
+        setOkxApiSecretInput(userData.settings.okxIntegrationApiSecret)
+        setOkxApiPassPhraseInput(userData.settings.okxIntegrationPassPhrase)
+        setOkxApiSubAccountNameInput(userData.settings.okxIntegrationSubAccountName)
+        setOkxApiKeysInputInvalid(false)
+        setOkxUserDataLoading(false)
+
         setImportOrExportSettingRequested(null);
         setImportDataBuffer(null);
+
         setPinCodeSettingsRequested(false);
         setPinCodeEntered(null);
         setPinCodeEnteringFinished(false);
@@ -176,23 +221,38 @@ export default function ColdWallet(
                         assetToEdit, setAssetToEdit,
                         stateReset,
                         showConfigsWindow, setShowConfigsWindow,
+
                         monobankSettingsEnabled, setMonobankSettingsEnabled,
                         monobankApiTokenInput, setMonobankApiTokenInput,
                         monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
                         monobankUserData, setMonobankUserData,
                         monobankUserDataLoading, setMonobankUserDataLoading,
+
                         integrationWindowNameSelected, setIntegrationWindowNameSelected,
+
                         binanceSettingsEnabled, setBinanceSettingsEnabled,
                         binanceApiKeyInput, setBinanceApiKeyInput,
                         binanceApiSecretInput, setBinanceApiSecretInput,
                         binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
                         binanceUserData, setBinanceUserData,
                         binanceUserDataLoading, setBinanceUserDataLoading,
+
+                        okxCurrencies,
+                        okxSettingsEnabled, setOkxSettingsEnabled,
+                        okxApiKeyInput, setOkxApiKeyInput,
+                        okxApiSecretInput, setOkxApiSecretInput,
+                        okxApiPassPhraseInput, setOkxApiPassPhraseInput,
+                        okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
+                        okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
+                        okxUserData, setOkxUserData,
+                        okxUserDataLoading, setOkxUserDataLoading,
+
                         selectedPageNumber, setSelectedPageNumber,
                         firstPageChartView, setFirstPageChartView,
                         importOrExportSettingRequested, setImportOrExportSettingRequested,
                         importDataBuffer, setImportDataBuffer,
-                        loadMonobankUserData, loadBinanceUserData,
+                        loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
+
                         pinCodeSettingsRequested, setPinCodeSettingsRequested,
                         pinCodeEntered, setPinCodeEntered,
                         pinCodeEnteringFinished, setPinCodeEnteringFinished,
@@ -204,13 +264,14 @@ export default function ColdWallet(
                     : NotLoggedIn(
                         userData, setUserData, importDataBuffer, setImportDataBuffer,
                         importOrExportSettingRequested, setImportOrExportSettingRequested,
-                        loadMonobankUserData, loadBinanceUserData,
+                        loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
                         stateReset, setShowCreateNewAssetWindow, setCreatingNewAsset,
                     )
-                : LoadingWindow(binancePricesLoaded,
-                    binancePrices,
-                    binanceCurrenciesLoaded,
-                    binanceCurrencies,
+                : LoadingWindow(
+                    binancePricesLoaded, binancePrices,
+                    binanceCurrenciesLoaded, binanceCurrencies,
+                    okxPricesLoaded, okxPrices,
+                    okxCurrenciesLoaded, okxCurrencies,
                     monobankRates,
                     monobankCurrencies)
             }

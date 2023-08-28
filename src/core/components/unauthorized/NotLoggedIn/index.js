@@ -10,7 +10,7 @@ import {dataImporter} from "../../settings/ImportData";
 export default function NotLoggedIn(
     userData, setUserData, importDataBuffer, setImportDataBuffer,
     importOrExportSettingRequested, setImportOrExportSettingRequested,
-    loadMonobankUserData, loadBinanceUserData,
+    loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
     stateReset, setShowCreateNewAssetWindow, setCreatingNewAsset,
 ) {
     function buildImportPad() {
@@ -27,6 +27,7 @@ export default function NotLoggedIn(
                                 dataImporter.readImportedData(importDataBuffer, setUserData)
                                 loadBinanceUserData()
                                 loadMonobankUserData()
+                                loadOkxUserData()
                             }
                             stateReset()
                             setShowCreateNewAssetWindow(false)

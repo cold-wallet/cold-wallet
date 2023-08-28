@@ -1,21 +1,21 @@
 .integration-logo--binance {
   fill: #f3ba2f;
-  background-color: black;
+  background-color: #181A20;
 }
 
-.integration-settings .integration-logo--qmall {
+.integration-settings .integration-logo--okx {
   width: 50%;
   height: 50%;
 }
 
-.integration-logo.integration-logo--qmall {
+.integration-logo.integration-logo--okx {
   width: 53%;
-  background-color: #33323e;
+  background-color: #121212;
 }
 
 .integration-logo--monobank {
   fill: #f6f6f6;
-  background-color: black;
+  background-color: #191a1e;
   padding: 2%;
 }
 
@@ -119,7 +119,7 @@
     width: 80%;
   }
 
-  .integration-logo.integration-logo--qmall {
+  .integration-logo.integration-logo--okx {
     width: 73%;
   }
 }

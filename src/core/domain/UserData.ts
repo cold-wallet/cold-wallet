@@ -7,6 +7,11 @@ export class UserSettings {
         public binanceIntegrationEnabled: boolean = false,
         public binanceIntegrationApiKey: string | null = null,
         public binanceIntegrationApiSecret: string | null = null,
+        public okxIntegrationEnabled: boolean = false,
+        public okxIntegrationApiKey: string | null = null,
+        public okxIntegrationApiSecret: string | null = null,
+        public okxIntegrationPassPhrase: string | null = null,
+        public okxIntegrationSubAccountName: string | null = null,
         public pinCode: string | null = null,
     ) {
     }

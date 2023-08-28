@@ -31,23 +31,39 @@ export default function AssetsDashboard(
         assetToEdit, setAssetToEdit,
         stateReset,
         showConfigsWindow, setShowConfigsWindow,
+
         monobankSettingsEnabled, setMonobankSettingsEnabled,
         monobankApiTokenInput, setMonobankApiTokenInput,
         monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
         monobankUserData, setMonobankUserData,
         monobankUserDataLoading, setMonobankUserDataLoading,
+
         integrationWindowNameSelected, setIntegrationWindowNameSelected,
+
         binanceSettingsEnabled, setBinanceSettingsEnabled,
         binanceApiKeyInput, setBinanceApiKeyInput,
         binanceApiSecretInput, setBinanceApiSecretInput,
         binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
         binanceUserData, setBinanceUserData,
         binanceUserDataLoading, setBinanceUserDataLoading,
+
+        okxCurrencies,
+        okxSettingsEnabled, setOkxSettingsEnabled,
+        okxApiKeyInput, setOkxApiKeyInput,
+        okxApiSecretInput, setOkxApiSecretInput,
+        okxApiPassPhraseInput, setOkxApiPassPhraseInput,
+        okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
+        okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
+        okxUserData, setOkxUserData,
+        okxUserDataLoading, setOkxUserDataLoading,
+
         selectedPageNumber, setSelectedPageNumber,
         firstPageChartView, setFirstPageChartView,
         importOrExportSettingRequested, setImportOrExportSettingRequested,
         importDataBuffer, setImportDataBuffer,
-        loadMonobankUserData, loadBinanceUserData,
+
+        loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
+
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
         pinCodeEntered, setPinCodeEntered,
         pinCodeEnteringFinished, setPinCodeEnteringFinished,
@@ -69,12 +85,15 @@ export default function AssetsDashboard(
             stateReset,
             anyAssetExist,
             userData, setUserData,
+
             monobankSettingsEnabled, setMonobankSettingsEnabled,
             monobankApiTokenInput, setMonobankApiTokenInput,
             monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
             monobankUserData, setMonobankUserData,
             monobankUserDataLoading, setMonobankUserDataLoading,
+
             integrationWindowNameSelected, setIntegrationWindowNameSelected,
+
             binanceCurrencies,
             binanceSettingsEnabled, setBinanceSettingsEnabled,
             binanceApiKeyInput, setBinanceApiKeyInput,
@@ -82,6 +101,16 @@ export default function AssetsDashboard(
             binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
             binanceUserData, setBinanceUserData,
             binanceUserDataLoading, setBinanceUserDataLoading,
+
+            okxCurrencies,
+            okxSettingsEnabled, setOkxSettingsEnabled,
+            okxApiKeyInput, setOkxApiKeyInput,
+            okxApiSecretInput, setOkxApiSecretInput,
+            okxApiPassPhraseInput, setOkxApiPassPhraseInput,
+            okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
+            okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
+            okxUserData, setOkxUserData,
+            okxUserDataLoading, setOkxUserDataLoading,
         ) : null
     }
 
@@ -96,12 +125,15 @@ export default function AssetsDashboard(
         return showConfigsWindow ? SettingsWindow({
             stateReset,
             userData, setUserData,
+
             monobankSettingsEnabled, setMonobankSettingsEnabled,
             monobankApiTokenInput, setMonobankApiTokenInput,
             monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
             monobankUserData, setMonobankUserData,
             monobankUserDataLoading, setMonobankUserDataLoading,
+
             integrationWindowNameSelected, setIntegrationWindowNameSelected,
+
             binanceCurrencies,
             binanceSettingsEnabled, setBinanceSettingsEnabled,
             binanceApiKeyInput, setBinanceApiKeyInput,
@@ -109,9 +141,21 @@ export default function AssetsDashboard(
             binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
             binanceUserData, setBinanceUserData,
             binanceUserDataLoading, setBinanceUserDataLoading,
+
+            okxCurrencies,
+            okxSettingsEnabled, setOkxSettingsEnabled,
+            okxApiKeyInput, setOkxApiKeyInput,
+            okxApiSecretInput, setOkxApiSecretInput,
+            okxApiPassPhraseInput, setOkxApiPassPhraseInput,
+            okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
+            okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
+            okxUserData, setOkxUserData,
+            okxUserDataLoading, setOkxUserDataLoading,
+
             importOrExportSettingRequested, setImportOrExportSettingRequested,
             importDataBuffer, setImportDataBuffer,
-            loadMonobankUserData, loadBinanceUserData,
+            loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
+
             pinCodeSettingsRequested, setPinCodeSettingsRequested,
             pinCodeEntered, setPinCodeEntered,
             pinCodeEnteringFinished, setPinCodeEnteringFinished,

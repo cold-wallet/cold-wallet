@@ -18,13 +18,6 @@
   padding-bottom: 1%;
 }
 
-.setting-qmall-token-input {
-  padding: 1%;
-  width: 90%;
-  border-radius: 4px;
-  border-color: #6f9f98;
-}
-
 .setting-row-progress {
   margin: 1%;
 }
@@ -83,7 +76,7 @@
 
 @media only screen and (orientation: portrait) {
 
-  .integration-settings .integration-logo--qmall {
+  .integration-settings .integration-logo--okx {
     height: 60%;
     width: 56%;
   }
@@ -98,7 +91,7 @@
 
 @media only screen and (max-width: 800px) {
 
-  .integration-settings .integration-logo--qmall {
+  .integration-settings .integration-logo--okx {
     height: 60%;
     width: 56%;
   }

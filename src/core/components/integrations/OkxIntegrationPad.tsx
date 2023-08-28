@@ -1,15 +1,15 @@
 import './index.css';
-import QmallSvg from "../../../resources/images/qmallSvg";
+import OkxLogo from "../../../resources/images/okx_logo_full.png";
 import React from "react";
 import IntegrationPad, {ThirdPartyIntegration} from "./IntegrationPad";
 
-const name: string = "qmall";
+const name: string = "okx";
 
-const qmallIntegration: ThirdPartyIntegration = {
+const okxIntegration: ThirdPartyIntegration = {
     element: (onClick: () => void, isEnabled: boolean) =>
-        <IntegrationPad logo={<QmallSvg/>}
+        <IntegrationPad logo={<img src={OkxLogo} alt={name}/>}
                         key={name}
-                        logoClass={"integration-logo--qmall"}
+                        logoClass={"integration-logo--okx"}
                         name={name}
                         onClick={onClick}
                         isEnabled={isEnabled}
@@ -17,4 +17,4 @@ const qmallIntegration: ThirdPartyIntegration = {
     name,
 }
 
-export default qmallIntegration;
+export default okxIntegration;

@@ -1,11 +1,11 @@
 import binanceIntegration from "./BinanceIntegrationPad";
-import qmallIntegration from "./QmallIntegrationPad";
+import okxIntegration from "./OkxIntegrationPad";
 import monobankIntegration from "./MonobankIntegrationPad";
 import {ThirdPartyIntegration} from "./IntegrationPad";
 
 const thirdPartyIntegrations: ThirdPartyIntegration[] = [
     binanceIntegration,
-    qmallIntegration,
+    okxIntegration,
     monobankIntegration,
 ];
 

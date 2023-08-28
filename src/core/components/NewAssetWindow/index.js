@@ -6,7 +6,7 @@ import compareStrings from "../../utils/compareStrings";
 import React from "react";
 import thirdPartyIntegrations from "../integrations/ThirdPartyIntegrations";
 import binanceIntegration from "../integrations/BinanceIntegrationPad";
-import qmallIntegration from "../integrations/QmallIntegrationPad";
+import okxIntegration from "../integrations/OkxIntegrationPad";
 import monobankIntegration from "../integrations/MonobankIntegrationPad";
 import IntegrationSettings from "../settings/IntegrationSettings";
 
@@ -18,12 +18,15 @@ export default function NewAssetWindow(
     stateReset,
     anyAssetExist,
     userData, setUserData,
+
     monobankSettingsEnabled, setMonobankSettingsEnabled,
     monobankApiTokenInput, setMonobankApiTokenInput,
     monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
     monobankUserData, setMonobankUserData,
     monobankUserDataLoading, setMonobankUserDataLoading,
+
     integrationWindowNameSelected, setIntegrationWindowNameSelected,
+
     binanceCurrencies,
     binanceSettingsEnabled, setBinanceSettingsEnabled,
     binanceApiKeyInput, setBinanceApiKeyInput,
@@ -31,6 +34,15 @@ export default function NewAssetWindow(
     binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
     binanceUserData, setBinanceUserData,
     binanceUserDataLoading, setBinanceUserDataLoading,
+    okxCurrencies,
+    okxSettingsEnabled, setOkxSettingsEnabled,
+    okxApiKeyInput, setOkxApiKeyInput,
+    okxApiSecretInput, setOkxApiSecretInput,
+    okxApiPassPhraseInput, setOkxApiPassPhraseInput,
+    okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
+    okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
+    okxUserData, setOkxUserData,
+    okxUserDataLoading, setOkxUserDataLoading,
 ) {
 
     const onNewAssetCurrencySelected = (currency) => {
@@ -134,7 +146,7 @@ export default function NewAssetWindow(
                 <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>{
                     [
                         {integration: binanceIntegration, isEnabled: binanceSettingsEnabled},
-                        {integration: qmallIntegration, isEnabled: false},
+                        {integration: okxIntegration, isEnabled: false},
                         {integration: monobankIntegration, isEnabled: monobankSettingsEnabled},
 
                     ].map(({integration, isEnabled}) => integration.element(
@@ -165,12 +177,15 @@ export default function NewAssetWindow(
         (integrationWindowNameSelected !== null),
         stateReset,
         userData, setUserData,
+
         monobankSettingsEnabled, setMonobankSettingsEnabled,
         monobankApiTokenInput, setMonobankApiTokenInput,
         monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
         monobankUserData, setMonobankUserData,
         monobankUserDataLoading, setMonobankUserDataLoading,
+
         integrationWindowNameSelected, setIntegrationWindowNameSelected,
+
         binanceCurrencies,
         binanceSettingsEnabled, setBinanceSettingsEnabled,
         binanceApiKeyInput, setBinanceApiKeyInput,
@@ -178,5 +193,15 @@ export default function NewAssetWindow(
         binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
         binanceUserData, setBinanceUserData,
         binanceUserDataLoading, setBinanceUserDataLoading,
+
+        okxCurrencies,
+        okxSettingsEnabled, setOkxSettingsEnabled,
+        okxApiKeyInput, setOkxApiKeyInput,
+        okxApiSecretInput, setOkxApiSecretInput,
+        okxApiPassPhraseInput, setOkxApiPassPhraseInput,
+        okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
+        okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
+        okxUserData, setOkxUserData,
+        okxUserDataLoading, setOkxUserDataLoading,
     );
 }
