@@ -1,19 +1,19 @@
-import UserData from "../../../domain/UserData";
+import UserDataHolder from "../../../domain/UserDataHolder";
 import {Dispatch, SetStateAction} from "react";
 
 export const dataImporter = {
 
-    generateExportData(userData: UserData) {
-        const data = {...userData}
+    generateExportData(userDataHolder: UserDataHolder) {
+        const data = {...userDataHolder}
         return Buffer.from(encodeURIComponent(JSON.stringify(data)), 'ascii').toString('base64');
     },
 
-    readImportedData(data: string, setUserData: Dispatch<SetStateAction<UserData | null>>) {
+    readImportedData(data: string, setUserDataHolder: Dispatch<SetStateAction<UserDataHolder | null>>) {
         try {
             let text = Buffer.from(data, 'base64').toString('ascii');
             try {
                 let parsed = JSON.parse(decodeURIComponent(text));
-                setUserData(parsed);
+                setUserDataHolder(parsed);
                 console.log("imported successfully")
             } catch (e) {
                 console.error("error while parsing json string: ", text)

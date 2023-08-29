@@ -87,6 +87,7 @@ export default function UserDataService(
 
     return {
         userData, setUserData,
+        userDataHolder, setUserDataHolder,
         shouldEnterPinCode,
         loggedIn,
     }

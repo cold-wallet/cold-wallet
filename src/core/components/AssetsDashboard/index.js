@@ -22,6 +22,8 @@ export default function AssetsDashboard(
         showCreateNewAssetWindow, setShowCreateNewAssetWindow,
         creatingNewAsset, setCreatingNewAsset,
         userData, setUserData,
+        userDataHolder, setUserDataHolder,
+
         newAssetAmount, setNewAssetAmount,
         newAssetCurrency, setNewAssetCurrency,
         newAssetName, setNewAssetName,
@@ -130,6 +132,7 @@ export default function AssetsDashboard(
             stateReset,
             setCreatingNewAsset, setShowCreateNewAssetWindow,
             userData, setUserData,
+            userDataHolder, setUserDataHolder,
 
             monobankSettingsEnabled, setMonobankSettingsEnabled,
             monobankApiTokenInput, setMonobankApiTokenInput,

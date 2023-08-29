@@ -29,6 +29,7 @@ export default function ColdWallet(
     const [pinCodeEntered, setPinCodeEntered] = useState<string | null>(null);
     const {
         userData, setUserData,
+        userDataHolder, setUserDataHolder,
         shouldEnterPinCode,
         loggedIn,
     } = UserDataService({
@@ -225,6 +226,7 @@ export default function ColdWallet(
                         showCreateNewAssetWindow, setShowCreateNewAssetWindow,
                         creatingNewAsset, setCreatingNewAsset,
                         userData, setUserData,
+                        userDataHolder, setUserDataHolder,
                         newAssetAmount, setNewAssetAmount,
                         newAssetCurrency, setNewAssetCurrency,
                         newAssetName, setNewAssetName,
@@ -279,7 +281,9 @@ export default function ColdWallet(
                         deletePinCodeRequested, setDeletePinCodeRequested,
                     })
                     : NotLoggedIn(
-                        userData, setUserData, importDataBuffer, setImportDataBuffer,
+                        userData, setUserData,
+                        userDataHolder, setUserDataHolder,
+                        importDataBuffer, setImportDataBuffer,
                         importOrExportSettingRequested, setImportOrExportSettingRequested,
                         loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
                         stateReset, setShowCreateNewAssetWindow, setCreatingNewAsset,

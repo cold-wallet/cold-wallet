@@ -20,6 +20,7 @@ export default function SettingsWindow(
         stateReset,
         setCreatingNewAsset, setShowCreateNewAssetWindow,
         userData, setUserData,
+        userDataHolder, setUserDataHolder,
 
         monobankSettingsEnabled, setMonobankSettingsEnabled,
         monobankApiTokenInput, setMonobankApiTokenInput,
@@ -183,7 +184,7 @@ export default function SettingsWindow(
             switch (importOrExportSettingRequested) {
                 case 'import': {
                     if (importDataBuffer) {
-                        dataImporter.readImportedData(importDataBuffer, setUserData)
+                        dataImporter.readImportedData(importDataBuffer, setUserDataHolder)
                         loadBinanceUserData();
                         loadMonobankUserData();
                         loadOkxUserData();
@@ -269,7 +270,7 @@ export default function SettingsWindow(
                         </div>
                         <div className={"setting-row flex-box-start flex-direction-column"}>
                             <textarea readOnly={true}
-                                      value={dataImporter.generateExportData(userData)}
+                                      value={dataImporter.generateExportData(userDataHolder)}
                                       style={{resize: 'none'}}
                                       className={"export-text-area"}/>
                         </div>

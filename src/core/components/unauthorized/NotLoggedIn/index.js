@@ -1,6 +1,5 @@
 import './index.css';
 import React from "react";
-import LogInButton from "../button/LogInButton";
 import CreateWalletButton from "../button/CreateWalletButton";
 import ImportWalletButton from "../button/ImportWalletButton";
 import PositiveButton from "../../buttons/PositiveButton";
@@ -8,7 +7,9 @@ import NeutralButton from "../../buttons/NeutralButton";
 import {dataImporter} from "../../settings/ImportData";
 
 export default function NotLoggedIn(
-    userData, setUserData, importDataBuffer, setImportDataBuffer,
+    userData, setUserData,
+    userDataHolder, setUserDataHolder,
+    importDataBuffer, setImportDataBuffer,
     importOrExportSettingRequested, setImportOrExportSettingRequested,
     loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
     stateReset, setShowCreateNewAssetWindow, setCreatingNewAsset,
@@ -24,7 +25,7 @@ export default function NotLoggedIn(
                     <PositiveButton
                         onClick={() => {
                             if (importDataBuffer) {
-                                dataImporter.readImportedData(importDataBuffer, setUserData)
+                                dataImporter.readImportedData(importDataBuffer, setUserDataHolder)
                                 loadBinanceUserData()
                                 loadMonobankUserData()
                                 loadOkxUserData()
@@ -48,9 +49,9 @@ export default function NotLoggedIn(
 
     return (
         <div className={"startup-login-box layer-1-themed-color"}>
-            {userData.id
-                ? LogInButton()
-                : (importOrExportSettingRequested === null ? CreateWalletButton(setUserData) : null)}
+            {importOrExportSettingRequested === null
+                ? CreateWalletButton(setUserData)
+                : null /*LogInButton()*/}
             {importOrExportSettingRequested === null
                 ? ImportWalletButton(setImportOrExportSettingRequested,)
                 : buildImportPad()}
