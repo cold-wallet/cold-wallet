@@ -9,6 +9,7 @@ export default function PinCodeSetting(
         props: {
             userData: UserData, setUserData: Dispatch<SetStateAction<UserData>>,
             setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,
+            setPinCode: Dispatch<SetStateAction<string | null>>,
             pinCodeEntered: string | null, setPinCodeEntered: Dispatch<SetStateAction<string | null>>,
             pinCodeEnteringFinished: boolean, setPinCodeEnteringFinished: Dispatch<SetStateAction<boolean>>,
             pinCodeRepeatEntered: string | null, setPinCodeRepeatEntered: Dispatch<SetStateAction<string | null>>,
@@ -31,6 +32,7 @@ export default function PinCodeSetting(
                 const newUserData = {...props.userData}
                 newUserData.settings.pinCode = pinCode
                 props.setUserData(newUserData)
+                props.setPinCode(pinCode)
                 props.setPinCodeEntered(null)
                 props.setPinCodeRepeatEntered(null)
                 props.setPinCodeEnteringFinished(false)
@@ -50,6 +52,7 @@ export default function PinCodeSetting(
                     const newUserData = {...props.userData}
                     newUserData.settings.pinCode = null
                     props.setUserData(newUserData)
+                    props.setPinCode(null)
                     props.setPinCodeEntered(null)
                     props.setPinCodeRepeatEntered(null)
                     props.setPinCodeEnteringFinished(false)

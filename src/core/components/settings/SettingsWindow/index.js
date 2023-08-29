@@ -52,6 +52,7 @@ export default function SettingsWindow(
         loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
 
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
+        setPinCode,
         pinCodeEntered, setPinCodeEntered,
         pinCodeEnteringFinished, setPinCodeEnteringFinished,
         pinCodeRepeatEntered, setPinCodeRepeatEntered,
@@ -279,6 +280,7 @@ export default function SettingsWindow(
             return <PinCodeSetting props={{
                 userData, setUserData,
                 setPinCodeSettingsRequested,
+                setPinCode,
                 pinCodeEntered, setPinCodeEntered,
                 pinCodeEnteringFinished, setPinCodeEnteringFinished,
                 pinCodeRepeatEntered, setPinCodeRepeatEntered,

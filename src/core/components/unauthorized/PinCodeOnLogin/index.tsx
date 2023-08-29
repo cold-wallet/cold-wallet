@@ -1,5 +1,4 @@
 import './index.css'
-import UserData from "../../../domain/UserData";
 import React, {Dispatch, SetStateAction} from "react";
 import ModalWindow from "../../ModalWindow";
 import PinCode from "../../PinCode";
@@ -7,17 +6,14 @@ import PinCode from "../../PinCode";
 export default function PinCodeOnLogin(
     {props}: {
         props: {
-            userData: UserData,
-            setPinCodeEnteredSuccessfully: Dispatch<SetStateAction<boolean>>,
             pinCodeEntered: string | null,
             setPinCodeEntered: Dispatch<SetStateAction<string | null>>,
+            setPinCode: Dispatch<SetStateAction<string | null>>,
         }
     }
 ) {
     function acceptPinCode() {
-        if (props.pinCodeEntered === props.userData.settings.pinCode) {
-            props.setPinCodeEnteredSuccessfully(true)
-        }
+        props.setPinCode(props.pinCodeEntered)
         props.setPinCodeEntered(null)
     }
 

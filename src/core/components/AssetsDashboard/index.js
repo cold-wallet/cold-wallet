@@ -68,6 +68,7 @@ export default function AssetsDashboard(
         loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
 
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
+        setPinCode,
         pinCodeEntered, setPinCodeEntered,
         pinCodeEnteringFinished, setPinCodeEnteringFinished,
         pinCodeRepeatEntered, setPinCodeRepeatEntered,
@@ -161,6 +162,7 @@ export default function AssetsDashboard(
             loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
 
             pinCodeSettingsRequested, setPinCodeSettingsRequested,
+            setPinCode,
             pinCodeEntered, setPinCodeEntered,
             pinCodeEnteringFinished, setPinCodeEnteringFinished,
             pinCodeRepeatEntered, setPinCodeRepeatEntered,

@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import BinanceLoader from "./../integrations/binance/BinanceLoader";
 import MonobankLoader from "./../integrations/monobank/MonobankLoader";
 import LoadingWindow from "./LoadingWindow";
@@ -6,28 +6,35 @@ import NotLoggedIn from "./unauthorized/NotLoggedIn";
 import AssetsDashboard from "./AssetsDashboard";
 import OnStartupLoader from "./OnStartupLoader";
 import StorageFactory from "../domain/StorageFactory";
-import UserData from "../domain/UserData";
 import {AccountInfo} from "../integrations/binance/binanceApiClient";
 import MonobankUserData from "../integrations/monobank/MonobankUserData";
-import LoginWatcher from "./LoginWatcher";
 import PinCodeOnLogin from "./unauthorized/PinCodeOnLogin";
 import OkxLoader from "../integrations/okx/OkxLoader";
 import {OkxAccount} from "../integrations/okx/okxApiClient";
+import UserDataService from "../services/UserDataService";
+import UserData from "../domain/UserData";
 
 export default function ColdWallet(
     {props}: {
         props: {
-            storageFactory: StorageFactory
+            storageFactory: StorageFactory,
+            sessionStorageFactory: StorageFactory,
         },
     }
 ) {
-    const [userData, setUserData] = props.storageFactory.createStorage<UserData>(
-        "userData", () => new UserData()
-    );
+    const [
+        pinCode,
+        setPinCode
+    ] = props.sessionStorageFactory.createStorageNullable<string>("pinCode");
+    const [pinCodeEntered, setPinCodeEntered] = useState<string | null>(null);
     const {
+        userData, setUserData,
         shouldEnterPinCode,
-        pinCodeEnteredSuccessfully, setPinCodeEnteredSuccessfully,
-    } = LoginWatcher({userData, setUserData,})
+        loggedIn,
+    } = UserDataService({
+        storageFactory: props.storageFactory,
+        pinCode,
+    });
 
     const {
         binancePrices, binancePricesLoaded,
@@ -123,22 +130,30 @@ export default function ColdWallet(
     const [okxApiKeysInputInvalid, setOkxApiKeysInputInvalid] = useState(false);
     const [okxUserDataLoading, setOkxUserDataLoading] = useState(false);
 
-    function getAnyAssetExist() {
+    function getAnyAssetExist(
+        userData: UserData,
+        binanceUserData: AccountInfo | null,
+        okxUserData: OkxAccount | null,
+        monobankUserData: MonobankUserData | null,
+    ) {
         return !!(userData.assets.length)
             || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
             || userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData)
             || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData)
     }
 
-    const anyAssetExist = useMemo(() => {
-            const result = getAnyAssetExist();
-            // if (anyAssetExist)
-            return result
-        },
+    const anyAssetExist = useMemo(
+        () => getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData,),
         [userData, binanceUserData, okxUserData, monobankUserData,]
     )
-    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow] = useState(!anyAssetExist);
-    const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist);
+    const [showCreateNewAssetWindow, setShowCreateNewAssetWindow]
+        = useState(!anyAssetExist && loggedIn);
+    useEffect(() => setShowCreateNewAssetWindow(!anyAssetExist && loggedIn),
+        [anyAssetExist, loggedIn]);
+
+    const [creatingNewAsset, setCreatingNewAsset] = useState(!anyAssetExist && loggedIn);
+    useEffect(() => setCreatingNewAsset(!anyAssetExist && loggedIn),
+        [anyAssetExist, loggedIn]);
 
     const [selectedPageNumber, setSelectedPageNumber] = useState(0);
     const [firstPageChartView, setFirstPageChartView] = useState('pie');
@@ -147,7 +162,6 @@ export default function ColdWallet(
     const [importDataBuffer, setImportDataBuffer] = useState(null);
 
     const [pinCodeSettingsRequested, setPinCodeSettingsRequested] = useState(false);
-    const [pinCodeEntered, setPinCodeEntered] = useState<string | null>(null);
     const [pinCodeEnteringFinished, setPinCodeEnteringFinished] = useState(false);
     const [currentPinCodeConfirmed, setCurrentPinCodeConfirmed] = useState(false);
     const [pinCodeRepeatEntered, setPinCodeRepeatEntered] = useState<string | null>(null);
@@ -156,9 +170,8 @@ export default function ColdWallet(
     const [deletePinCodeRequested, setDeletePinCodeRequested] = useState(false);
 
     function stateReset() {
-        console.log("setShowCreateNewAssetWindow", !getAnyAssetExist())
-        setShowCreateNewAssetWindow(!getAnyAssetExist());
-        setCreatingNewAsset(!getAnyAssetExist());
+        setShowCreateNewAssetWindow(!getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData,));
+        setCreatingNewAsset(!getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData,));
         setNewAssetCurrency(null);
         setNewAssetAmount(null);
         setNewAssetName(null);
@@ -200,13 +213,11 @@ export default function ColdWallet(
         setDeletePinCodeRequested(false);
     }
 
-    const loggedIn = !!(userData.id)// || !userData.loginRequired;
-
     return (
         <div className={"application layer-0-themed-color"}>
             {shouldEnterPinCode ? <PinCodeOnLogin props={{
-                userData, setPinCodeEnteredSuccessfully,
                 pinCodeEntered, setPinCodeEntered,
+                setPinCode,
             }}/> : loaded
                 ? loggedIn
                     ? AssetsDashboard({
@@ -259,6 +270,7 @@ export default function ColdWallet(
                         loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
 
                         pinCodeSettingsRequested, setPinCodeSettingsRequested,
+                        setPinCode,
                         pinCodeEntered, setPinCodeEntered,
                         pinCodeEnteringFinished, setPinCodeEnteringFinished,
                         pinCodeRepeatEntered, setPinCodeRepeatEntered,
