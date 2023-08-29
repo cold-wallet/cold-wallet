@@ -3,8 +3,9 @@ import React, {Dispatch, SetStateAction} from "react";
 import LocalStorageRepository, {NullableLocalStorageRepository} from "./LocalStorageRepository";
 
 class LocalStorageFactory implements StorageFactory {
+
     createStorageNullable<T>(key: string): [(T | null), React.Dispatch<React.SetStateAction<T | null>>] {
-        return NullableLocalStorageRepository(key);
+        return NullableLocalStorageRepository<T | null>(key);
     }
 
     createStorage<T>(key: string, initializer: () => T): [T, Dispatch<SetStateAction<T>>] {
