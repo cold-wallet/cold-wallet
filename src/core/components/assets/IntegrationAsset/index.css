@@ -52,6 +52,12 @@
   display: flex;
 }
 
+@media screen and (max-width: 800px) and (orientation: portrait) {
+  .asset-item-buttons-container--integration-logo--wide:hover {
+    padding: 2.1% 0;
+  }
+}
+
 .asset-item-buttons-container--integration-logo--wide:hover .asset-item-buttons-container--integration-name {
   display: flex;
   padding: 0 4%;
@@ -100,6 +106,10 @@
     width: 8%;
   }
 
+}
+
+@media only screen and (max-width: 800px) and (orientation: landscape) {
+
   .asset-item-buttons-container--integration-logo--short {
     width: 60%;
   }
@@ -112,13 +122,15 @@
     width: 7%;
     min-width: 9%;
   }
+}
+
+@media only screen and (max-width: 700px) and (orientation: landscape) {
 
   .asset-item-buttons-container--integration-logo--short {
     width: 60%;
   }
 
 }
-
 
 @media only screen and (orientation: portrait) {
   .asset-item-buttons-container--integration-logo--wide {
