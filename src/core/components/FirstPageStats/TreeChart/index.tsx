@@ -76,7 +76,7 @@ export default function TreeChart(
 
     const isPortrait = window.innerHeight > window.innerWidth;
     const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.65)
-    const chartWidth = isPortrait ? (window.innerWidth * 0.8) : (window.innerWidth * 0.55)
+    const chartWidth = isPortrait ? (window.innerWidth * 0.9) : (window.innerWidth * 0.55)
 
     const createChartOptions = (assets: AssetDTO[]) => {
         const preparedAssetsData = assets
