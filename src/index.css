@@ -30,6 +30,10 @@ input[disabled] {
   cursor: not-allowed;
 }
 
+* {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
 @media only screen and (orientation: portrait) and (min-width: 1000px) {
   input {
     font-size: x-large !important;
