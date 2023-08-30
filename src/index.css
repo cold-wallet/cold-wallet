@@ -17,6 +17,11 @@ html, body, .root {
   min-width: 350px;
 }
 
+html {
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+}
+
 button {
   cursor: pointer;
 }

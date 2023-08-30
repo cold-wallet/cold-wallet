@@ -4,6 +4,12 @@
     margin: 5%;
 }
 
+@media screen and (orientation: portrait) {
+    .pin-code-wrapper {
+        height: 80%;
+    }
+}
+
 .pin-code-points,
 .dial-container {
     width: 50%;
