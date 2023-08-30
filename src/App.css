@@ -114,6 +114,11 @@ input.invalid {
   justify-content: space-evenly;
 }
 
+div {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 @media only screen and (orientation: portrait) {
   .application {
     justify-content: unset;

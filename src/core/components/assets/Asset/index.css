@@ -33,6 +33,11 @@
   margin-right: 2%;
 }
 
+.asset-item-value-input {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 .asset-item-value-input,
 .asset-item-value input {
   text-align: center;
