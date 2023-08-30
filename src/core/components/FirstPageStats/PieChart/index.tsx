@@ -50,8 +50,8 @@ export default function PieChart(
     }
 
     const isPortrait = window.innerHeight > window.innerWidth;
-    const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.75)
-    const chartWidth = isPortrait ? (window.innerWidth) : (window.innerWidth * 0.55)
+    const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.7)
+    const chartWidth = isPortrait ? (window.innerWidth) : (window.innerWidth * 0.6)
 
     const createChartOptions = (assets: AssetDTO[]) => {
         let amountPerTypeChartData: Point[] = []
