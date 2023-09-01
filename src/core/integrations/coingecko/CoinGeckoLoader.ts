@@ -7,41 +7,21 @@ import CoinGeckoPriceResponse from "./CoinGeckoPriceResponse";
 import CoinGeckoCurrencyResponse from "./CoinGeckoCurrencyResponse";
 
 const name = "coingecko"
+const subCurrencies = ["btc", "eur", "uah", "usd", "xag", "xau", "xdr"]
 
 export default function CoinGeckoLoader(
     storageFactory: StorageFactory,
 ) {
     const [
-        coinGeckoPrices,
-        setCoinGeckoPrices
-    ] = storageFactory.createStorageNullable<CoinGeckoPriceResponse>("coinGeckoPrices");
-
-    const [coinGeckoPricesLoaded, setCoinGeckoPricesLoaded] = useState(false);
-    let loadCoinGeckoPrices = () => {
-        apiClient.fetchPrices().then((response: ApiResponse<CoinGeckoPriceResponse | any>) => {
-            if (response.success) {
-                setCoinGeckoPrices(response.result);
-                setCoinGeckoPricesLoaded(true);
-            } else {
-                console.warn(`Error fetching prices from ${name}:`, response);
-            }
-        })
-    };
-    useEffect(loadCoinGeckoPrices, []);
-    useInterval(loadCoinGeckoPrices, 60_000);
-
-    const [
         coinGeckoCurrencies,
         setCoinGeckoCurrencies
     ] = storageFactory.createStorageNullable<{ [index: string]: CoinGeckoCurrencyResponse }>("coinGeckoCurrencies");
 
-    const [coinGeckoCurrenciesLoaded, setCoinGeckoCurrenciesLoaded] = useState(false);
     let loadCoinGeckoCurrencies = () => {
         apiClient.fetchCurrencies()
             .then((response: ApiResponse<{ [index: string]: CoinGeckoCurrencyResponse } | any>) => {
                 if (response.success) {
                     setCoinGeckoCurrencies(response.result);
-                    setCoinGeckoCurrenciesLoaded(true);
                 } else {
                     console.warn(`Error fetching currencies from ${name}:`, response.error);
                 }
@@ -49,8 +29,86 @@ export default function CoinGeckoLoader(
     };
     useEffect(loadCoinGeckoCurrencies, []);
 
+    const [
+        coinGeckoSubCurrencies,
+        setCoinGeckoSubCurrencies
+    ] = storageFactory.createStorage<string[]>("coinGeckoSubCurrencies", () => subCurrencies);
+
+    // let loadCoinGeckoSubCurrencies = () => {
+    //     apiClient.fetchSubCurrencies()
+    //         .then((response: ApiResponse<string[] | any>) => {
+    //             if (response.success) {
+    //                 setCoinGeckoSubCurrencies(response.result);
+    //             } else {
+    //                 console.warn(`Error fetching sub-currencies from ${name}:`, response.error);
+    //             }
+    //         });
+    // };
+    // useEffect(loadCoinGeckoSubCurrencies, []);
+
+    const [
+        coinGeckoPrices,
+        setCoinGeckoPrices
+    ] = storageFactory.createStorage<CoinGeckoPriceResponse>("coinGeckoPrices", () => {
+        return {} as CoinGeckoPriceResponse
+    });
+    const [coinGeckoPricesLoaded, setCoinGeckoPricesLoaded]
+        = useState(false);
+    const [coinGeckoPricesAlreadyLoaded, setCoinGeckoPricesAlreadyLoaded]
+        = useState<CoinGeckoPriceResponse>({} as CoinGeckoPriceResponse);
+    const [coinGeckoAllPricesLoaded, setCoinGeckoAllPricesLoaded]
+        = useState(false);
+
+    const loadPrices = () => {
+        if (!coinGeckoCurrencies || !coinGeckoSubCurrencies || coinGeckoAllPricesLoaded) {
+            return
+        }
+        const startIndex = Object.keys(coinGeckoPricesAlreadyLoaded).length
+        const currencies = Object.keys(coinGeckoCurrencies);
+        const delta = 515;
+        const endIndex = Math.min(startIndex + delta, currencies.length)
+
+        const currenciesToLoadPrice = Object.entries(coinGeckoCurrencies)
+            .slice(startIndex, endIndex)
+            .reduce((merged, current) => {
+                merged[current[0]] = current[1]
+                return merged
+            }, {} as { [index: string]: CoinGeckoCurrencyResponse })
+
+        apiClient.fetchPrices(currenciesToLoadPrice, coinGeckoSubCurrencies)
+            .then((response: ApiResponse<CoinGeckoPriceResponse | any>) => {
+                if (response.success) {
+                    const allNewPrices = {
+                        ...coinGeckoPricesAlreadyLoaded,
+                        ...(response.result),
+                    }
+                    console.log(`refreshed ${Object.keys(allNewPrices).length} coingecko prices`)
+                    setCoinGeckoPricesAlreadyLoaded(allNewPrices)
+                    const allPrices = {
+                        ...coinGeckoPrices,
+                        ...allNewPrices,
+                    }
+                    setCoinGeckoPrices(allPrices)
+                    if (endIndex === currencies.length) {
+                        setCoinGeckoAllPricesLoaded(true);
+                        setCoinGeckoPricesLoaded(true)
+                    }
+                } else {
+                    console.warn(`Error fetching prices from ${name}:`, response);
+                }
+            })
+    };
+    useEffect(loadPrices, []);
+    useInterval(loadPrices, 4_000)
+
+    useInterval(() => {
+        setCoinGeckoPricesAlreadyLoaded({} as CoinGeckoPriceResponse)
+        setCoinGeckoAllPricesLoaded(false)
+    }, coinGeckoAllPricesLoaded ? 30_000 : null)
+
     return {
         coinGeckoPrices, coinGeckoPricesLoaded,
-        coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
+        coinGeckoCurrencies,
+        coinGeckoCurrenciesLoaded: !!coinGeckoCurrencies,
     }
 }

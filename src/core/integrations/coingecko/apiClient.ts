@@ -8,38 +8,44 @@ const apiBaseUrl = "https://api.coingecko.com"
 const apiPrefix = "/api/v3"
 
 const apiClient = {
-    async fetchPrices(): Promise<ApiResponse<CoinGeckoPriceResponse | any>> {
+    async fetchPrices(
+        currencies: { [index: string]: CoinGeckoCurrencyResponse },
+        subCurrencies: string[],
+    ): Promise<ApiResponse<CoinGeckoPriceResponse | any>> {
         try {
-            const currenciesResponse = await this.fetchCurrencies();
-            if (currenciesResponse.success) {
-                const currencies = Object
-                    .values((currenciesResponse.result as { [index: string]: CoinGeckoCurrencyResponse }))
-                    .map(currency => currency.id)
-                    .join(",")
-                const urlVsCurrencies = apiBaseUrl + apiPrefix + "/simple/supported_vs_currencies";
-                const response: AxiosResponse<string[]> = await axios.get(urlVsCurrencies);
-                if (response.data?.length) {
-                    const vsCurrencies = Object.keys(response.data).join(",")
-                    const urlPrices = apiBaseUrl + apiPrefix + "/simple/price";
-                    const pricesResponse: AxiosResponse<{ [index: string]: { [index: string]: number } }>
-                        = await axios.get(urlPrices, {
-                        params: {
-                            ids: currencies,
-                            vs_currencies: vsCurrencies,
-                            precision: "full",
-                        }
-                    });
-                    if (pricesResponse.data?.length) {
-                        return ApiResponse.success(200, pricesResponse.data as CoinGeckoPriceResponse,)
-                    }
+            const currencyIdToSymbol = Object
+                .values(currencies)
+                .reduce((merged, current) => {
+                    merged.set(current.id, current.symbol)
+                    return merged
+                }, new Map<string, string>())
+            const currenciesParam = Object
+                .values(currencies)
+                .map(currency => currency.id)
+                .join(",")
+            const vsCurrencies = subCurrencies.join(",")
+            const urlPrices = apiBaseUrl + apiPrefix + "/simple/price";
+            const pricesResponse: AxiosResponse<CoinGeckoPriceResponse>
+                = await axios.get(urlPrices, {
+                params: {
+                    ids: currenciesParam,
+                    vs_currencies: vsCurrencies,
+                    precision: "full",
                 }
-                return ApiResponse.fail(
-                    0,
-                    "empty response",
-                )
-            } else {
-                return currenciesResponse
+            });
+            if (pricesResponse.data && Object.keys(pricesResponse.data).length) {
+                const result = Object.entries(pricesResponse.data)
+                    .reduce((merged, current) => {
+                        const symbol = currencyIdToSymbol.get(current[0])
+                        symbol && (merged[symbol] = current[1])
+                        return merged
+                    }, {} as CoinGeckoPriceResponse)
+                return ApiResponse.success(200, result,)
             }
+            return ApiResponse.fail(
+                0,
+                "empty response",
+            )
         } catch (error: any) {
             console.warn(`Error fetching prices from ${name}:`, error.message || error);
             return ApiResponse.fail(
@@ -59,6 +65,26 @@ const apiClient = {
                         return merged
                     }, {});
                 return ApiResponse.success(200, currencies,)
+            } else {
+                return ApiResponse.fail(
+                    0,
+                    "empty response",
+                )
+            }
+        } catch (error: any) {
+            console.warn(`Error fetching currencies from ${name}:`, error.message || error);
+            return ApiResponse.fail(
+                error?.response?.status,
+                error.message || error.response?.data?.errorDescription,
+            )
+        }
+    },
+    async fetchSubCurrencies(): Promise<ApiResponse<string[] | any>> {
+        try {
+            const urlVsCurrencies = apiBaseUrl + apiPrefix + "/simple/supported_vs_currencies";
+            const response: AxiosResponse<string[]> = await axios.get(urlVsCurrencies);
+            if (response.data?.length) {
+                return ApiResponse.success(200, response.data,)
             } else {
                 return ApiResponse.fail(
                     0,

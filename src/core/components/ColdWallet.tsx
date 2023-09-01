@@ -13,6 +13,7 @@ import OkxLoader from "../integrations/okx/OkxLoader";
 import {OkxAccount} from "../integrations/okx/okxApiClient";
 import UserDataService from "../services/UserDataService";
 import UserData from "../domain/UserData";
+import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 
 export default function ColdWallet(
     {props}: {
@@ -36,6 +37,11 @@ export default function ColdWallet(
         storageFactory: props.storageFactory,
         pinCode,
     });
+
+    const {
+        coinGeckoPrices, coinGeckoPricesLoaded,
+        coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
+    } = CoinGeckoLoader(props.storageFactory)
 
     const {
         binancePrices, binancePricesLoaded,
@@ -79,6 +85,10 @@ export default function ColdWallet(
     const {loaded} = OnStartupLoader(
         binancePricesLoaded,
         binanceCurrenciesLoaded,
+        okxPricesLoaded,
+        okxCurrenciesLoaded,
+        coinGeckoPricesLoaded,
+        coinGeckoCurrenciesLoaded,
         monobankRates,
         monobankCurrencies,
     );
@@ -289,6 +299,8 @@ export default function ColdWallet(
                         stateReset, setShowCreateNewAssetWindow, setCreatingNewAsset,
                     )
                 : LoadingWindow(
+                    coinGeckoPrices, coinGeckoPricesLoaded,
+                    coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
                     binancePricesLoaded, binancePrices,
                     binanceCurrenciesLoaded, binanceCurrencies,
                     okxPricesLoaded, okxPrices,
