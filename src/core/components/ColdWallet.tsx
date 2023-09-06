@@ -1,10 +1,8 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import BinanceLoader from "./../integrations/binance/BinanceLoader";
 import MonobankLoader from "./../integrations/monobank/MonobankLoader";
-import LoadingWindow from "./LoadingWindow";
 import NotLoggedIn from "./unauthorized/NotLoggedIn";
 import AssetsDashboard from "./AssetsDashboard";
-import OnStartupLoader from "./OnStartupLoader";
 import StorageFactory from "../domain/StorageFactory";
 import {AccountInfo} from "../integrations/binance/binanceApiClient";
 import MonobankUserData from "../integrations/monobank/MonobankUserData";
@@ -83,16 +81,6 @@ export default function ColdWallet(
         userData.settings.monobankIntegrationToken
     );
 
-    const {loaded} = OnStartupLoader(
-        binancePricesLoaded,
-        binanceCurrenciesLoaded,
-        okxPricesLoaded,
-        okxCurrenciesLoaded,
-        coinGeckoPricesLoaded,
-        coinGeckoCurrenciesLoaded,
-        monobankRates,
-        monobankCurrencies,
-    );
     const [newAssetCurrency, setNewAssetCurrency] = useState<string | null>(null);
     const [newAssetAmount, setNewAssetAmount] = useState<string | null>(null);
     const [newAssetName, setNewAssetName] = useState<string | null>(null);
@@ -293,20 +281,9 @@ export default function ColdWallet(
             {shouldEnterPinCode ? <PinCodeOnLogin props={{
                 pinCodeEntered, setPinCodeEntered,
                 setPinCode,
-            }}/> : loaded
-                ? loggedIn
-                    ? AssetsDashboard(props)
-                    : NotLoggedIn(props)
-                : LoadingWindow(
-                    coinGeckoPrices, coinGeckoPricesLoaded,
-                    coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
-                    binancePricesLoaded, binancePrices,
-                    binanceCurrenciesLoaded, binanceCurrencies,
-                    okxPricesLoaded, okxPrices,
-                    okxCurrenciesLoaded, okxCurrencies,
-                    monobankRates,
-                    monobankCurrencies
-                )
+            }}/> : loggedIn
+                ? AssetsDashboard(props)
+                : NotLoggedIn(props)
             }
         </div>
     );
