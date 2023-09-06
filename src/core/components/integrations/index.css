@@ -10,7 +10,8 @@
 
 .integration-logo.integration-logo--okx {
   background-color: #121212;
-  height: 60%;
+  height: 30%;
+  width: 40%;
 }
 
 @media screen and (orientation: portrait) {
