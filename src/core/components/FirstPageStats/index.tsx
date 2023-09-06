@@ -1,10 +1,7 @@
 import './index.css'
 import React, {lazy, Suspense} from "react";
-import UserData from "../../domain/UserData";
-import {AccountInfo} from "../../integrations/binance/binanceApiClient";
-import MonobankUserData from "../../integrations/monobank/MonobankUserData";
-import CurrencyRates from "../../currencyRates/CurrencyRates";
-import {OkxAccount} from "../../integrations/okx/okxApiClient";
+import LoadingWindow from "../LoadingWindow";
+import Props from "../Props";
 
 const FirstPageStatsChart = lazy(() => delayForDemo(import('./FirstPageStatsChart')));
 
@@ -18,25 +15,26 @@ function delayForDemo(promise: Promise<any>) {
     }).then(() => promise);
 }
 
-export default function FirstPageStats(
-    userData: UserData,
-    monobankUserData: MonobankUserData,
-    binanceUserData: AccountInfo,
-    okxUserData: OkxAccount,
-    rates: CurrencyRates,
-    firstPageChartView: string, setFirstPageChartView: React.Dispatch<React.SetStateAction<string>>,
-) {
+export default function FirstPageStats(props: Props) {
     return <>
         <div className={"first-page-stats-box"}>
-            {<Suspense fallback={<Loading/>}>
-                <FirstPageStatsChart props={{
-                    userData,
-                    monobankUserData,
-                    binanceUserData,
-                    okxUserData,
-                    rates,
-                    firstPageChartView, setFirstPageChartView,
-                }}
+            {<Suspense fallback={LoadingWindow(
+                props.coinGeckoPrices,
+                props.coinGeckoPricesLoaded,
+                props.coinGeckoCurrencies,
+                props.coinGeckoCurrenciesLoaded,
+                props.binancePricesLoaded,
+                props.binancePrices,
+                props.binanceCurrenciesLoaded,
+                props.binanceCurrencies,
+                props.okxPricesLoaded,
+                props.okxPrices,
+                props.okxCurrenciesLoaded,
+                props.okxCurrencies,
+                props.monobankRates,
+                props.monobankCurrencies,
+            )}>
+                <FirstPageStatsChart props={{...props}}
                 />
             </Suspense>}
         </div>

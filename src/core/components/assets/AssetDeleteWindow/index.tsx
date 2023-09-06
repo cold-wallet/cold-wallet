@@ -6,36 +6,27 @@ import NeutralButton from "../../buttons/NeutralButton";
 import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
 import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 import {OkxAccount} from "../../../integrations/okx/okxApiClient";
+import Props from "../../Props";
 
-export default function AssetDeleteWindow(
-    assetToDelete,
-    userData,
-    setUserData,
-    setShowCreateNewAssetWindow,
-    setCreatingNewAsset,
-    stateReset,
-    binanceUserData,
-    monobankUserData,
-    okxUserData,
-) {
+export default function AssetDeleteWindow(props: Props) {
     const onCancel = () => {
-        stateReset();
+        props.stateReset();
     }
 
     const deleteAsset = () => {
-        const userDataNew = {...userData};
-        userDataNew.assets = userDataNew.assets.filter(asset => asset.id !== assetToDelete.id);
-        setUserData(userDataNew);
-        stateReset();
+        const userDataNew = {...props.userData};
+        userDataNew.assets = userDataNew.assets.filter(asset => asset.id !== props.assetToDelete?.id);
+        props.setUserData(userDataNew);
+        props.stateReset();
 
         let anyAssetExist = !!(userDataNew.assets.length)
-            || userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData)
-            || userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData)
-            || userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData)
+            || (props.userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(props.binanceUserData))
+            || (props.userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(props.okxUserData))
+            || (props.userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(props.monobankUserData))
 
         if (!anyAssetExist) {
-            setCreatingNewAsset(true);
-            setShowCreateNewAssetWindow(true);
+            props.setCreatingNewAsset(true);
+            props.setShowCreateNewAssetWindow(true);
         }
     }
 
@@ -45,7 +36,7 @@ export default function AssetDeleteWindow(
         large={false}
         children={
             <div className="confirm-delete-asset-text text-label">{
-                `Delete ${assetToDelete.amount} ${assetToDelete.normalizedName}?`
+                `Delete ${props.assetToDelete?.amount} ${props.assetToDelete?.normalizedName}?`
             }</div>
         }
         bottom={[

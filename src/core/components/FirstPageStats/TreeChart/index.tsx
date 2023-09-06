@@ -78,7 +78,7 @@ export default function TreeChart(
     const chartHeight = isPortrait ? (window.innerWidth * 0.7) : (window.innerHeight * 0.75)
     const chartWidth = isPortrait ? (window.innerWidth * 0.9) : (window.innerWidth * 0.55)
 
-    const createChartOptions = (assets: AssetDTO[]) => {
+    function createChartOptions(assets: AssetDTO[]) {
         const preparedAssetsData = assets
             .map(asset => ({
                 name: buildHighChartsTitle(asset),
@@ -269,7 +269,7 @@ export default function TreeChart(
     }
 
     const options = useMemo(() => createChartOptions(props.assets), [
-        props.assets, isPortrait, chartHeight, chartWidth,
+        props.assets, isPortrait, chartHeight, chartWidth, createChartOptions
     ]);
 
     return <HighchartsReact

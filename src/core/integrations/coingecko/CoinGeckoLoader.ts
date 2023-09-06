@@ -31,7 +31,7 @@ export default function CoinGeckoLoader(
 
     const [
         coinGeckoSubCurrencies,
-        setCoinGeckoSubCurrencies
+        //setCoinGeckoSubCurrencies
     ] = storageFactory.createStorage<string[]>("coinGeckoSubCurrencies", () => subCurrencies);
 
     // let loadCoinGeckoSubCurrencies = () => {

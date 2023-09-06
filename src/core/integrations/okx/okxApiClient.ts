@@ -53,11 +53,11 @@ const okxApiClient = {
         apiSecret: string,
         apiPass: string,
         subAccountName: string | null,
-        okxCurrencies: { [index: string]: OkxCurrencyResponse },
+        okxCurrencies: { [index: string]: OkxCurrencyResponse } | null,
         okxAccount: OkxAccount | null,
     ) {
         const extractAsset = (type: string, balance: { ccy: string, eq: string }) => {
-            let decimalScale = okxCurrencies[balance.ccy]?.precision || ((() => {
+            let decimalScale = (okxCurrencies && okxCurrencies[balance.ccy]?.precision) || ((() => {
                 console.warn("not found precision for " + balance.ccy)
                 return 8
             })());

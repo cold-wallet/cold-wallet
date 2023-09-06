@@ -99,7 +99,7 @@ export default function PieChart(
         let cryptoAssets = preparedAssetsData.filter(asset => asset.type === AssetType.crypto);
 
         function extractAssetByType(assets: Point[]) {
-            if (assets.length == 1) {
+            if (assets.length === 1) {
                 return {
                     ...assets[0],
                     prefix: AssetType[assets[0].type].toUpperCase(),
@@ -304,7 +304,7 @@ export default function PieChart(
     }
 
     const options = useMemo(() => createChartOptions(props.assets), [
-        props.assets, isPortrait, chartHeight, chartWidth,
+        props.assets, isPortrait, chartHeight, chartWidth, createChartOptions
     ]);
 
     return <HighchartsReact highcharts={Highcharts} options={options}/>

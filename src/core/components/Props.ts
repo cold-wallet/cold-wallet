@@ -1,0 +1,131 @@
+import {Dispatch, SetStateAction} from "react";
+import UserData from "../domain/UserData";
+import UserDataHolder from "../domain/UserDataHolder";
+import AssetDTO from "../domain/AssetDTO";
+import MonobankUserData from "../integrations/monobank/MonobankUserData";
+import BinanceCurrencyResponse from "../integrations/binance/BinanceCurrencyResponse";
+import {AccountInfo} from "../integrations/binance/binanceApiClient";
+import OkxCurrencyResponse from "../integrations/okx/OkxCurrencyResponse";
+import {OkxAccount} from "../integrations/okx/okxApiClient";
+import FiatCurrency from "../fiatCurrencies/FiatCurrency";
+import MonobankCurrencyResponse from "../integrations/monobank/MonobankCurrencyResponse";
+import CoinGeckoPriceResponse from "../integrations/coingecko/CoinGeckoPriceResponse";
+import CoinGeckoCurrencyResponse from "../integrations/coingecko/CoinGeckoCurrencyResponse";
+
+export default interface Props {
+    anyAssetExist: boolean,
+    showCreateNewAssetWindow: boolean,
+    setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
+    creatingNewAsset: boolean,
+    setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
+    userData: UserData,
+    setUserData: Dispatch<SetStateAction<UserData>>,
+    userDataHolder: UserDataHolder,
+    setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>,
+
+    newAssetAmount: string | null,
+    setNewAssetAmount: Dispatch<SetStateAction<string | null>>,
+    newAssetCurrency: string | null,
+    setNewAssetCurrency: Dispatch<SetStateAction<string | null>>,
+    newAssetName: string | null,
+    setNewAssetName: Dispatch<SetStateAction<string | null>>,
+    isNewAssetAmountInvalid: boolean,
+    setIsNewAssetAmountInvalid: Dispatch<SetStateAction<boolean>>,
+    isNewAssetNameInvalid: boolean,
+    setIsNewAssetNameInvalid: Dispatch<SetStateAction<boolean>>,
+    assetToDelete: AssetDTO | null,
+    setAssetToDelete: Dispatch<SetStateAction<AssetDTO | null>>,
+    assetToEdit: AssetDTO | null,
+    setAssetToEdit: Dispatch<SetStateAction<AssetDTO | null>>,
+    stateReset: () => void,
+    showConfigsWindow: boolean,
+    setShowConfigsWindow: Dispatch<SetStateAction<boolean>>,
+    integrationWindowNameSelected: string | null,
+    setIntegrationWindowNameSelected: Dispatch<SetStateAction<string | null>>,
+
+    monobankCurrencies: { [index: string]: FiatCurrency } | null,
+    monobankRates: MonobankCurrencyResponse[] | null,
+    monobankSettingsEnabled: boolean,
+    setMonobankSettingsEnabled: Dispatch<SetStateAction<boolean>>,
+    monobankApiTokenInput: string | null,
+    setMonobankApiTokenInput: Dispatch<SetStateAction<string | null>>,
+    monobankApiTokenInputInvalid: boolean,
+    setMonobankApiTokenInputInvalid: Dispatch<SetStateAction<boolean>>,
+    monobankUserData: MonobankUserData | null,
+    setMonobankUserData: Dispatch<SetStateAction<MonobankUserData | null>>,
+    monobankUserDataLoading: boolean,
+    setMonobankUserDataLoading: Dispatch<SetStateAction<boolean>>,
+
+    binancePrices: { [index: string]: string } | null,
+    binancePricesLoaded: boolean,
+    binanceCurrencies: { [index: string]: BinanceCurrencyResponse } | null,
+    binanceCurrenciesLoaded: boolean,
+    binanceSettingsEnabled: boolean,
+    setBinanceSettingsEnabled: Dispatch<SetStateAction<boolean>>,
+    binanceApiKeyInput: string | null,
+    setBinanceApiKeyInput: Dispatch<SetStateAction<string | null>>,
+    binanceApiSecretInput: string | null,
+    setBinanceApiSecretInput: Dispatch<SetStateAction<string | null>>,
+    binanceApiKeysInputInvalid: boolean,
+    setBinanceApiKeysInputInvalid: Dispatch<SetStateAction<boolean>>,
+    binanceUserData: AccountInfo | null,
+    setBinanceUserData: Dispatch<SetStateAction<AccountInfo | null>>,
+    binanceUserDataLoading: boolean,
+    setBinanceUserDataLoading: Dispatch<SetStateAction<boolean>>,
+
+    okxPrices: { [index: string]: string } | null,
+    okxPricesLoaded: boolean,
+    okxCurrencies: { [index: string]: OkxCurrencyResponse } | null,
+    okxCurrenciesLoaded: boolean,
+    okxSettingsEnabled: boolean,
+    setOkxSettingsEnabled: Dispatch<SetStateAction<boolean>>,
+    okxApiKeyInput: string | null,
+    setOkxApiKeyInput: Dispatch<SetStateAction<string | null>>,
+    okxApiSecretInput: string | null,
+    setOkxApiSecretInput: Dispatch<SetStateAction<string | null>>,
+    okxApiPassPhraseInput: string | null,
+    setOkxApiPassPhraseInput: Dispatch<SetStateAction<string | null>>,
+    okxApiSubAccountNameInput: string | null,
+    setOkxApiSubAccountNameInput: Dispatch<SetStateAction<string | null>>,
+    okxApiKeysInputInvalid: boolean,
+    setOkxApiKeysInputInvalid: Dispatch<SetStateAction<boolean>>,
+    okxUserData: OkxAccount | null,
+    setOkxUserData: Dispatch<SetStateAction<OkxAccount | null>>,
+    okxUserDataLoading: boolean,
+    setOkxUserDataLoading: Dispatch<SetStateAction<boolean>>,
+
+    coinGeckoPrices: CoinGeckoPriceResponse | null,
+    coinGeckoPricesLoaded: boolean,
+    coinGeckoCurrencies: { [index: string]: CoinGeckoCurrencyResponse } | null,
+    coinGeckoCurrenciesLoaded: boolean,
+
+    selectedPageNumber: number,
+    setSelectedPageNumber: Dispatch<SetStateAction<number>>,
+    firstPageChartView: string,
+    setFirstPageChartView: Dispatch<SetStateAction<string>>,
+    importOrExportSettingRequested: string | null,
+    setImportOrExportSettingRequested: Dispatch<SetStateAction<string | null>>,
+    importDataBuffer: string | null,
+    setImportDataBuffer: Dispatch<SetStateAction<string | null>>,
+
+    loadMonobankUserData: () => void,
+    loadBinanceUserData: () => void,
+    loadOkxUserData: () => void,
+
+    pinCodeSettingsRequested: boolean,
+    setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,
+    setPinCode: Dispatch<SetStateAction<string | null>>,
+    pinCodeEntered: string | null,
+    setPinCodeEntered: Dispatch<SetStateAction<string | null>>,
+    pinCodeEnteringFinished: boolean,
+    setPinCodeEnteringFinished: Dispatch<SetStateAction<boolean>>,
+    pinCodeRepeatEntered: string | null,
+    setPinCodeRepeatEntered: Dispatch<SetStateAction<string | null>>,
+    invalidPinCode: boolean,
+    setInvalidPinCode: Dispatch<SetStateAction<boolean>>,
+    currentPinCodeConfirmed: boolean,
+    setCurrentPinCodeConfirmed: Dispatch<SetStateAction<boolean>>,
+    deletePinCodeRequested: boolean,
+    setDeletePinCodeRequested: Dispatch<SetStateAction<boolean>>,
+
+}

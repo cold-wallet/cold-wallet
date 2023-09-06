@@ -1,41 +1,20 @@
-import UserData, {UserSettings} from "../../../domain/UserData";
-import {Dispatch, SetStateAction} from "react";
-import OkxCurrencyResponse from "../../../integrations/okx/OkxCurrencyResponse";
-import okxApiClient, {OkxAccount} from "../../../integrations/okx/okxApiClient";
+import {UserSettings} from "../../../domain/UserData";
+import okxApiClient from "../../../integrations/okx/okxApiClient";
+import Props from "../../Props";
 
-async function validateOkxSettings(
-    userData: UserData,
-    okxSettingsEnabled: boolean,
-    okxApiKeyInput: string,
-    okxApiSecretInput: string,
-    okxApiPassPhraseInput: string,
-    okxApiSubAccountNameInput: string,
-    okxCurrencies: { [index: string]: OkxCurrencyResponse },
-    okxUserData: OkxAccount | null,
-    setOkxUserData: Dispatch<SetStateAction<OkxAccount | null>>,
-) {
+async function validateOkxSettings(isPreValid: boolean, props: Props) {
     let isValidSettings = true;
 
-    if (!userData.settings.okxIntegrationEnabled && okxSettingsEnabled
-        || (okxSettingsEnabled || userData.settings.okxIntegrationEnabled)
-        && !(userData.settings.okxIntegrationEnabled && !okxSettingsEnabled)
-        && userData.settings.okxIntegrationApiKey
-        && userData.settings.okxIntegrationApiSecret
-        && userData.settings.okxIntegrationPassPhrase
-        && (userData.settings.okxIntegrationApiKey !== okxApiKeyInput
-            && userData.settings.okxIntegrationApiSecret !== okxApiSecretInput
-            || userData.settings.okxIntegrationPassPhrase !== okxApiPassPhraseInput
-            || userData.settings.okxIntegrationSubAccountName !== okxApiSubAccountNameInput)
-    ) {
-        if (!okxApiKeyInput || !okxApiSecretInput) {
+    if (isPreValid) {
+        if (!props.okxApiKeyInput || !props.okxApiSecretInput || !props.okxApiPassPhraseInput) {
             isValidSettings = false;
         } else {
             let accountInfo = await okxApiClient.getUserInfo(
-                okxApiKeyInput, okxApiSecretInput, okxApiPassPhraseInput, okxApiSubAccountNameInput,
-                okxCurrencies, okxUserData
+                props.okxApiKeyInput, props.okxApiSecretInput, props.okxApiPassPhraseInput,
+                props.okxApiSubAccountNameInput, props.okxCurrencies, props.okxUserData
             );
             if (accountInfo.subAccountBalances || accountInfo.spotAccountBalances) {
-                setOkxUserData(accountInfo)
+                props.setOkxUserData(accountInfo)
             } else {
                 isValidSettings = false;
             }
@@ -44,93 +23,71 @@ async function validateOkxSettings(
     return isValidSettings;
 }
 
-export default function okxSettingsValidation(
-    userData: UserData, setUserData: Dispatch<SetStateAction<UserData | null>>,
-    okxSettingsEnabled: boolean,
-    okxApiKeyInput: string,
-    okxApiSecretInput: string,
-    okxApiPassPhraseInput: string,
-    okxApiSubAccountNameInput: string,
-    setOkxApiKeysInputInvalid: Dispatch<SetStateAction<boolean | null>>,
-    setOkxUserDataLoading: Dispatch<SetStateAction<boolean | null>>,
-    okxCurrencies: { [index: string]: OkxCurrencyResponse },
-    okxUserData: OkxAccount | null, setOkxUserData: Dispatch<SetStateAction<OkxAccount | null>>,
-    stateReset: Dispatch<SetStateAction<void>>,
-    setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
-    setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
-) {
-    if (!userData.settings.okxIntegrationEnabled && okxSettingsEnabled
-        || (okxSettingsEnabled || userData.settings.okxIntegrationEnabled)
-        && !(userData.settings.okxIntegrationEnabled && !okxSettingsEnabled)
-        && userData.settings.okxIntegrationApiKey
-        && userData.settings.okxIntegrationApiSecret
-        && userData.settings.okxIntegrationPassPhrase
-        && (userData.settings.okxIntegrationApiKey !== okxApiKeyInput
-            && userData.settings.okxIntegrationApiSecret !== okxApiSecretInput
-            || userData.settings.okxIntegrationPassPhrase !== okxApiPassPhraseInput
-            || userData.settings.okxIntegrationSubAccountName !== okxApiSubAccountNameInput)
-    ) {
-        if (okxApiKeyInput && okxApiSecretInput && okxApiPassPhraseInput) {
-            setOkxUserDataLoading(true)
+export default function okxSettingsValidation(props: Props) {
+    const settings = props.userData.settings;
+    const isPreValid = (!settings.okxIntegrationEnabled && props.okxSettingsEnabled)
+        || ((props.okxSettingsEnabled || settings.okxIntegrationEnabled)
+            && !(settings.okxIntegrationEnabled && !props.okxSettingsEnabled)
+            && !!settings.okxIntegrationApiKey
+            && !!settings.okxIntegrationApiSecret
+            && !!settings.okxIntegrationPassPhrase
+            && ((settings.okxIntegrationApiKey !== props.okxApiKeyInput
+                    && settings.okxIntegrationApiSecret !== props.okxApiSecretInput)
+                || settings.okxIntegrationPassPhrase !== props.okxApiPassPhraseInput
+                || settings.okxIntegrationSubAccountName !== props.okxApiSubAccountNameInput));
+
+    if (isPreValid) {
+        if (props.okxApiKeyInput && props.okxApiSecretInput && props.okxApiPassPhraseInput) {
+            props.setOkxUserDataLoading(true)
         }
     }
-    validateOkxSettings(
-        userData,
-        okxSettingsEnabled,
-        okxApiKeyInput,
-        okxApiSecretInput,
-        okxApiPassPhraseInput,
-        okxApiSubAccountNameInput,
-        okxCurrencies,
-        okxUserData,
-        setOkxUserData,
-    )
+    validateOkxSettings(isPreValid, props)
         .then(isValid => {
             if (isValid) {
-                const userDataNew = {...userData};
+                const userDataNew = {...props.userData};
                 let shouldSave = false;
                 if (!userDataNew.settings) {
                     userDataNew.settings = new UserSettings();
                 }
-                if (okxSettingsEnabled !== null
-                    && userDataNew.settings.okxIntegrationEnabled !== okxSettingsEnabled
+                if (props.okxSettingsEnabled !== null
+                    && userDataNew.settings.okxIntegrationEnabled !== props.okxSettingsEnabled
                 ) {
-                    userDataNew.settings.okxIntegrationEnabled = okxSettingsEnabled;
+                    userDataNew.settings.okxIntegrationEnabled = props.okxSettingsEnabled;
                     shouldSave = true;
                 }
-                if (okxApiKeyInput !== null
-                    && userDataNew.settings.okxIntegrationApiKey !== okxApiKeyInput
+                if (props.okxApiKeyInput !== null
+                    && userDataNew.settings.okxIntegrationApiKey !== props.okxApiKeyInput
                 ) {
-                    userDataNew.settings.okxIntegrationApiKey = okxApiKeyInput;
+                    userDataNew.settings.okxIntegrationApiKey = props.okxApiKeyInput;
                     shouldSave = true;
                 }
-                if (okxApiSecretInput !== null
-                    && userDataNew.settings.okxIntegrationApiSecret !== okxApiSecretInput
+                if (props.okxApiSecretInput !== null
+                    && userDataNew.settings.okxIntegrationApiSecret !== props.okxApiSecretInput
                 ) {
-                    userDataNew.settings.okxIntegrationApiSecret = okxApiSecretInput;
+                    userDataNew.settings.okxIntegrationApiSecret = props.okxApiSecretInput;
                     shouldSave = true;
                 }
-                if (okxApiPassPhraseInput !== null
-                    && userDataNew.settings.okxIntegrationPassPhrase !== okxApiPassPhraseInput
+                if (props.okxApiPassPhraseInput !== null
+                    && userDataNew.settings.okxIntegrationPassPhrase !== props.okxApiPassPhraseInput
                 ) {
-                    userDataNew.settings.okxIntegrationPassPhrase = okxApiPassPhraseInput;
+                    userDataNew.settings.okxIntegrationPassPhrase = props.okxApiPassPhraseInput;
                     shouldSave = true;
                 }
-                if (okxApiSubAccountNameInput !== null
-                    && userDataNew.settings.okxIntegrationSubAccountName !== okxApiSubAccountNameInput
+                if (props.okxApiSubAccountNameInput !== null
+                    && userDataNew.settings.okxIntegrationSubAccountName !== props.okxApiSubAccountNameInput
                 ) {
-                    userDataNew.settings.okxIntegrationSubAccountName = okxApiSubAccountNameInput;
+                    userDataNew.settings.okxIntegrationSubAccountName = props.okxApiSubAccountNameInput;
                     shouldSave = true;
                 }
                 if (shouldSave) {
-                    setUserData(userDataNew);
+                    props.setUserData(userDataNew);
                 }
-                stateReset();
-                setCreatingNewAsset(false);
-                setShowCreateNewAssetWindow(false)
+                props.stateReset();
+                props.setCreatingNewAsset(false);
+                props.setShowCreateNewAssetWindow(false)
             } else {
-                setOkxApiKeysInputInvalid(true)
-                setOkxUserDataLoading(false)
+                props.setOkxApiKeysInputInvalid(true)
+                props.setOkxUserDataLoading(false)
             }
         })
         .catch(reason => {

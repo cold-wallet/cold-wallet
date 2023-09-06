@@ -1,27 +1,20 @@
 import binanceApiClient, {AccountInfo} from "../../../integrations/binance/binanceApiClient";
-import UserData, {UserSettings} from "../../../domain/UserData";
+import {UserSettings} from "../../../domain/UserData";
 import {Dispatch, SetStateAction} from "react";
 import BinanceCurrencyResponse from "../../../integrations/binance/BinanceCurrencyResponse";
+import Props from "../../Props";
 
 async function validateBinanceSettings(
-    userData: UserData,
-    binanceSettingsEnabled: boolean,
-    binanceApiKeyInput: string,
-    binanceApiSecretInput: string,
-    binanceCurrencies: { [index: string]: BinanceCurrencyResponse },
+    isPreValid: boolean,
+    binanceApiKeyInput: string | null,
+    binanceApiSecretInput: string | null,
+    binanceCurrencies: { [index: string]: BinanceCurrencyResponse } | null,
     binanceUserData: AccountInfo | null,
     setBinanceUserData: Dispatch<SetStateAction<AccountInfo | null>>,
 ) {
     let isValidSettings = true;
 
-    if (!userData.settings.binanceIntegrationEnabled && binanceSettingsEnabled
-        || (binanceSettingsEnabled || userData.settings.binanceIntegrationEnabled)
-        && !(userData.settings.binanceIntegrationEnabled && !binanceSettingsEnabled)
-        && userData.settings.binanceIntegrationApiKey
-        && userData.settings.binanceIntegrationApiSecret
-        && userData.settings.binanceIntegrationApiKey !== binanceApiKeyInput
-        && userData.settings.binanceIntegrationApiSecret !== binanceApiSecretInput
-    ) {
+    if (isPreValid) {
         if (!binanceApiKeyInput || !binanceApiSecretInput) {
             isValidSettings = false;
         } else {
@@ -38,76 +31,55 @@ async function validateBinanceSettings(
     return isValidSettings;
 }
 
-export default function binanceSettingsValidation(
-    userData: UserData,
-    setUserData: Dispatch<SetStateAction<UserData | null>>,
-    binanceSettingsEnabled: boolean,
-    binanceApiKeyInput: string,
-    binanceApiSecretInput: string,
-    setBinanceUserDataLoading: Dispatch<SetStateAction<boolean | null>>,
-    stateReset: Dispatch<SetStateAction<void>>,
-    setBinanceApiKeysInputInvalid: Dispatch<SetStateAction<boolean | null>>,
-    binanceCurrencies: { [index: string]: BinanceCurrencyResponse },
-    binanceUserData: AccountInfo | null,
-    setBinanceUserData: Dispatch<SetStateAction<AccountInfo | null>>,
-    setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
-    setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
-) {
-    if (!userData.settings.binanceIntegrationEnabled && binanceSettingsEnabled
-        || (binanceSettingsEnabled || userData.settings.binanceIntegrationEnabled)
-        && !(userData.settings.binanceIntegrationEnabled && !binanceSettingsEnabled)
-        && userData.settings.binanceIntegrationApiKey
-        && userData.settings.binanceIntegrationApiSecret
-        && userData.settings.binanceIntegrationApiKey !== binanceApiKeyInput
-        && userData.settings.binanceIntegrationApiSecret !== binanceApiSecretInput
-    ) {
-        if (binanceApiKeyInput && binanceApiSecretInput) {
-            setBinanceUserDataLoading(true)
+export default function binanceSettingsValidation(props: Props) {
+    const isPreValid = (!props.userData.settings.binanceIntegrationEnabled && props.binanceSettingsEnabled)
+        || ((props.binanceSettingsEnabled || props.userData.settings.binanceIntegrationEnabled)
+            && !(props.userData.settings.binanceIntegrationEnabled && !props.binanceSettingsEnabled)
+            && !!props.userData.settings.binanceIntegrationApiKey
+            && !!props.userData.settings.binanceIntegrationApiSecret
+            && props.userData.settings.binanceIntegrationApiKey !== props.binanceApiKeyInput
+            && props.userData.settings.binanceIntegrationApiSecret !== props.binanceApiSecretInput);
+    if (isPreValid) {
+        if (props.binanceApiKeyInput && props.binanceApiSecretInput) {
+            props.setBinanceUserDataLoading(true)
         }
     }
-    validateBinanceSettings(
-        userData,
-        binanceSettingsEnabled,
-        binanceApiKeyInput,
-        binanceApiSecretInput,
-        binanceCurrencies,
-        binanceUserData,
-        setBinanceUserData,
-    )
+    validateBinanceSettings(isPreValid, props.binanceApiKeyInput, props.binanceApiSecretInput,
+        props.binanceCurrencies, props.binanceUserData, props.setBinanceUserData,)
         .then(isValid => {
             if (isValid) {
-                const userDataNew = {...userData};
+                const userDataNew = {...props.userData};
                 let shouldSave = false;
                 if (!userDataNew.settings) {
                     userDataNew.settings = new UserSettings();
                 }
-                if (binanceSettingsEnabled !== null
-                    && userDataNew.settings.binanceIntegrationEnabled !== binanceSettingsEnabled
+                if (props.binanceSettingsEnabled !== null
+                    && userDataNew.settings.binanceIntegrationEnabled !== props.binanceSettingsEnabled
                 ) {
-                    userDataNew.settings.binanceIntegrationEnabled = binanceSettingsEnabled;
+                    userDataNew.settings.binanceIntegrationEnabled = props.binanceSettingsEnabled;
                     shouldSave = true;
                 }
-                if (binanceApiKeyInput !== null
-                    && userDataNew.settings.binanceIntegrationApiKey !== binanceApiKeyInput
+                if (props.binanceApiKeyInput !== null
+                    && userDataNew.settings.binanceIntegrationApiKey !== props.binanceApiKeyInput
                 ) {
-                    userDataNew.settings.binanceIntegrationApiKey = binanceApiKeyInput;
+                    userDataNew.settings.binanceIntegrationApiKey = props.binanceApiKeyInput;
                     shouldSave = true;
                 }
-                if (binanceApiSecretInput !== null
-                    && userDataNew.settings.binanceIntegrationApiSecret !== binanceApiSecretInput
+                if (props.binanceApiSecretInput !== null
+                    && userDataNew.settings.binanceIntegrationApiSecret !== props.binanceApiSecretInput
                 ) {
-                    userDataNew.settings.binanceIntegrationApiSecret = binanceApiSecretInput;
+                    userDataNew.settings.binanceIntegrationApiSecret = props.binanceApiSecretInput;
                     shouldSave = true;
                 }
                 if (shouldSave) {
-                    setUserData(userDataNew);
+                    props.setUserData(userDataNew);
                 }
-                stateReset();
-                setCreatingNewAsset(false)
-                setShowCreateNewAssetWindow(false)
+                props.stateReset();
+                props.setCreatingNewAsset(false)
+                props.setShowCreateNewAssetWindow(false)
             } else {
-                setBinanceApiKeysInputInvalid(true)
-                setBinanceUserDataLoading(false)
+                props.setBinanceApiKeysInputInvalid(true)
+                props.setBinanceUserDataLoading(false)
             }
         })
         .catch(reason => {

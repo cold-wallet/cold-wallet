@@ -1,4 +1,4 @@
-import React from "react";
+import React, {Dispatch, SetStateAction} from "react";
 import './index.css';
 import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
@@ -10,6 +10,11 @@ export default function AssetsManageButtons(
         setCreatingNewAsset,
         setShowConfigsWindow,
         stateReset,
+    }: {
+        setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
+        setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
+        setShowConfigsWindow: Dispatch<SetStateAction<boolean>>,
+        stateReset: () => void,
     }
 ) {
     const addNewAssetButtonClicked = () => {

@@ -70,7 +70,7 @@ export default function Dial(
             activeOn: () => !!(props.pinCode?.length)
         }))
         return dialButtons
-    }, [props.pinCode])
+    }, [props])
 
     return (<div className={"dial-container"}>{dialButtons}</div>)
 }

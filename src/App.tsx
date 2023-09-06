@@ -6,7 +6,7 @@ import sessionStorageFactory from './impl/SessionStorage';
 
 function App() {
     return (
-        <ColdWallet props={{storageFactory, sessionStorageFactory}}/>
+        <ColdWallet properties={{storageFactory, sessionStorageFactory}}/>
     );
 }
 

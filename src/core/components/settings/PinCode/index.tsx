@@ -1,22 +1,12 @@
 import './index.css'
-import React, {Dispatch, SetStateAction} from "react";
+import React from "react";
 import PinCode from "../../PinCode";
-import UserData from "../../../domain/UserData";
 import {PIN_CODE_MAX_SIZE, PIN_CODE_MIN_SIZE} from "../../PinCode/Dial";
+import Props from "../../Props";
 
 export default function PinCodeSetting(
     {props}: {
-        props: {
-            userData: UserData, setUserData: Dispatch<SetStateAction<UserData>>,
-            setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,
-            setPinCode: Dispatch<SetStateAction<string | null>>,
-            pinCodeEntered: string | null, setPinCodeEntered: Dispatch<SetStateAction<string | null>>,
-            pinCodeEnteringFinished: boolean, setPinCodeEnteringFinished: Dispatch<SetStateAction<boolean>>,
-            pinCodeRepeatEntered: string | null, setPinCodeRepeatEntered: Dispatch<SetStateAction<string | null>>,
-            invalidPinCode: boolean, setInvalidPinCode: Dispatch<SetStateAction<boolean>>,
-            currentPinCodeConfirmed: boolean, setCurrentPinCodeConfirmed: Dispatch<SetStateAction<boolean>>,
-            deletePinCodeRequested: boolean, setDeletePinCodeRequested: Dispatch<SetStateAction<boolean>>,
-        }
+        props: Props
     }
 ) {
     const pinCode = props.pinCodeEnteringFinished ? props.pinCodeRepeatEntered : props.pinCodeEntered

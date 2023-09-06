@@ -1,63 +1,43 @@
 import './index.css';
-import React, {Dispatch, SetStateAction} from "react";
+import React from "react";
 import AssetDTO from "../../../domain/AssetDTO";
 import AssetEditor from "../AssetEditor";
-import UserData from "../../../domain/UserData";
+import Props from "../../Props";
 
-export default function EditAsset(
-    assetToEdit: AssetDTO,
-    userData: UserData, setUserData: Dispatch<SetStateAction<UserData | null>>,
-    isNewAssetAmountInvalid: boolean, setIsNewAssetAmountInvalid: Dispatch<SetStateAction<boolean | null>>,
-    newAssetAmount: string, setNewAssetAmount: Dispatch<SetStateAction<string | null>>,
-    newAssetName: string, setNewAssetName: Dispatch<SetStateAction<string | null>>,
-    isNewAssetNameInvalid: boolean, setIsNewAssetNameInvalid: Dispatch<SetStateAction<boolean | null>>,
-    stateReset: () => void,
-) {
-    if (newAssetName === null) {
-        setNewAssetName(assetToEdit.name)
+export default function EditAsset(props: Props) {
+    if (props.newAssetName === null) {
+        props.setNewAssetName(props.assetToEdit?.name || null)
     }
-    if (newAssetAmount === null) {
-        setNewAssetAmount(assetToEdit.amount)
+    if (props.newAssetAmount === null) {
+        props.setNewAssetAmount(props.assetToEdit?.amount || null)
     }
 
     const onAcceptAsset = () => {
-        let userDataNew = {...userData}
+        let userDataNew = {...props.userData}
         if (!userDataNew.assets) {
             userDataNew.assets = [];
         }
         userDataNew.assets = userDataNew.assets.map(asset => {
-            if (asset.id === assetToEdit.id) {
-                return new AssetDTO(assetToEdit.id, assetToEdit.currency, newAssetAmount,
-                    newAssetName, assetToEdit.decimalScale, assetToEdit.type);
+            if (asset.id === props.assetToEdit?.id) {
+                return new AssetDTO(props.assetToEdit?.id, props.assetToEdit?.currency,
+                    props.newAssetAmount || "0", props.newAssetName || "",
+                    props.assetToEdit?.decimalScale, props.assetToEdit?.type);
             } else {
                 return asset;
             }
         });
-        setUserData(userDataNew);
+        props.setUserData(userDataNew);
         onCancelAsset();
     }
 
     const onCancelAsset = () => {
-        stateReset();
+        props.stateReset();
     }
 
     return (
-        <AssetEditor
-            key={assetToEdit.id}
-            id={assetToEdit.id}
-            newAssetAmount={newAssetAmount}
-            setNewAssetAmount={setNewAssetAmount}
-            isNewAssetAmountInvalid={isNewAssetAmountInvalid}
-            setIsNewAssetAmountInvalid={setIsNewAssetAmountInvalid}
-            newAssetName={newAssetName}
-            setNewAssetName={setNewAssetName}
-            isNewAssetNameInvalid={isNewAssetNameInvalid}
-            setIsNewAssetNameInvalid={setIsNewAssetNameInvalid}
-            decimalScale={assetToEdit.decimalScale}
-            defaultAmount={assetToEdit.amount}
-            assetCurrency={assetToEdit.currency}
-            onAccept={onAcceptAsset}
-            onCancel={onCancelAsset}
+        <AssetEditor props={props}
+                     onAccept={onAcceptAsset}
+                     onCancel={onCancelAsset}
         />
     )
 }

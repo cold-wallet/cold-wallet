@@ -33,7 +33,7 @@ export default function ModalWindow(
                         ? <div className="modal-window-title text-label flex-box-centered">{title}</div>
                         : null
                     }
-                    {closeable ? <NeutralButton className={"modal-window-close-button"}
+                    {closeable && onCancel ? <NeutralButton className={"modal-window-close-button"}
                                                 onClick={onCancel}
                     >✖</NeutralButton> : null}
                 </div>

@@ -3,55 +3,23 @@ import usdtIcon from "../../../resources/images/usdt.png";
 import btcIcon from "../../../resources/images/btc.png";
 import ethIcon from "../../../resources/images/eth.png";
 import compareStrings from "../../utils/compareStrings";
-import React from "react";
+import React, {JSX} from "react";
 import thirdPartyIntegrations from "../integrations/ThirdPartyIntegrations";
 import binanceIntegration from "../integrations/BinanceIntegrationPad";
 import okxIntegration from "../integrations/OkxIntegrationPad";
 import monobankIntegration from "../integrations/MonobankIntegrationPad";
 import IntegrationSettings from "../settings/IntegrationSettings";
+import Props from "../Props";
 
-export default function NewAssetWindow(
-    setNewAssetCurrency,
-    setShowCreateNewAssetWindow,
-    setCreatingNewAsset,
-    monobankCurrencies,
-    stateReset,
-    anyAssetExist,
-    userData, setUserData,
+export default function NewAssetWindow(props: Props) {
 
-    monobankSettingsEnabled, setMonobankSettingsEnabled,
-    monobankApiTokenInput, setMonobankApiTokenInput,
-    monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
-    monobankUserData, setMonobankUserData,
-    monobankUserDataLoading, setMonobankUserDataLoading,
-
-    integrationWindowNameSelected, setIntegrationWindowNameSelected,
-
-    binanceCurrencies,
-    binanceSettingsEnabled, setBinanceSettingsEnabled,
-    binanceApiKeyInput, setBinanceApiKeyInput,
-    binanceApiSecretInput, setBinanceApiSecretInput,
-    binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
-    binanceUserData, setBinanceUserData,
-    binanceUserDataLoading, setBinanceUserDataLoading,
-    okxCurrencies,
-    okxSettingsEnabled, setOkxSettingsEnabled,
-    okxApiKeyInput, setOkxApiKeyInput,
-    okxApiSecretInput, setOkxApiSecretInput,
-    okxApiPassPhraseInput, setOkxApiPassPhraseInput,
-    okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
-    okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
-    okxUserData, setOkxUserData,
-    okxUserDataLoading, setOkxUserDataLoading,
-) {
-
-    const onNewAssetCurrencySelected = (currency) => {
-        setNewAssetCurrency(currency);
-        setShowCreateNewAssetWindow(false);
+    const onNewAssetCurrencySelected = (currency: string | null) => {
+        props.setNewAssetCurrency(currency);
+        props.setShowCreateNewAssetWindow(false);
     }
 
-    const onNewAssetIntegrationSelected = (integration) => {
-        setIntegrationWindowNameSelected(integration)
+    const onNewAssetIntegrationSelected = (integration: string | null) => {
+        props.setIntegrationWindowNameSelected(integration)
     }
 
     function buildFiatCurrencyButton([name, child]) {
@@ -86,8 +54,8 @@ export default function NewAssetWindow(
         ["ETH", ethIcon],
     ].map(buildCryptoCurrencyButton));
 
-    let totalCurrencies = Object.keys(monobankCurrencies || {})
-        .concat(Object.keys(binanceCurrencies) || []);
+    let totalCurrencies = Object.keys(props.monobankCurrencies || {})
+        .concat(props.binanceCurrencies ? Object.keys(props.binanceCurrencies) : []);
 
     const selectCurrencies = Object.keys(totalCurrencies
         .reduce((result, value) => {
@@ -97,19 +65,11 @@ export default function NewAssetWindow(
         .sort(compareStrings);
 
     const onClose = () => {
-        stateReset()
-        if (!anyAssetExist) {
-            setShowCreateNewAssetWindow(true);
-            setCreatingNewAsset(true);
+        props.stateReset()
+        if (!props.anyAssetExist) {
+            props.setShowCreateNewAssetWindow(true);
+            props.setCreatingNewAsset(true);
         }
-        // setIntegrationWindowNameSelected(null)
-        // setMonobankApiTokenInputInvalid(false)
-        // setBinanceApiKeysInputInvalid(false)
-        // if (!anyAssetExist) {
-        //     return;
-        // }
-        // setShowCreateNewAssetWindow(false);
-        // setCreatingNewAsset(false);
     }
 
     function defaultView() {
@@ -145,9 +105,9 @@ export default function NewAssetWindow(
                 <div className="new-asset-choose-title text-label">Choose your integration</div>
                 <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>{
                     [
-                        {integration: binanceIntegration, isEnabled: binanceSettingsEnabled},
-                        {integration: okxIntegration, isEnabled: okxSettingsEnabled},
-                        {integration: monobankIntegration, isEnabled: monobankSettingsEnabled},
+                        {integration: binanceIntegration, isEnabled: props.binanceSettingsEnabled},
+                        {integration: okxIntegration, isEnabled: props.okxSettingsEnabled},
+                        {integration: monobankIntegration, isEnabled: props.monobankSettingsEnabled},
 
                     ].map(({integration, isEnabled}) => integration.element(
                         () => onNewAssetIntegrationSelected(integration.name), isEnabled)
@@ -170,40 +130,11 @@ export default function NewAssetWindow(
 
     return IntegrationSettings(
         defaultView,
-        anyAssetExist,
+        props.anyAssetExist,
         true,
         "Create new asset",
         onClose,
-        (integrationWindowNameSelected !== null),
-        stateReset,
-        setCreatingNewAsset,
-        setShowCreateNewAssetWindow,
-        userData, setUserData,
-
-        monobankSettingsEnabled, setMonobankSettingsEnabled,
-        monobankApiTokenInput, setMonobankApiTokenInput,
-        monobankApiTokenInputInvalid, setMonobankApiTokenInputInvalid,
-        monobankUserData, setMonobankUserData,
-        monobankUserDataLoading, setMonobankUserDataLoading,
-
-        integrationWindowNameSelected, setIntegrationWindowNameSelected,
-
-        binanceCurrencies,
-        binanceSettingsEnabled, setBinanceSettingsEnabled,
-        binanceApiKeyInput, setBinanceApiKeyInput,
-        binanceApiSecretInput, setBinanceApiSecretInput,
-        binanceApiKeysInputInvalid, setBinanceApiKeysInputInvalid,
-        binanceUserData, setBinanceUserData,
-        binanceUserDataLoading, setBinanceUserDataLoading,
-
-        okxCurrencies,
-        okxSettingsEnabled, setOkxSettingsEnabled,
-        okxApiKeyInput, setOkxApiKeyInput,
-        okxApiSecretInput, setOkxApiSecretInput,
-        okxApiPassPhraseInput, setOkxApiPassPhraseInput,
-        okxApiSubAccountNameInput, setOkxApiSubAccountNameInput,
-        okxApiKeysInputInvalid, setOkxApiKeysInputInvalid,
-        okxUserData, setOkxUserData,
-        okxUserDataLoading, setOkxUserDataLoading,
+        (props.integrationWindowNameSelected !== null),
+        props,
     );
 }

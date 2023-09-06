@@ -42,7 +42,7 @@ const binanceApiClient = {
     async getUserInfoAsync(
         key: string,
         secret: string,
-        binanceCurrencies: { [index: string]: BinanceCurrencyResponse },
+        binanceCurrencies: { [index: string]: BinanceCurrencyResponse } | null,
         binanceUserData: AccountInfo | null,
     ) {
         const binanceApiService = new BinanceApiService(key, secret, binanceCurrencies);
@@ -54,14 +54,14 @@ const binanceApiClient = {
                 balances: account.balances
                     .filter(balance => +balance.free + +balance.locked)
                     .filter(balance => !(
-                        balance.asset.indexOf("LD") === 0 && !binanceCurrencies[balance.asset]
+                        balance.asset.indexOf("LD") === 0 && (!binanceCurrencies || !binanceCurrencies[balance.asset])
                     ))
                     .map(balance => new AssetDTO(
                         "binance_" + account.accountType + "_" + balance.asset,
                         balance.asset,
                         String(+balance.free + +balance.locked),
                         balance.asset + " " + account.accountType + " binance",
-                        binanceCurrencies[balance.asset]?.precision || ((() => {
+                        (binanceCurrencies && binanceCurrencies[balance.asset]?.precision) || ((() => {
                             console.warn("not found precision for " + balance.asset)
                             return 8
                         })()),

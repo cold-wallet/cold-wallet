@@ -9,7 +9,7 @@ function getRandomHex() {
     return hexValues[Math.round(Math.random() * 15)];
 }
 
-function getRandomHexes(howMany) {
+function getRandomHexes(howMany: number) {
     let hexes = "";
     for (let i = 0; i < howMany; i++) {
         hexes += getRandomHex();

@@ -17,9 +17,9 @@ export default function StorageRepositoryFactory(storage: Storage):
 
         useEffect(() => {
             getter && storage.setItem(key, JSON.stringify(getter));
-        }, [getter]);
+        }, [getter, key]);
 
-        return [getter, setter]
+        return [getter, setter,]
     }
 
     function NullableStorageRepository<T>(key: string): [T | null, Dispatch<SetStateAction<T | null>>] {

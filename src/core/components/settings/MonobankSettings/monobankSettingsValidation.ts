@@ -1,22 +1,17 @@
 import monobankApiClient from "../../../integrations/monobank/monobankApiClient";
-import UserData, {UserSettings} from "../../../domain/UserData";
+import {UserSettings} from "../../../domain/UserData";
 import {Dispatch, SetStateAction} from "react";
 import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
+import Props from "../../Props";
 
 async function validateMonobankSettings(
-    userData: UserData,
-    monobankSettingsEnabled: boolean,
-    monobankApiTokenInput: string,
+    preValid: boolean,
+    monobankApiTokenInput: string | null,
     setMonobankUserData: Dispatch<SetStateAction<MonobankUserData | null>>,
 ) {
     let isValidSettings = true;
 
-    if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled
-        || (monobankSettingsEnabled || userData.settings.monobankIntegrationEnabled)
-        && !(userData.settings.monobankIntegrationEnabled && !monobankSettingsEnabled)
-        && userData.settings.monobankIntegrationToken
-        && userData.settings.monobankIntegrationToken !== monobankApiTokenInput
-    ) {
+    if (preValid) {
         if (!monobankApiTokenInput) {
             isValidSettings = false;
         } else {
@@ -31,58 +26,47 @@ async function validateMonobankSettings(
     return isValidSettings;
 }
 
-export default function monobankSettingsValidation(
-    userData: UserData,
-    setUserData: Dispatch<SetStateAction<UserData | null>>,
-    stateReset: Dispatch<SetStateAction<void>>,
-    setMonobankApiTokenInputInvalid: Dispatch<SetStateAction<boolean | null>>,
-    monobankSettingsEnabled: boolean,
-    monobankApiTokenInput: string,
-    setMonobankUserData: Dispatch<SetStateAction<MonobankUserData | null>>,
-    setMonobankUserDataLoading: Dispatch<SetStateAction<boolean | null>>,
-    setCreatingNewAsset: Dispatch<SetStateAction<boolean>>,
-    setShowCreateNewAssetWindow: Dispatch<SetStateAction<boolean>>,
-) {
-    if (!userData.settings.monobankIntegrationEnabled && monobankSettingsEnabled
-        || (monobankSettingsEnabled || userData.settings.monobankIntegrationEnabled)
-        && !(userData.settings.monobankIntegrationEnabled && !monobankSettingsEnabled)
-        && userData.settings.monobankIntegrationToken
-        && userData.settings.monobankIntegrationToken !== monobankApiTokenInput
-    ) {
-        if (monobankApiTokenInput) {
-            setMonobankUserDataLoading(true)
+export default function monobankSettingsValidation(props: Props) {
+    const preValid = (!props.userData.settings.monobankIntegrationEnabled && props.monobankSettingsEnabled)
+        || ((props.monobankSettingsEnabled || props.userData.settings.monobankIntegrationEnabled)
+            && !(props.userData.settings.monobankIntegrationEnabled && !props.monobankSettingsEnabled)
+            && !!props.userData.settings.monobankIntegrationToken
+            && props.userData.settings.monobankIntegrationToken !== props.monobankApiTokenInput);
+    if (preValid) {
+        if (props.monobankApiTokenInput) {
+            props.setMonobankUserDataLoading(true)
         }
     }
 
-    validateMonobankSettings(userData, monobankSettingsEnabled, monobankApiTokenInput, setMonobankUserData,)
+    validateMonobankSettings(preValid, props.monobankApiTokenInput, props.setMonobankUserData,)
         .then(isValid => {
             if (isValid) {
-                const userDataNew = {...userData};
+                const userDataNew = {...props.userData};
                 let shouldSave = false;
                 if (!userDataNew.settings) {
                     userDataNew.settings = new UserSettings();
                 }
-                if (monobankSettingsEnabled !== null
-                    && userDataNew.settings.monobankIntegrationEnabled !== monobankSettingsEnabled
+                if (props.monobankSettingsEnabled !== null
+                    && userDataNew.settings.monobankIntegrationEnabled !== props.monobankSettingsEnabled
                 ) {
-                    userDataNew.settings.monobankIntegrationEnabled = monobankSettingsEnabled;
+                    userDataNew.settings.monobankIntegrationEnabled = props.monobankSettingsEnabled;
                     shouldSave = true;
                 }
-                if (monobankApiTokenInput !== null
-                    && userDataNew.settings.monobankIntegrationToken !== monobankApiTokenInput
+                if (props.monobankApiTokenInput !== null
+                    && userDataNew.settings.monobankIntegrationToken !== props.monobankApiTokenInput
                 ) {
-                    userDataNew.settings.monobankIntegrationToken = monobankApiTokenInput;
+                    userDataNew.settings.monobankIntegrationToken = props.monobankApiTokenInput;
                     shouldSave = true;
                 }
                 if (shouldSave) {
-                    setUserData(userDataNew);
+                    props.setUserData(userDataNew);
                 }
-                stateReset();
-                setCreatingNewAsset(false)
-                setShowCreateNewAssetWindow(false)
+                props.stateReset();
+                props.setCreatingNewAsset(false)
+                props.setShowCreateNewAssetWindow(false)
             } else {
-                setMonobankApiTokenInputInvalid(true)
-                setMonobankUserDataLoading(false)
+                props.setMonobankApiTokenInputInvalid(true)
+                props.setMonobankUserDataLoading(false)
             }
         })
         .catch(reason => {

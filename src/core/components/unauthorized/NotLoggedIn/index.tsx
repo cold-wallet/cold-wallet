@@ -5,40 +5,34 @@ import ImportWalletButton from "../button/ImportWalletButton";
 import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
 import {dataImporter} from "../../settings/ImportData";
+import Props from "../../Props";
 
-export default function NotLoggedIn(
-    userData, setUserData,
-    userDataHolder, setUserDataHolder,
-    importDataBuffer, setImportDataBuffer,
-    importOrExportSettingRequested, setImportOrExportSettingRequested,
-    loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
-    stateReset, setShowCreateNewAssetWindow, setCreatingNewAsset,
-) {
+export default function NotLoggedIn(props: Props) {
     function buildImportPad() {
         return (
             <div className="import-box  flex-box-centered flex-direction-column">
                 <textarea placeholder={"Copy text from 'Export'"}
-                          onChange={event => setImportDataBuffer(event.target.value)}
+                          onChange={event => props.setImportDataBuffer(event.target.value)}
                           style={{resize: 'none'}}
                           className={"import-text-area"}/>
                 <div className="import-box--controls flex-box-centered flex-direction-row">
                     <PositiveButton
                         onClick={() => {
-                            if (importDataBuffer) {
-                                dataImporter.readImportedData(importDataBuffer, setUserDataHolder)
-                                loadBinanceUserData()
-                                loadMonobankUserData()
-                                loadOkxUserData()
+                            if (props.importDataBuffer) {
+                                dataImporter.readImportedData(props.importDataBuffer, props.setUserDataHolder)
+                                props.loadBinanceUserData()
+                                props.loadMonobankUserData()
+                                props.loadOkxUserData()
                             }
-                            stateReset()
-                            setShowCreateNewAssetWindow(false)
-                            setCreatingNewAsset(false)
+                            props.stateReset()
+                            props.setShowCreateNewAssetWindow(false)
+                            props.setCreatingNewAsset(false)
                         }}
                         className={"import-box--control"}
                     >Import</PositiveButton>
                     <NeutralButton
                         onClick={() => {
-                            stateReset()
+                            props.stateReset()
                         }}
                         className={"import-box--control"}
                     >Cancel</NeutralButton>
@@ -49,11 +43,11 @@ export default function NotLoggedIn(
 
     return (
         <div className={"startup-login-box layer-1-themed-color"}>
-            {importOrExportSettingRequested === null
-                ? CreateWalletButton(setUserData)
+            {props.importOrExportSettingRequested === null
+                ? CreateWalletButton(props.setUserData)
                 : null /*LogInButton()*/}
-            {importOrExportSettingRequested === null
-                ? ImportWalletButton(setImportOrExportSettingRequested,)
+            {props.importOrExportSettingRequested === null
+                ? ImportWalletButton(props.setImportOrExportSettingRequested,)
                 : buildImportPad()}
         </div>
     );

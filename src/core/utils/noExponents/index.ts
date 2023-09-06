@@ -1,4 +1,4 @@
-export default function noExponents(fixME) {
+export default function noExponents(fixME: number | string) {
     if (!fixME || !(+fixME) || String(fixME).toLowerCase().indexOf("e") === -1) {
         return fixME
     }

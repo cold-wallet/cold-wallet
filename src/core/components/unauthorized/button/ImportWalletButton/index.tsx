@@ -1,8 +1,8 @@
-import './index.css';
-import React from "react";
+import '../index.css';
+import React, {Dispatch, SetStateAction} from "react";
 
 export default function ImportWalletButton(
-    setImportOrExportSettingRequested,
+    setImportOrExportSettingRequested: Dispatch<SetStateAction<string | null>>,
 ) {
     return (
         <div

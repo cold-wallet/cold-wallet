@@ -4,7 +4,13 @@ import EditButton from "../../buttons/EditButton";
 import CancelOrDeleteButton from "../../buttons/CancelOrDeleteButton";
 import AcceptButton from "../../buttons/AcceptButton";
 
-export default function AssetControls({editMode, onEditAsset, onCancelOrDeleteAsset,}) {
+export default function AssetControls(
+    {editMode, onEditAsset, onCancelOrDeleteAsset,}: {
+        editMode: boolean,
+        onEditAsset: () => void,
+        onCancelOrDeleteAsset: () => void,
+    }
+) {
     return (
         <div className={"asset-row-controls flex-box-centered flex-direction-row"}>
             {editMode

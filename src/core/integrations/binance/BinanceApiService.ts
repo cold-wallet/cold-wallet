@@ -21,12 +21,12 @@ class BinanceApiService {
 
     client: Binance
     customClient: SpotClient
-    binanceCurrencies: { [p: string]: BinanceCurrencyResponse };
+    binanceCurrencies: { [p: string]: BinanceCurrencyResponse } | null;
 
     constructor(
         apiKey: string,
         apiSecret: string,
-        binanceCurrencies: { [index: string]: BinanceCurrencyResponse }
+        binanceCurrencies: { [index: string]: BinanceCurrencyResponse } | null
     ) {
         this.client = BinanceApi({apiKey, apiSecret, httpBase: proxyUrl})
         this.binanceCurrencies = binanceCurrencies;
@@ -54,7 +54,7 @@ class BinanceApiService {
                     balance.asset,
                     balance.netAsset,
                     name,
-                    this.binanceCurrencies[balance.asset].precision,
+                    (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                     fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
@@ -73,7 +73,7 @@ class BinanceApiService {
                     balance.asset,
                     balance.netAsset,
                     name,
-                    this.binanceCurrencies[balance.asset].precision,
+                    (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                     fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
@@ -91,7 +91,7 @@ class BinanceApiService {
                     balance.asset,
                     balance.balance,
                     name,
-                    this.binanceCurrencies[balance.asset].precision,
+                    (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                     fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
@@ -110,7 +110,7 @@ class BinanceApiService {
                     balance.asset,
                     balance.balance,
                     name,
-                    this.binanceCurrencies[balance.asset].precision,
+                    (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                     fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
@@ -128,7 +128,7 @@ class BinanceApiService {
                     balance.asset,
                     balance.free,
                     name,
-                    this.binanceCurrencies[balance.asset].precision,
+                    (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                     fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
@@ -146,7 +146,7 @@ class BinanceApiService {
                 balance.asset,
                 balance.amount,
                 name,
-                this.binanceCurrencies[balance.asset].precision,
+                (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                 fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                 true,
             )
@@ -164,7 +164,7 @@ class BinanceApiService {
                 balance.asset,
                 balance.amount,
                 name,
-                this.binanceCurrencies[balance.asset].precision,
+                (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                 fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                 true,
             )
@@ -182,7 +182,7 @@ class BinanceApiService {
                 balance.asset,
                 balance.amount,
                 name,
-                this.binanceCurrencies[balance.asset].precision,
+                (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                 fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                 true,
             )
@@ -214,7 +214,7 @@ class BinanceApiService {
                     balance.symbol,
                     balance.amount,
                     name,
-                    this.binanceCurrencies[balance.symbol].precision,
+                    (this.binanceCurrencies && this.binanceCurrencies[balance.symbol].precision) || 8,
                     fiatCurrencies.getByStringCode(balance.symbol) ? fiat : crypto,
                     true,
                 )
@@ -248,7 +248,7 @@ class BinanceApiService {
                     balance.asset,
                     balance.principal,
                     name,
-                    this.binanceCurrencies[balance.asset].precision,
+                    (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                     fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )
@@ -282,7 +282,7 @@ class BinanceApiService {
                     balance.asset,
                     balance.totalAmount,
                     name,
-                    this.binanceCurrencies[balance.asset].precision,
+                    (this.binanceCurrencies && this.binanceCurrencies[balance.asset].precision) || 8,
                     fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
                     true,
                 )

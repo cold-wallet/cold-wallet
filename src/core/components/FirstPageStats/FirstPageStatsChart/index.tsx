@@ -1,6 +1,5 @@
 import './index.css';
 import React, {useMemo} from "react";
-import UserData from "../../../domain/UserData";
 import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
 import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 import PieChartSvg from "../PieChartSvg";
@@ -10,19 +9,13 @@ import TreeChart from "../TreeChart";
 import PieChart from "../PieChart";
 import NextPageButtonSvg from "../../buttons/NextPageButtonSvg/NextPageButton.svg";
 import {OkxAccount} from "../../../integrations/okx/okxApiClient";
+import Props from "../../Props";
 
-export default function FirstPageStatsChart(
-    {props}: {
-        props: {
-            userData: UserData,
-            monobankUserData: MonobankUserData,
-            binanceUserData: AccountInfo,
-            okxUserData: OkxAccount,
-            rates: CurrencyRates,
-            firstPageChartView: string, setFirstPageChartView: React.Dispatch<React.SetStateAction<string>>,
-        },
-    }
-) {
+export default function FirstPageStatsChart(data: { props: Props }) {
+    const props = data.props
+    const rates = (props.binancePrices && props.monobankRates && props.okxPrices &&
+        new CurrencyRates(props.binancePrices, props.monobankRates, props.okxPrices)) || null
+
     const pieControls = [{
         image: props.firstPageChartView === 'tree' ? <PieChartSvg/> : <TreemapChartSvg/>,
         text: "Chart type",
@@ -54,18 +47,23 @@ export default function FirstPageStatsChart(
             props.userData,
             props.monobankUserData,
             props.binanceUserData,
+            props.okxUserData,
         ]);
+
+    if (!rates) {
+        return null
+    }
 
     return <div className={"chart-total-pie-box flex-box-centered flex-direction-column layer-0-themed-color"}>
         <div className="chart-total-pie-main flex-box-centered">
             {props.firstPageChartView === 'tree'
                 ? <TreeChart props={{
                     assets,
-                    rates: props.rates,
+                    rates,
                 }}/>
                 : <PieChart props={{
                     assets,
-                    rates: props.rates,
+                    rates,
                 }}/>}
         </div>
         <div className="chart-total-pie-controls flex-box flex-direction-row">{

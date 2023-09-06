@@ -1,9 +1,9 @@
-import './index.css';
-import React from "react";
-import UserData from "../../../domain/UserData";
-import uuidGenerator from "../../../utils/uuidGenerator";
+import '../index.css';
+import React, {Dispatch, SetStateAction} from "react";
+import UserData from "../../../../domain/UserData";
+import uuidGenerator from "../../../../utils/uuidGenerator";
 
-export default function CreateWalletButton(setUserData) {
+export default function CreateWalletButton(setUserData: Dispatch<SetStateAction<UserData>>) {
 
     const createWallet = () => {
         setUserData(new UserData(uuidGenerator.generateUUID()))

@@ -8,7 +8,7 @@ export const dataImporter = {
         return Buffer.from(encodeURIComponent(JSON.stringify(data)), 'ascii').toString('base64');
     },
 
-    readImportedData(data: string, setUserDataHolder: Dispatch<SetStateAction<UserDataHolder | null>>) {
+    readImportedData(data: string, setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>) {
         try {
             let text = Buffer.from(data, 'base64').toString('ascii');
             try {
