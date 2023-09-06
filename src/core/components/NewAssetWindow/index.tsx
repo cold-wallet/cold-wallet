@@ -1,4 +1,5 @@
 import './index.css';
+import Select from 'react-select'
 import usdtIcon from "../../../resources/images/usdt.png";
 import btcIcon from "../../../resources/images/btc.png";
 import ethIcon from "../../../resources/images/eth.png";
@@ -22,9 +23,9 @@ export default function NewAssetWindow(props: Props) {
         props.setIntegrationWindowNameSelected(integration)
     }
 
-    function buildFiatCurrencyButton([name, child]) {
+    const buildFiatCurrencyButton = ({symbol, child}: { symbol: string, child: JSX.Element }) => {
         return {
-            name,
+            symbol,
             type: "fiat",
             imageType: "text",
             imageElement: <div className="new-asset-choose-button-symbol flex-box-centered">
@@ -33,36 +34,36 @@ export default function NewAssetWindow(props: Props) {
         }
     }
 
-    function buildCryptoCurrencyButton([name, icon]) {
+    const buildCryptoCurrencyButton = ({symbol, icon}: { symbol: string, icon: string }) => {
         return {
-            name,
+            symbol,
             type: "crypto",
             imageType: "image",
             imageElement: <div className="new-asset-choose-button-image flex-box-centered">
-                <img src={icon} alt={name} className={"new-asset-choose-button-image-icon"}/>
+                <img src={icon} alt={symbol} className={"new-asset-choose-button-image-icon"}/>
             </div>
         }
     }
 
     const currencies = [
-        ["USD", (<>&#x24;</>)],
-        ["EUR", (<>&euro;</>)],
-        ["UAH", (<>&#8372;</>)],
+        {symbol: "USD", child: (<>&#x24;</>)},
+        {symbol: "EUR", child: (<>&euro;</>)},
+        {symbol: "UAH", child: (<>&#8372;</>)},
     ].map(buildFiatCurrencyButton).concat([
-        ["USDT", usdtIcon],
-        ["BTC", btcIcon],
-        ["ETH", ethIcon],
+        {symbol: "USDT", icon: usdtIcon},
+        {symbol: "BTC", icon: btcIcon},
+        {symbol: "ETH", icon: ethIcon},
     ].map(buildCryptoCurrencyButton));
 
     let totalCurrencies = Object.keys(props.monobankCurrencies || {})
         .concat(props.binanceCurrencies ? Object.keys(props.binanceCurrencies) : []);
 
-    const selectCurrencies = Object.keys(totalCurrencies
-        .reduce((result, value) => {
-            result[value] = true;
-            return result
-        }, {}))
-        .sort(compareStrings);
+    const currencyOptions: Option[] = Array.from(new Set<string>(totalCurrencies))
+        .sort(compareStrings)
+        .map(option => ({
+            value: option,
+            label: option,
+        }))
 
     const onClose = () => {
         props.stateReset()
@@ -72,37 +73,50 @@ export default function NewAssetWindow(props: Props) {
         }
     }
 
+    interface Option {
+        label: string,
+        value: string,
+    }
+
+    const integrationOptions = thirdPartyIntegrations.map(({name}) => ({
+        value: name,
+        label: name,
+    }))
+
     function defaultView() {
         return (<div className="new-asset-controls-box flex-box-centered flex-direction-row">
             <div className="new-asset-choose-box flex-box-centered flex-direction-column">
                 <div className="new-asset-choose-title text-label">Enter asset value manually</div>
+                <div className="new-asset-choose-select-box">
+                    <Select
+                        className={"new-asset-choose-select"}
+                        defaultValue={null}
+                        onChange={e => onNewAssetCurrencySelected(e?.value || null)}
+                        options={currencyOptions}/>
+                </div>
                 <div className="new-asset-choose-buttons flex-box-centered">
                     {
                         currencies.map((currency, i) => (
                             <div key={i}
-                                 onClick={() => onNewAssetCurrencySelected(currency.name)}
+                                 onClick={() => onNewAssetCurrencySelected(currency.symbol)}
                                  className={"new-asset-choose-button pad layer-3-themed-color " +
                                      " flex-box-centered flex-direction-column"}>
                                 {currency.imageElement}
-                                <div className="new-asset-choose-button-name">{currency.name}</div>
+                                <div className="new-asset-choose-button-name">{currency.symbol}</div>
                             </div>
                         ))
                     }
                 </div>
-                <div className="new-asset-choose-select-box">
-                    <select className={"new-asset-choose-select"}
-                            onChange={e => onNewAssetCurrencySelected(e.target.value)}>
-                        <option defaultValue value> -- select currency --</option>
-                        {
-                            selectCurrencies.map((currencyName, i) => (
-                                <option key={i} value={currencyName}>{currencyName}</option>
-                            ))
-                        }
-                    </select>
-                </div>
             </div>
             <div className="new-asset-choose-box flex-box-centered flex-direction-column">
                 <div className="new-asset-choose-title text-label">Choose your integration</div>
+                <div className="new-asset-choose-select-box">
+                    <Select
+                        className={"new-asset-choose-select"}
+                        defaultValue={null}
+                        onChange={e => onNewAssetIntegrationSelected(e?.value || null)}
+                        options={integrationOptions}/>
+                </div>
                 <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>{
                     [
                         {integration: binanceIntegration, isEnabled: props.binanceSettingsEnabled},
@@ -113,17 +127,6 @@ export default function NewAssetWindow(props: Props) {
                         () => onNewAssetIntegrationSelected(integration.name), isEnabled)
                     )
                 }</div>
-                <div className="new-asset-choose-select-box">
-                    <select className={"new-asset-choose-select"}
-                            onChange={e => onNewAssetIntegrationSelected(e.target.value)}>
-                        <option defaultValue value> -- select integration --</option>
-                        {
-                            thirdPartyIntegrations.map(({name}, i) => (
-                                <option key={i} value={name}>{name}</option>
-                            ))
-                        }
-                    </select>
-                </div>
             </div>
         </div>)
     }
