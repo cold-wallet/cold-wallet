@@ -6,10 +6,6 @@ import OnStartupLoader from "../OnStartupLoader";
 
 const FirstPageStatsChart = lazy(() => delayForDemo(import('./FirstPageStatsChart')));
 
-function Loading() {
-    return <progress/>;
-}
-
 function delayForDemo(promise: Promise<any>) {
     return new Promise(resolve => {
         setTimeout(resolve, 1000);
