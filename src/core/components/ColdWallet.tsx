@@ -13,6 +13,8 @@ import UserDataService from "../services/UserDataService";
 import UserData from "../domain/UserData";
 import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 import AssetDTO from "../domain/AssetDTO";
+import OnStartupLoader from "./OnStartupLoader";
+import Props from "./Props";
 
 export default function ColdWallet(
     {properties}: {
@@ -79,6 +81,17 @@ export default function ColdWallet(
         properties.storageFactory,
         userData.settings.monobankIntegrationEnabled,
         userData.settings.monobankIntegrationToken
+    );
+
+    const {loaded} = OnStartupLoader(
+        binancePricesLoaded,
+        binanceCurrenciesLoaded,
+        okxPricesLoaded,
+        okxCurrenciesLoaded,
+        coinGeckoPricesLoaded,
+        coinGeckoCurrenciesLoaded,
+        monobankRates,
+        monobankCurrencies,
     );
 
     const [newAssetCurrency, setNewAssetCurrency] = useState<string | null>(null);
@@ -213,7 +226,7 @@ export default function ColdWallet(
         setDeletePinCodeRequested(false);
     }
 
-    const props = {
+    const props: Props = {
         anyAssetExist,
         showCreateNewAssetWindow, setShowCreateNewAssetWindow,
         creatingNewAsset, setCreatingNewAsset,
@@ -260,7 +273,7 @@ export default function ColdWallet(
         coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
         coinGeckoPrices, coinGeckoPricesLoaded,
 
-        loadMonobankUserData, loadBinanceUserData, loadOkxUserData,
+        loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded,
 
         selectedPageNumber, setSelectedPageNumber,
         firstPageChartView, setFirstPageChartView,

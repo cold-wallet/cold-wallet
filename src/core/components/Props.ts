@@ -111,6 +111,7 @@ export default interface Props {
     loadMonobankUserData: () => void,
     loadBinanceUserData: () => void,
     loadOkxUserData: () => void,
+    loaded: boolean,
 
     pinCodeSettingsRequested: boolean,
     setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,
