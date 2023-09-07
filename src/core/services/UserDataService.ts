@@ -51,8 +51,6 @@ export default function UserDataService(
     const loggedIn = useMemo(() => {
         return !!userData.id && userData.id !== unauthorizedId;
     }, [userData])
-    console.log("loggedIn", loggedIn)
-    console.log("userData", userData)
 
     const shouldEnterPinCode = useMemo(() => {
         return userDataHolder.pinCodeEncrypted

@@ -54,7 +54,7 @@
 
 @media screen and (max-width: 800px) and (orientation: portrait) {
   .asset-item-buttons-container--integration-logo--wide:hover {
-    padding: 2.1% 0;
+    padding: 1% 0;
   }
 }
 
@@ -111,7 +111,11 @@
 @media only screen and (max-width: 800px) and (orientation: landscape) {
 
   .asset-item-buttons-container--integration-logo--short {
-    width: 60%;
+    /*width: 60%;*/
+  }
+
+  .asset-item-buttons-container--integration-logo--container {
+    width: 40%;
   }
 
 }
@@ -119,15 +123,15 @@
 @media only screen and (max-width: 700px) {
 
   .asset-item-buttons-container--integration-logo--wide {
-    width: 7%;
-    min-width: 9%;
+    width: 5%;
+    /*min-width: 9%;*/
   }
 }
 
 @media only screen and (max-width: 700px) and (orientation: landscape) {
 
   .asset-item-buttons-container--integration-logo--short {
-    width: 60%;
+    /*width: 60%;*/
   }
 
 }

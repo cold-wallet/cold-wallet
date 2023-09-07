@@ -132,15 +132,26 @@
 
 }
 
-
 @media only screen and (max-width: 800px) {
 
   .new-asset-choose-buttons .integration-logo {
     position: absolute;
     width: 80%;
-    height: 20%;
+    height: 30%;
     left: 7%;
   }
 
+  .okx-integration-logo {
+    width: 60%;
+    height: 150%;
+  }
+}
+
+@media only screen and (max-width: 800px) and (orientation: portrait) {
+
+  .okx-integration-logo {
+    width: 60%;
+    height: 100%;
+  }
 }
 

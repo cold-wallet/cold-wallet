@@ -1,11 +1,13 @@
 .startup-loading-box {
   width: 50%;
   height: 80%;
-  position: absolute;
+  /*position: absolute;*/
   justify-content: space-evenly;
+  padding: 1%;
 }
 
 .loading-label {
+  padding: 1%;
 }
 
 @media only screen and (max-width: 800px) {

@@ -89,7 +89,11 @@ export default function NewAssetWindow(props: Props) {
                 <div className="new-asset-choose-title text-label">Enter asset value manually</div>
                 <div className="new-asset-choose-select-box">
                     <Select
-                        className={"new-asset-choose-select"}
+                        classNames={{
+                            container: () => "new-asset-choose-select",
+                            menu: () => "new-asset-choose-select--menu",
+                            menuList: () => "new-asset-choose-select--menu-list",
+                        }}
                         defaultValue={null}
                         onChange={e => onNewAssetCurrencySelected(e?.value || null)}
                         options={currencyOptions}/>

@@ -125,7 +125,7 @@ div {
   }
 
   .application:has(.startup-loading-box) {
-    justify-content: center;
+    /*justify-content: center;*/
   }
 
 }

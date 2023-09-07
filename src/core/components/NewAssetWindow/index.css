@@ -11,7 +11,7 @@
 }
 
 .new-asset-choose-button-image-icon {
-  width: 100%;
+  height: unset;
 }
 
 .new-asset-controls-box {
@@ -42,6 +42,7 @@
 
 .new-asset-choose-button-image {
   width: 90%;
+  height: 70%;
 }
 
 .new-asset-choose-button-symbol {
@@ -67,6 +68,14 @@
     width: 40%;
   }
 
+  .new-asset-choose-button-image-text {
+    font-size: 150%;
+  }
+
+  .new-asset-choose-button-image-icon {
+    height: 100%;
+  }
+
 }
 
 @media only screen and (max-width: 520px), screen and (orientation: portrait) {
@@ -83,10 +92,17 @@
   .new-asset-choose-button {
     height: 12%;
     width: 90%;
+    flex-flow: row;
+    justify-content: space-evenly;
+  }
+
+  .new-asset-choose-button-image {
+    width: 40%;
   }
 
   .new-asset-choose-button-image-icon {
-    width: 30%;
+    width: unset;
+    height: 100%;
   }
 
   .new-asset-choose-box {
@@ -94,3 +110,30 @@
   }
 
 }
+
+@media only screen and (max-width: 920px) and (orientation: landscape) {
+
+  .new-asset-choose-select-box .new-asset-choose-select--menu {
+    margin-top: 0;
+    height: 600%;
+  }
+
+  .new-asset-choose-select-box .new-asset-choose-select--menu-list {
+    height: 100%;
+  }
+
+  .new-asset-choose-buttons {
+    height: 75%;
+  }
+
+}
+
+
+@media only screen and (max-width: 920px) and (orientation: portrait) {
+
+  .new-asset-choose-select-box {
+    height: 5%;
+  }
+
+}
+

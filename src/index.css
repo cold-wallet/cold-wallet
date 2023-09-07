@@ -22,6 +22,10 @@ html {
   touch-action: manipulation;
 }
 
+.root:has(.modal-window) {
+  overflow-y: hidden;
+}
+
 button {
   cursor: pointer;
 }
