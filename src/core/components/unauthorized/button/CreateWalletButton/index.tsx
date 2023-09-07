@@ -2,11 +2,13 @@ import '../index.css';
 import React, {Dispatch, SetStateAction} from "react";
 import UserData from "../../../../domain/UserData";
 import uuidGenerator from "../../../../utils/uuidGenerator";
+import UserDataHolder from "../../../../domain/UserDataHolder";
+import {initUserDataHolder} from "../../../../services/UserDataService";
 
-export default function CreateWalletButton(setUserData: Dispatch<SetStateAction<UserData>>) {
+export default function CreateWalletButton(setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>) {
 
     const createWallet = () => {
-        setUserData(new UserData(uuidGenerator.generateUUID()))
+        setUserDataHolder(initUserDataHolder(new UserData(uuidGenerator.generateUUID())))
     }
 
     return (

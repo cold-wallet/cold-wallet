@@ -15,7 +15,7 @@ function getPinCode(userData: UserData) {
     return {pinCode, pinCodeEncrypted: !!userPinCode}
 }
 
-function initializer(userData: UserData) {
+export function initUserDataHolder(userData: UserData) {
     const {pinCode, pinCodeEncrypted} = getPinCode(userData);
     const encryptedData = cypherService.encrypt(userData, pinCode);
     return new UserDataHolder(pinCodeEncrypted, encryptedData)
@@ -33,7 +33,7 @@ export default function UserDataService(
     );
     const [userDataHolder, setUserDataHolder]
         = storageFactory.createStorage<UserDataHolder>(
-        "userDataHolder", () => initializer(userDataPlain)
+        "userDataHolder", () => initUserDataHolder(userDataPlain)
     );
     const userData: UserData = useMemo(() => {
         if (userDataHolder.pinCodeEncrypted && !pinCode) {
@@ -51,6 +51,8 @@ export default function UserDataService(
     const loggedIn = useMemo(() => {
         return !!userData.id && userData.id !== unauthorizedId;
     }, [userData])
+    console.log("loggedIn", loggedIn)
+    console.log("userData", userData)
 
     const shouldEnterPinCode = useMemo(() => {
         return userDataHolder.pinCodeEncrypted

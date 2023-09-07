@@ -44,7 +44,7 @@ export default function NotLoggedIn(props: Props) {
     return (
         <div className={"startup-login-box layer-1-themed-color"}>
             {props.importOrExportSettingRequested === null
-                ? CreateWalletButton(props.setUserData)
+                ? CreateWalletButton(props.setUserDataHolder)
                 : null /*LogInButton()*/}
             {props.importOrExportSettingRequested === null
                 ? ImportWalletButton(props.setImportOrExportSettingRequested,)
