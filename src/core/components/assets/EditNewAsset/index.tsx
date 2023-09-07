@@ -5,7 +5,7 @@ import AssetEditor from "../AssetEditor";
 import Props from "../../Props";
 
 export default function EditNewAsset(props: Props) {
-    const newAssetCurrency = props.newAssetCurrency || "";
+    const newAssetCurrency = props.newAssetCurrency as string;
     let fiatCurrency = fiatCurrencies.getByStringCode(newAssetCurrency);
     const decimalScale = fiatCurrency
         ? fiatCurrency.afterDecimalPoint

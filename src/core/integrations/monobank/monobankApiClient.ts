@@ -18,15 +18,25 @@ function extractAssetsFromMonobankAccounts(accounts: MonobankAccountResponse[]) 
     return accounts.filter(account => +account.balance)
         .map(account => {
             let fiatCurrency = fiatCurrencies.getByNumCode(account.currencyCode);
-            const name = `${fiatCurrency?.code} ${account.maskedPan
+            if (!fiatCurrency) {
+                const message = `unknown currency numCode ${account.currencyCode}`;
+                console.error(message)
+                fiatCurrency = {
+                    code: String(account.currencyCode),
+                    numCode: String(account.currencyCode),
+                    afterDecimalPoint: 2,
+                    name: message,
+                } as FiatCurrency
+            }
+            const name = `${fiatCurrency.code} ${account.maskedPan
                 ? (account.maskedPan[0] ? (account.maskedPan[0] + " ") : "")
                 : ""}${account.type}`;
             return new AssetDTO(
                 "monobank_" + account.id,
-                fiatCurrency?.code || "",
+                fiatCurrency.code,
                 String(account.balance / 100),
                 name,
-                fiatCurrency?.afterDecimalPoint || 2,
+                fiatCurrency.afterDecimalPoint,
                 fiat,
                 false,
                 true,
@@ -38,13 +48,23 @@ function extractAssetsFromMonobankJars(jars: MonobankJarResponse[]) {
     return jars.filter(jar => +jar.balance)
         .map(jar => {
             let fiatCurrency = fiatCurrencies.getByNumCode(jar.currencyCode);
-            const name = `${fiatCurrency?.code} ${jar.title}`;
+            if (!fiatCurrency) {
+                const message = `unknown currency numCode ${jar.currencyCode}`;
+                console.error(message)
+                fiatCurrency = {
+                    code: String(jar.currencyCode),
+                    numCode: String(jar.currencyCode),
+                    afterDecimalPoint: 2,
+                    name: message,
+                } as FiatCurrency
+            }
+            const name = `${fiatCurrency.code} ${jar.title}`;
             return new AssetDTO(
                 "monobank_jar_" + jar.id,
-                fiatCurrency?.code || "",
+                fiatCurrency.code,
                 String(jar.balance / 100),
                 name,
-                fiatCurrency?.afterDecimalPoint || 2,
+                fiatCurrency.afterDecimalPoint,
                 fiat,
                 false,
                 true,
