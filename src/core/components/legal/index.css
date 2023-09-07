@@ -1,0 +1,8 @@
+.border-themed-color {
+  background-color: #6b8f8a;
+}
+
+.privacy-policy--container,
+.terms-of-use--container {
+  margin: 5% 10%;
+}
