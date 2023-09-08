@@ -3,6 +3,7 @@ import React from "react";
 import PinCode from "../../PinCode";
 import {PIN_CODE_MAX_SIZE, PIN_CODE_MIN_SIZE} from "../../PinCode/Dial";
 import Props from "../../Props";
+import SettingUnit from "../SettingUnit";
 
 export default function PinCodeSetting(
     {props}: {
@@ -64,20 +65,19 @@ export default function PinCodeSetting(
             props.setPinCodeEnteringFinished(true)
         }
     }
-    return (
-        <div className="setting-unit flex-box flex-direction-column pin-code-setting">
-            <div className="settings-go-back-row text-label pad layer-3-themed-color"
-                 onClick={() => {
-                     props.setPinCodeEntered(null);
-                     props.setInvalidPinCode(false);
-                     props.setPinCodeRepeatEntered(null);
-                     props.setPinCodeEnteringFinished(false);
-                     props.setPinCodeSettingsRequested(false);
-                     props.setCurrentPinCodeConfirmed(false);
-                     props.setDeletePinCodeRequested(false);
-                 }}>
-                {"<< Go back"}
-            </div>
+
+    const onGoBack = () => {
+        props.setPinCodeEntered(null);
+        props.setInvalidPinCode(false);
+        props.setPinCodeRepeatEntered(null);
+        props.setPinCodeEnteringFinished(false);
+        props.setPinCodeSettingsRequested(false);
+        props.setCurrentPinCodeConfirmed(false);
+        props.setDeletePinCodeRequested(false);
+    };
+    return SettingUnit(
+        onGoBack,
+        <>
             <div className={"setting-row flex-box-start flex-direction-column"}>
                 <div className={"text-label"}>
                     {props.invalidPinCode ? 'PIN-codes does not match. ' : null}{
@@ -97,6 +97,7 @@ export default function PinCodeSetting(
                     acceptPinCode,
                 }}/>
             </div>
-        </div>
+        </>,
+        "pin-code-setting",
     )
 }

@@ -14,6 +14,39 @@ import binanceSettingsValidation from "./.././BinanceSettings/binanceSettingsVal
 import okxSettingsValidation from "../OkxSettings/okxSettingsValidation";
 import Props from "../../Props";
 
+export function onSaveSetting(props: Props, onDefault: () => void) {
+    switch (props.integrationWindowNameSelected) {
+        case monobankIntegration.name:
+            return monobankSettingsValidation(props)
+        case binanceIntegration.name:
+            return binanceSettingsValidation(props)
+        case okxIntegration.name:
+            return okxSettingsValidation(props)
+        default:
+            onDefault()
+    }
+}
+
+function buildSettingsForCcxtExchange(exchangeName: string, props: Props) {
+    return (<>{exchangeName}</>)
+}
+
+export function buildSettingContent(props: Props, onDefault: () => JSX.Element) {
+    switch (props.integrationWindowNameSelected) {
+        case monobankIntegration.name:
+            return MonobankSettings(props)
+        case binanceIntegration.name:
+            return BinanceSettings(props)
+        case okxIntegration.name:
+            return OkxSettings(props)
+        default:
+            return buildSettingsForCcxtExchange(props.integrationWindowNameSelected, props)
+        case "":
+        case null:
+            return onDefault()
+    }
+}
+
 export default function IntegrationSettings(
     defaultViewBuilder: () => JSX.Element,
     closeable: boolean,
@@ -24,32 +57,6 @@ export default function IntegrationSettings(
     props: Props,
 ) {
 
-    function onSaveClicked() {
-        switch (props.integrationWindowNameSelected) {
-            case monobankIntegration.name:
-                return monobankSettingsValidation(props)
-            case binanceIntegration.name:
-                return binanceSettingsValidation(props)
-            case okxIntegration.name:
-                return okxSettingsValidation(props)
-            default:
-                props.stateReset()
-        }
-    }
-
-    function buildWindowContent() {
-        switch (props.integrationWindowNameSelected) {
-            case monobankIntegration.name:
-                return MonobankSettings(props)
-            case binanceIntegration.name:
-                return BinanceSettings(props)
-            case okxIntegration.name:
-                return OkxSettings(props)
-            default:
-                return defaultViewBuilder()
-        }
-    }
-
     return (
         <ModalWindow
             closeable={closeable}
@@ -57,10 +64,10 @@ export default function IntegrationSettings(
             onCancel={onClose}
             title={title}
             children={
-                <div className="settings-box">{buildWindowContent()}</div>
+                <div className="settings-box">{buildSettingContent(props, defaultViewBuilder)}</div>
             }
             bottom={withBottom ? <>
-                <PositiveButton onClick={onSaveClicked}
+                <PositiveButton onClick={() => onSaveSetting(props, () => props.stateReset())}
                                 className="settings-window-bottom-button">Save
                 </PositiveButton>
                 <NeutralButton onClick={onClose}

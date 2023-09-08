@@ -28,6 +28,10 @@ export default function IntegrationPad(integrationData: IntegrationData) {
 }
 
 export interface ThirdPartyIntegration {
-    element: (onClick: () => void, isEnabled: boolean) => JSX.Element,
     name: string,
+    oldNames?: string[],
+}
+
+export interface PartnerThirdPartyIntegration extends ThirdPartyIntegration {
+    element: (onClick: () => void, isEnabled: boolean) => JSX.Element,
 }

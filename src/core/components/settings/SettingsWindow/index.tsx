@@ -3,18 +3,14 @@ import React from "react";
 import monobankIntegration from "../../integrations/MonobankIntegrationPad";
 import binanceIntegration from "../../integrations/BinanceIntegrationPad";
 import okxIntegration from "../../integrations/OkxIntegrationPad";
-import monobankSettingsValidation from "../MonobankSettings/monobankSettingsValidation";
-import binanceSettingsValidation from "../BinanceSettings/binanceSettingsValidation";
-import MonobankSettings from "../MonobankSettings";
-import BinanceSettings from "../BinanceSettings";
-import OkxSettings from "../OkxSettings";
 import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
 import ModalWindow from "../../ModalWindow";
 import {dataImporter} from "../ImportData";
 import PinCodeSetting from "../PinCode";
-import okxSettingsValidation from "../OkxSettings/okxSettingsValidation";
 import Props from "../../Props";
+import {buildSettingContent, onSaveSetting} from "../IntegrationSettings";
+import SettingUnit from "../SettingUnit";
 
 export default function SettingsWindow(props: Props) {
 
@@ -32,8 +28,8 @@ export default function SettingsWindow(props: Props) {
                     {integration: monobankIntegration, isEnabled: props.monobankSettingsEnabled},
 
                 ].map(({integration, isEnabled}) => integration.element(
-                    () => props.setIntegrationWindowNameSelected(integration.name), isEnabled)
-                )
+                    () => props.setIntegrationWindowNameSelected(integration.name), isEnabled
+                ))
             }</div>
             <div className={"setting-label text-label"}>Assets data import/export</div>
             <div className={"choose-setting--row flex-box"}>
@@ -82,24 +78,10 @@ export default function SettingsWindow(props: Props) {
         </>)
     }
 
-    const showMonobankSettings = props.userData.settings.monobankIntegrationEnabled || props.monobankSettingsEnabled;
-    const showBinanceSettings = props.userData.settings.binanceIntegrationEnabled || props.binanceSettingsEnabled;
-    const showOkxSettings = props.userData.settings.okxIntegrationEnabled || props.okxSettingsEnabled;
-
-    function onSaveClicked() {
+    function onSaveClicked(props: Props) {
         if (props.integrationWindowNameSelected) {
-            switch (props.integrationWindowNameSelected) {
-                case monobankIntegration.name:
-                    return monobankSettingsValidation(props)
-                case binanceIntegration.name:
-                    return binanceSettingsValidation(props)
-                case okxIntegration.name:
-                    return okxSettingsValidation(props)
-                default: {
-                    console.warn("should never happen")
-                    return ""
-                }
-            }
+            onSaveSetting(props, () => console.warn("should never happen"))
+
         } else if (props.importOrExportSettingRequested) {
             switch (props.importOrExportSettingRequested) {
                 case 'import': {
@@ -114,7 +96,6 @@ export default function SettingsWindow(props: Props) {
                 }
                 default: {
                     console.warn("should never happen")
-                    return ""
                 }
             }
         } else {
@@ -124,58 +105,46 @@ export default function SettingsWindow(props: Props) {
 
     function buildWindowContent() {
         if (props.integrationWindowNameSelected) {
-            switch (props.integrationWindowNameSelected) {
-                case monobankIntegration.name:
-                    return MonobankSettings(props)
-                case binanceIntegration.name:
-                    return BinanceSettings(props)
-                case okxIntegration.name:
-                    return OkxSettings(props)
-                default: {
-                    console.warn("should never happen")
-                    return ""
-                }
-            }
+            return buildSettingContent(props, () => {
+                console.warn("should never happen")
+                return <></>
+            })
         } else if (props.importOrExportSettingRequested) {
             switch (props.importOrExportSettingRequested) {
                 default: {
                     console.warn("should never happen")
                     return ""
                 }
-                case 'import': {
-                    return <div className="setting-unit flex-box flex-direction-column">
-                        <div className="settings-go-back-row text-label pad layer-3-themed-color"
-                             onClick={() => props.setImportOrExportSettingRequested(null)}>
-                            {"<< Go back"}
-                        </div>
-                        <div className={"setting-row flex-box-start flex-direction-column"}>
-                            <div className={"text-label"}>Import</div>
-                        </div>
-                        <div className={"setting-row flex-box-start flex-direction-column"}>
-                            <textarea placeholder={"Copy text from 'Export'"}
-                                      onChange={event => props.setImportDataBuffer(event.target.value)}
-                                      style={{resize: 'none'}}
-                                      className={"export-text-area"}/>
-                        </div>
-                    </div>
-                }
-                case 'export': {
-                    return <div className="setting-unit flex-box flex-direction-column">
-                        <div className="settings-go-back-row text-label pad layer-3-themed-color"
-                             onClick={() => props.setImportOrExportSettingRequested(null)}>
-                            {"<< Go back"}
-                        </div>
-                        <div className={"setting-row flex-box-start flex-direction-column"}>
-                            <div className={"text-label"}>Export</div>
-                        </div>
-                        <div className={"setting-row flex-box-start flex-direction-column"}>
-                            <textarea readOnly={true}
-                                      value={dataImporter.generateExportData(props.userDataHolder)}
-                                      style={{resize: 'none'}}
-                                      className={"export-text-area"}/>
-                        </div>
-                    </div>
-                }
+                case 'import':
+                    return SettingUnit(
+                        () => props.setImportOrExportSettingRequested(null),
+                        <>
+                            <div className={"setting-row flex-box-start flex-direction-column"}>
+                                <div className={"text-label"}>Import</div>
+                            </div>
+                            <div className={"setting-row flex-box-start flex-direction-column"}>
+                                <textarea placeholder={"Copy text from 'Export'"}
+                                          onChange={event => props.setImportDataBuffer(event.target.value)}
+                                          style={{resize: 'none'}}
+                                          className={"export-text-area"}/>
+                            </div>
+                        </>
+                    )
+                case 'export':
+                    return SettingUnit(
+                        () => props.setImportOrExportSettingRequested(null),
+                        <>
+                            <div className={"setting-row flex-box-start flex-direction-column"}>
+                                <div className={"text-label"}>Export</div>
+                            </div>
+                            <div className={"setting-row flex-box-start flex-direction-column"}>
+                                <textarea readOnly={true}
+                                          value={dataImporter.generateExportData(props.userDataHolder)}
+                                          style={{resize: 'none'}}
+                                          className={"export-text-area"}/>
+                            </div>
+                        </>
+                    )
             }
         } else if (props.pinCodeSettingsRequested || props.deletePinCodeRequested) {
             return <PinCodeSetting props={props}/>
@@ -193,7 +162,7 @@ export default function SettingsWindow(props: Props) {
             <div className="settings-box">{buildWindowContent()}</div>
         }
         bottom={(props.integrationWindowNameSelected !== null || props.importOrExportSettingRequested === 'import') ? <>
-            <PositiveButton onClick={onSaveClicked}
+            <PositiveButton onClick={() => onSaveClicked(props)}
                             className="settings-window-bottom-button">Save
             </PositiveButton>
             <NeutralButton onClick={onCancelClicked}

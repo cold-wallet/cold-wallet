@@ -1,10 +1,10 @@
 import MonobankSvg from "../../../resources/images/monobankSvg";
 import React from "react";
-import IntegrationPad, {ThirdPartyIntegration} from "./IntegrationPad";
+import IntegrationPad, {PartnerThirdPartyIntegration} from "./IntegrationPad";
 
 const name: string = "monobank";
 
-const monobankIntegration: ThirdPartyIntegration = {
+const monobankIntegration: PartnerThirdPartyIntegration = {
     element: (onClick: () => void, isEnabled: boolean) =>
         <IntegrationPad logo={<MonobankSvg/>}
                         key={name}

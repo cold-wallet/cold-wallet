@@ -78,7 +78,7 @@ export default function NewAssetWindow(props: Props) {
         value: string,
     }
 
-    const integrationOptions = thirdPartyIntegrations.map(({name}) => ({
+    const integrationOptions: Option[] = thirdPartyIntegrations.map(({name}) => ({
         value: name,
         label: name,
     }))
