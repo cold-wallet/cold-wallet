@@ -28,12 +28,12 @@ export default function UserDataService(
     }
 ) {
 
-    const [userDataPlain] = storageFactory.createStorage<UserData>(
-        "userData", () => new UserData()
+    const [userDataPlain] = storageFactory.createStorageNullable<UserData>(
+        "userData"
     );
     const [userDataHolder, setUserDataHolder]
         = storageFactory.createStorage<UserDataHolder>(
-        "userDataHolder", () => initUserDataHolder(userDataPlain)
+        "userDataHolder", () => initUserDataHolder(userDataPlain || new UserData())
     );
     const userData: UserData = useMemo(() => {
         if (userDataHolder.pinCodeEncrypted && !pinCode) {

@@ -1,5 +1,17 @@
 import AssetDTO from "./AssetDTO";
 
+export interface Integrations {
+    [p: string]: IntegrationSettingsData,
+}
+
+export interface IntegrationSettingsData {
+    enabled: boolean,
+    apiKey: string,
+    apiSecret: string,
+    password: string | null,
+    additionalSetting: string | null,
+}
+
 export class UserSettings {
     constructor(
         public monobankIntegrationEnabled: boolean = false,
@@ -13,6 +25,7 @@ export class UserSettings {
         public okxIntegrationPassPhrase: string | null = null,
         public okxIntegrationSubAccountName: string | null = null,
         public pinCode: string | null = null,
+        public integrations: Integrations = {},
     ) {
     }
 }

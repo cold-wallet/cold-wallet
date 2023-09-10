@@ -142,6 +142,47 @@ export default function ColdWallet(
     );
     const [okxApiKeysInputInvalid, setOkxApiKeysInputInvalid] = useState(false);
     const [okxUserDataLoading, setOkxUserDataLoading] = useState(false);
+    const [currentSettingInputsInvalid, setCurrentSettingInputsInvalid] = useState(false);
+    //
+    // function getEnabledThirdPartyIntegrations() {
+    //     const enabledThirdPartyIntegrations = new Set(Object.entries(userData.settings.integrations || {})
+    //         .filter(entry => entry[1].enabled)
+    //         .map(entry => entry[0]));
+    //
+    //     monobankSettingsEnabled && enabledThirdPartyIntegrations.add("monobank");
+    //     binanceSettingsEnabled && enabledThirdPartyIntegrations.add("binance");
+    //     okxSettingsEnabled && enabledThirdPartyIntegrations.add("okx");
+    //
+    //     return enabledThirdPartyIntegrations
+    // }
+    //
+    // const [enabledIntegrationSettings, setEnabledIntegrationSettings] = useState(
+    //     getEnabledThirdPartyIntegrations()
+    // );
+    //
+    // function getInitialUserData() {
+    //     return Array.from(enabledIntegrationSettings)
+    //         .reduce((result, exchange) => {
+    //             if (userData.settings.integrations && userData.settings.integrations[exchange]) {
+    //                 result[exchange] = await ccxtConnector.loadUserData(exchange,
+    //                     userData.settings.integrations[exchange].apiKey,
+    //                     userData.settings.integrations[exchange].apiSecret,
+    //                     userData.settings.integrations[exchange].password,
+    //                     userData.settings.integrations[exchange].additionalSetting,
+    //                 )
+    //             }
+    //             return result
+    //         }, {} as { [p: string]: any });
+    // }
+    //
+    // const [enabledIntegrationsUserData, setEnabledIntegrationsUserData] = useState(
+    //     getInitialUserData
+    // );
+    const [loadingUserDataFromResource, setLoadingUserDataFromResource] = useState<string | null>(null);
+    const [currentIntegrationApiKey, setCurrentIntegrationApiKey] = useState<string | null>(null);
+    const [currentIntegrationApiSecret, setCurrentIntegrationApiSecret] = useState<string | null>(null);
+    const [currentIntegrationApiPassword, setCurrentIntegrationApiPassword] = useState<string | null>(null);
+    const [currentIntegrationApiAdditionalSetting, setCurrentIntegrationApiAdditionalSetting] = useState<string | null>(null);
 
     function getAnyAssetExist(
         userData: UserData,
@@ -224,6 +265,14 @@ export default function ColdWallet(
         setPinCodeRepeatEntered(null);
         setInvalidPinCode(false);
         setDeletePinCodeRequested(false);
+
+        setEnabledIntegrationSettings(getEnabledThirdPartyIntegrations())
+        setLoadingUserDataFromResource(null)
+        setCurrentSettingInputsInvalid(false)
+        setCurrentIntegrationApiKey(null)
+        setCurrentIntegrationApiSecret(null)
+        setCurrentIntegrationApiPassword(null)
+        setCurrentIntegrationApiAdditionalSetting(null)
     }
 
     const props: Props = {
@@ -242,6 +291,15 @@ export default function ColdWallet(
         stateReset,
         showConfigsWindow, setShowConfigsWindow,
         integrationWindowNameSelected, setIntegrationWindowNameSelected,
+
+        enabledIntegrationSettings, setEnabledIntegrationSettings,
+        loadingUserDataFromResource, setLoadingUserDataFromResource,
+        currentSettingInputsInvalid, setCurrentSettingInputsInvalid,
+        currentIntegrationApiKey, setCurrentIntegrationApiKey,
+        currentIntegrationApiSecret, setCurrentIntegrationApiSecret,
+        currentIntegrationApiPassword, setCurrentIntegrationApiPassword,
+        currentIntegrationApiAdditionalSetting, setCurrentIntegrationApiAdditionalSetting,
+        enabledIntegrationsUserData, setEnabledIntegrationsUserData,
 
         monobankCurrencies, monobankRates,
         monobankSettingsEnabled, setMonobankSettingsEnabled,
