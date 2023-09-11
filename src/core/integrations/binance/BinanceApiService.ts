@@ -15,7 +15,8 @@ import Spot from "./connector/spot";
 import fiatCurrencies from "../../fiatCurrencies";
 
 const proxyUrl = //"https://api.binance.com"
-    "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod/binance";
+    // "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod/binance"
+    'https://corsproxy.io/?' + encodeURIComponent("https://api.binance.com")
 
 class BinanceApiService {
 
