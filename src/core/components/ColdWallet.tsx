@@ -15,6 +15,7 @@ import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 import AssetDTO from "../domain/AssetDTO";
 import OnStartupLoader from "./OnStartupLoader";
 import Props from "./Props";
+import CcxtLoader from "../integrations/ccxt/CcxtLoader";
 
 export default function ColdWallet(
     {properties}: {
@@ -44,13 +45,14 @@ export default function ColdWallet(
         coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
     } = CoinGeckoLoader(properties.storageFactory)
 
+    const loadingUserDataAllowed = !shouldEnterPinCode;
     const {
         binancePrices, binancePricesLoaded,
         binanceCurrencies, binanceCurrenciesLoaded,
         binanceUserData, setBinanceUserData,
         loadBinanceUserData,
     } = BinanceLoader(
-        !shouldEnterPinCode,
+        loadingUserDataAllowed,
         properties.storageFactory,
         userData.settings.binanceIntegrationEnabled,
         userData.settings.binanceIntegrationApiKey,
@@ -62,7 +64,7 @@ export default function ColdWallet(
         okxUserData, setOkxUserData,
         loadOkxUserData,
     } = OkxLoader(
-        !shouldEnterPinCode,
+        loadingUserDataAllowed,
         properties.storageFactory,
         userData.settings.okxIntegrationEnabled,
         userData.settings.okxIntegrationApiKey,
@@ -77,7 +79,7 @@ export default function ColdWallet(
         setMonobankUserData,
         loadMonobankUserData,
     } = MonobankLoader(
-        !shouldEnterPinCode,
+        loadingUserDataAllowed,
         properties.storageFactory,
         userData.settings.monobankIntegrationEnabled,
         userData.settings.monobankIntegrationToken
@@ -143,41 +145,13 @@ export default function ColdWallet(
     const [okxApiKeysInputInvalid, setOkxApiKeysInputInvalid] = useState(false);
     const [okxUserDataLoading, setOkxUserDataLoading] = useState(false);
     const [currentSettingInputsInvalid, setCurrentSettingInputsInvalid] = useState(false);
-    //
-    // function getEnabledThirdPartyIntegrations() {
-    //     const enabledThirdPartyIntegrations = new Set(Object.entries(userData.settings.integrations || {})
-    //         .filter(entry => entry[1].enabled)
-    //         .map(entry => entry[0]));
-    //
-    //     monobankSettingsEnabled && enabledThirdPartyIntegrations.add("monobank");
-    //     binanceSettingsEnabled && enabledThirdPartyIntegrations.add("binance");
-    //     okxSettingsEnabled && enabledThirdPartyIntegrations.add("okx");
-    //
-    //     return enabledThirdPartyIntegrations
-    // }
-    //
-    // const [enabledIntegrationSettings, setEnabledIntegrationSettings] = useState(
-    //     getEnabledThirdPartyIntegrations()
-    // );
-    //
-    // function getInitialUserData() {
-    //     return Array.from(enabledIntegrationSettings)
-    //         .reduce((result, exchange) => {
-    //             if (userData.settings.integrations && userData.settings.integrations[exchange]) {
-    //                 result[exchange] = await ccxtConnector.loadUserData(exchange,
-    //                     userData.settings.integrations[exchange].apiKey,
-    //                     userData.settings.integrations[exchange].apiSecret,
-    //                     userData.settings.integrations[exchange].password,
-    //                     userData.settings.integrations[exchange].additionalSetting,
-    //                 )
-    //             }
-    //             return result
-    //         }, {} as { [p: string]: any });
-    // }
-    //
-    // const [enabledIntegrationsUserData, setEnabledIntegrationsUserData] = useState(
-    //     getInitialUserData
-    // );
+
+    const {
+        ccxtUserData, setCcxtUserData,
+        enabledCcxtIntegrations, setEnabledCcxtIntegrations,
+        getEnabledCcxtIntegrations,
+    } = CcxtLoader(loadingUserDataAllowed, properties.storageFactory, userData)
+
     const [loadingUserDataFromResource, setLoadingUserDataFromResource] = useState<string | null>(null);
     const [currentIntegrationApiKey, setCurrentIntegrationApiKey] = useState<string | null>(null);
     const [currentIntegrationApiSecret, setCurrentIntegrationApiSecret] = useState<string | null>(null);
@@ -266,7 +240,7 @@ export default function ColdWallet(
         setInvalidPinCode(false);
         setDeletePinCodeRequested(false);
 
-        setEnabledIntegrationSettings(getEnabledThirdPartyIntegrations())
+        setEnabledCcxtIntegrations(getEnabledCcxtIntegrations())
         setLoadingUserDataFromResource(null)
         setCurrentSettingInputsInvalid(false)
         setCurrentIntegrationApiKey(null)
@@ -292,14 +266,14 @@ export default function ColdWallet(
         showConfigsWindow, setShowConfigsWindow,
         integrationWindowNameSelected, setIntegrationWindowNameSelected,
 
-        enabledIntegrationSettings, setEnabledIntegrationSettings,
+        enabledCcxtIntegrations, setEnabledCcxtIntegrations,
         loadingUserDataFromResource, setLoadingUserDataFromResource,
         currentSettingInputsInvalid, setCurrentSettingInputsInvalid,
         currentIntegrationApiKey, setCurrentIntegrationApiKey,
         currentIntegrationApiSecret, setCurrentIntegrationApiSecret,
         currentIntegrationApiPassword, setCurrentIntegrationApiPassword,
         currentIntegrationApiAdditionalSetting, setCurrentIntegrationApiAdditionalSetting,
-        enabledIntegrationsUserData, setEnabledIntegrationsUserData,
+        ccxtUserData, setCcxtUserData,
 
         monobankCurrencies, monobankRates,
         monobankSettingsEnabled, setMonobankSettingsEnabled,

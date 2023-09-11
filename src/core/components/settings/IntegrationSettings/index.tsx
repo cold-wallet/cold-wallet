@@ -28,7 +28,7 @@ async function validateGenericSettings(
     if (isPreValid) {
         if (!props.currentIntegrationApiKey
             || !props.currentIntegrationApiSecret
-            || !props.enabledIntegrationSettings.has(exchangeName)
+            || !props.enabledCcxtIntegrations.has(exchangeName)
         ) {
             return false;
         } else {
@@ -39,9 +39,9 @@ async function validateGenericSettings(
             if (response.success) {
                 const accountInfo = response.result;
                 console.log("accountInfo", accountInfo)
-                const newUserData = {...props.enabledIntegrationsUserData}
+                const newUserData = {...props.ccxtUserData}
                 newUserData[exchangeName] = accountInfo
-                props.setEnabledIntegrationsUserData(newUserData)
+                props.setCcxtUserData(newUserData)
             } else {
                 return false;
             }
@@ -54,7 +54,7 @@ export function genericExchangeSettingsValidation(exchangeName: string, props: P
     const settings = (props.userData.settings.integrations
             && props.userData.settings.integrations[exchangeName])
         || {} as IntegrationSettingsData;
-    const isEnabledInProps = props.enabledIntegrationSettings.has(exchangeName);
+    const isEnabledInProps = props.enabledCcxtIntegrations.has(exchangeName);
 
     if (settings.enabled == isEnabledInProps
         && settings.apiKey == props.currentIntegrationApiKey
@@ -152,12 +152,12 @@ export function onSaveSetting(props: Props, onDefault: () => void) {
 
 function buildSettingsForCcxtExchange(exchangeName: string, props: Props) {
     const integrations = props.userData.settings.integrations;
-    const settingEnabled = props.enabledIntegrationSettings.has(exchangeName)
+    const settingEnabled = props.enabledCcxtIntegrations.has(exchangeName)
         || (!!integrations && integrations[exchangeName] && integrations[exchangeName].enabled);
     const setSettingEnabled: Dispatch<SetStateAction<boolean>> = (isEnabled) => {
-        const settings = new Set(props.enabledIntegrationSettings)
+        const settings = new Set(props.enabledCcxtIntegrations)
         isEnabled ? settings.add(exchangeName) : settings.delete(exchangeName)
-        props.setEnabledIntegrationSettings(settings)
+        props.setEnabledCcxtIntegrations(settings)
     }
     const isDataLoading = props.loadingUserDataFromResource === exchangeName
     const apiKeyFromSettings = integrations && integrations[exchangeName]

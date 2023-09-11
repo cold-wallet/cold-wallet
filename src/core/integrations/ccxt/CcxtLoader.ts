@@ -1,88 +1,68 @@
 import StorageFactory from "../../domain/StorageFactory";
-import binanceApiClient, {AccountInfo} from "../binance/binanceApiClient";
-import {Dispatch, SetStateAction, useEffect} from "react";
+import {useEffect, useState} from "react";
 import useInterval from "../../utils/useInterval";
 import UserData from "../../domain/UserData";
 import ccxtConnector from "./ccxtConnector";
+import {Balances} from "ccxt/js/src/base/types";
 
-interface CcxtAccountBalance {
-    currency: string,
-    available: number,
-    platformType?: string,
-}
-
-interface CcxtAccountData {
-    exchangeName: string,
-    balances: CcxtAccountBalance[],
-}
-
-interface CcxtAccountsData {
-    [exchangeName: string]: CcxtAccountData,
+export interface CcxtAccountsData {
+    [exchangeName: string]: Balances,
 }
 
 export default function CcxtLoader(
     loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
     userData: UserData,
-    setUserData: Dispatch<SetStateAction<UserData>>,
 ) {
+    const getEnabledCcxtIntegrations = () => new Set(Object.entries(userData.settings.integrations || {})
+        .filter(([, integration]) => integration.enabled)
+        .map(([name]) => name))
 
-    const enabledCcxtIntegrations = new Set(Object.entries(userData.settings.integrations || {})
-        .filter(entry => entry[1].enabled)
-        .map(entry => entry[0]))
-
-    function getInitialUserData() {
-        return Array.from(enabledCcxtIntegrations)
-            .reduce((result, exchange) => {
-                if (userData.settings.integrations && userData.settings.integrations[exchange]) {
-                    result[exchange] = await ccxtConnector.loadUserData(exchange,
-                        userData.settings.integrations[exchange].apiKey,
-                        userData.settings.integrations[exchange].apiSecret,
-                        userData.settings.integrations[exchange].password,
-                        userData.settings.integrations[exchange].additionalSetting,
-                    )
-                }
-                return result
-            }, {} as { [p: string]: any });
-    }
+    const [enabledCcxtIntegrations, setEnabledCcxtIntegrations]
+        = useState<Set<string>>(getEnabledCcxtIntegrations);
 
     const [
         ccxtUserData,
         setCcxtUserData
-    ] = storageFactory.createStorageNullable<CcxtAccountsData>("ccxtUserData");
+    ] = storageFactory.createStorage<CcxtAccountsData>("ccxtUserData", () => ({} as CcxtAccountsData));
 
     const loadCcxtUserData = () => {
-        Array.from(enabledCcxtIntegrations)
+        if (!loadingUserDataAllowed) {
+            return
+        }
+        const ccxtAccountsData = Array.from(enabledCcxtIntegrations)
             .reduce((result, exchange) => {
                 if (userData.settings.integrations && userData.settings.integrations[exchange]) {
-                    result[exchange] = await ccxtConnector.loadUserData(exchange,
-                        userData.settings.integrations[exchange].apiKey,
-                        userData.settings.integrations[exchange].apiSecret,
-                        userData.settings.integrations[exchange].password,
-                        userData.settings.integrations[exchange].additionalSetting,
-                    )
+                    ccxtConnector
+                        .loadUserData(exchange,
+                            userData.settings.integrations[exchange].apiKey,
+                            userData.settings.integrations[exchange].apiSecret,
+                            userData.settings.integrations[exchange].password,
+                            userData.settings.integrations[exchange].additionalSetting,)
+                        .then(response => {
+                            if (response.success) {
+                                console.log(`successfully loaded ${exchange} account data`, response.result)
+                                result[exchange] = response.result
+                            } else {
+                                console.error(`failed to load exchange ${exchange} data`, response)
+                            }
+                        })
                 }
                 return result
-            }, {} as { [p: string]: any });
-        binanceApiClient.getUserInfoAsync(
-            binanceIntegrationApiKey,
-            binanceIntegrationApiSecret,
-            binanceCurrencies,
-            binanceUserData
-        )
-            .then((accountInfo: AccountInfo) => {
-                if (accountInfo.account?.balances) {
-                    setBinanceUserData(accountInfo);
-                } else {
-                    console.warn('Error fetching account data from binance:', accountInfo);
-                }
-            });
+            }, {} as CcxtAccountsData);
+        const newCcxtAccountsData = {
+            ...ccxtUserData,
+            ...ccxtAccountsData,
+        }
+        setCcxtUserData(newCcxtAccountsData);
     };
-    useEffect(loadCcxtUserData, []);
+    useEffect(loadCcxtUserData, [loadingUserDataAllowed]);
     useInterval(loadCcxtUserData, 60_000);
 
     return {
         ccxtUserData, setCcxtUserData,
         enabledCcxtIntegrations,
+        setEnabledCcxtIntegrations,
+        getEnabledCcxtIntegrations,
     }
 }

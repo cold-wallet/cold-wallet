@@ -11,6 +11,7 @@ import FiatCurrency from "../fiatCurrencies/FiatCurrency";
 import MonobankCurrencyResponse from "../integrations/monobank/MonobankCurrencyResponse";
 import CoinGeckoPriceResponse from "../integrations/coingecko/CoinGeckoPriceResponse";
 import CoinGeckoCurrencyResponse from "../integrations/coingecko/CoinGeckoCurrencyResponse";
+import {CcxtAccountsData} from "../integrations/ccxt/CcxtLoader";
 
 export default interface Props {
     anyAssetExist: boolean,
@@ -43,8 +44,8 @@ export default interface Props {
     integrationWindowNameSelected: string | null,
     setIntegrationWindowNameSelected: Dispatch<SetStateAction<string | null>>,
 
-    enabledIntegrationSettings: Set<string>,
-    setEnabledIntegrationSettings: Dispatch<SetStateAction<Set<string>>>,
+    enabledCcxtIntegrations: Set<string>,
+    setEnabledCcxtIntegrations: Dispatch<SetStateAction<Set<string>>>,
     loadingUserDataFromResource: string | null,
     setLoadingUserDataFromResource: Dispatch<SetStateAction<string | null>>,
     currentSettingInputsInvalid: boolean,
@@ -57,8 +58,8 @@ export default interface Props {
     setCurrentIntegrationApiPassword: Dispatch<SetStateAction<string | null>>,
     currentIntegrationApiAdditionalSetting: string | null,
     setCurrentIntegrationApiAdditionalSetting: Dispatch<SetStateAction<string | null>>,
-    enabledIntegrationsUserData: { [p: string]: any },
-    setEnabledIntegrationsUserData: Dispatch<SetStateAction<{ [p: string]: any }>>,
+    ccxtUserData: CcxtAccountsData,
+    setCcxtUserData: Dispatch<SetStateAction<CcxtAccountsData>>,
 
     monobankCurrencies: { [index: string]: FiatCurrency } | null,
     monobankRates: MonobankCurrencyResponse[] | null,
