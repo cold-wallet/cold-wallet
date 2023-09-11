@@ -8,6 +8,15 @@ import okxIcon from "./../../../../resources/images/okx_icon.png";
 import okxLogo from "./../../../../resources/images/okx_logo_full.png";
 import Asset from "../Asset";
 
+export default function IntegrationAsset(asset: AssetDTO) {
+    return Asset(asset, <>
+        {asset.isMonobankAsset ? buildMonobankLogo() : null}
+        {asset.isBinanceAsset ? buildBinanceLogo() : null}
+        {asset.isOkxAsset ? buildOkxLogo() : null}
+        {asset.isCcxtAsset ? buildCcxtLogo(asset.ccxtExchangeName || "CCXT") : null}
+    </>)
+}
+
 function buildMonobankLogo() {
     return (
         <div title={"Monobank integration"}
@@ -62,10 +71,13 @@ function buildOkxLogo() {
     )
 }
 
-export default function IntegrationAsset(asset: AssetDTO) {
-    return Asset(asset, <>
-        {asset.isMonobankAsset ? buildMonobankLogo() : null}
-        {asset.isBinanceAsset ? buildBinanceLogo() : null}
-        {asset.isOkxAsset ? buildOkxLogo() : null}
-    </>)
+function buildCcxtLogo(exchangeName: string) {
+    return (
+        <div title={exchangeName + " integration"}
+             className={"asset-item-buttons-container--integration-logo--name"}>
+            <div className={"asset-item-buttons-container--ccxt-integration-name"}>
+                {exchangeName}
+            </div>
+        </div>
+    )
 }

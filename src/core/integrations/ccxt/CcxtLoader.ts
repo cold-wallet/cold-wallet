@@ -3,10 +3,10 @@ import {useEffect, useState} from "react";
 import useInterval from "../../utils/useInterval";
 import UserData from "../../domain/UserData";
 import ccxtConnector from "./ccxtConnector";
-import {Balances} from "ccxt/js/src/base/types";
+import AssetDTO from "../../domain/AssetDTO";
 
 export interface CcxtAccountsData {
-    [exchangeName: string]: Balances,
+    [exchangeName: string]: AssetDTO[],
 }
 
 export default function CcxtLoader(
@@ -30,31 +30,37 @@ export default function CcxtLoader(
         if (!loadingUserDataAllowed) {
             return
         }
-        const ccxtAccountsData = Array.from(enabledCcxtIntegrations)
-            .reduce((result, exchange) => {
-                if (userData.settings.integrations && userData.settings.integrations[exchange]) {
-                    ccxtConnector
-                        .loadUserData(exchange,
-                            userData.settings.integrations[exchange].apiKey,
-                            userData.settings.integrations[exchange].apiSecret,
-                            userData.settings.integrations[exchange].password,
-                            userData.settings.integrations[exchange].additionalSetting,)
-                        .then(response => {
-                            if (response.success) {
-                                console.log(`successfully loaded ${exchange} account data`, response.result)
-                                result[exchange] = response.result
-                            } else {
-                                console.error(`failed to load exchange ${exchange} data`, response)
-                            }
-                        })
+        Promise.all(Array.from(enabledCcxtIntegrations)
+            .filter(exchange => userData.settings.integrations && userData.settings.integrations[exchange])
+            .map(exchange => ccxtConnector.loadUserData(
+                exchange,
+                userData.settings.integrations[exchange].apiKey,
+                userData.settings.integrations[exchange].apiSecret,
+                userData.settings.integrations[exchange].password,
+                userData.settings.integrations[exchange].additionalSetting,
+            )))
+            .then(responses => responses
+                .reduce((result, response) => {
+                    if (response.result?.length) {
+                        const exchangeName = response.result
+                            .reduce((result, asset) => asset.ccxtExchangeName || result, "ccxt")
+                        result[exchangeName] = response.result
+                    }
+                    return result
+                }, {} as CcxtAccountsData)
+            )
+            .then(ccxtAccountsData => {
+                const newCcxtAccountsData = {
+                    ...ccxtUserData,
+                    ...ccxtAccountsData,
                 }
-                return result
-            }, {} as CcxtAccountsData);
-        const newCcxtAccountsData = {
-            ...ccxtUserData,
-            ...ccxtAccountsData,
-        }
-        setCcxtUserData(newCcxtAccountsData);
+                const disabledExchanges = Object.keys(ccxtUserData)
+                    .filter(exchangeName => !enabledCcxtIntegrations.has(exchangeName))
+
+                disabledExchanges.forEach(disabledExchange => delete newCcxtAccountsData[disabledExchange])
+
+                setCcxtUserData(newCcxtAccountsData);
+            })
     };
     useEffect(loadCcxtUserData, [loadingUserDataAllowed]);
     useInterval(loadCcxtUserData, 60_000);

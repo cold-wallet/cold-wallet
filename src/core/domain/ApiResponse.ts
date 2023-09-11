@@ -1,7 +1,7 @@
 export default class ApiResponse<R> {
     constructor(
         public success: boolean,
-        public result: R | any,
+        public result: R | null,
         public error: string | null,
         public code: number,
     ) {

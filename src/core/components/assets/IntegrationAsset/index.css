@@ -1,3 +1,7 @@
+.ccxt-logo {
+    color: white;
+}
+
 .asset-item-buttons-container--integration-logo--binance:hover {
   background-color: #181A20;
   border-radius: 5px;
@@ -73,7 +77,6 @@
   display: none;
 }
 
-
 .asset-item-buttons-container--integration-logo--container {
   display: flex;
   justify-content: flex-end;
@@ -83,6 +86,18 @@
   width: 100%;
   height: 100%;
   border-radius: 15%;
+}
+
+.asset-item-buttons-container--integration-logo--name {
+    background-color: #2D3142;
+    color: white;
+    padding: 1%;
+    border-radius: 5px;
+    font-weight: bold;
+    height: 70%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 @media only screen and (max-width: 1100px) {

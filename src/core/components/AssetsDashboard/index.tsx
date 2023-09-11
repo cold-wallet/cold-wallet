@@ -73,6 +73,14 @@ export default function AssetsDashboard(props: Props) {
             : null
     }
 
+    function buildCcxtIntegrationAssets() {
+        return Object.values(props.ccxtUserData)
+            .reduce((merged, current) => {
+                return merged.concat(current)
+            }, [])
+            .map(IntegrationAsset)
+    }
+
     function buildMonobankIntegrationAssets() {
         return props.userData.settings.monobankIntegrationEnabled && props.monobankUserData
             ? MonobankUserData.getAllAssets(props.monobankUserData).map(IntegrationAsset)
@@ -94,6 +102,7 @@ export default function AssetsDashboard(props: Props) {
                 {buildAssets()}
                 {buildBinanceIntegrationAssets()}
                 {buildOkxIntegrationAssets()}
+                {buildCcxtIntegrationAssets()}
                 {buildMonobankIntegrationAssets()}
             </div>
             {buildFirstPageStats()}
