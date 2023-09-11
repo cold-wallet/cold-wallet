@@ -70,8 +70,8 @@ export default function CoinGeckoLoader(
 
         const currenciesToLoadPrice = Object.entries(coinGeckoCurrencies)
             .slice(startIndex, endIndex)
-            .reduce((merged, current) => {
-                merged[current[0]] = current[1]
+            .reduce((merged, [ticker, currency]) => {
+                merged[ticker] = currency
                 return merged
             }, {} as { [index: string]: CoinGeckoCurrencyResponse })
 

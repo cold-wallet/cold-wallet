@@ -35,9 +35,9 @@ const apiClient = {
             });
             if (pricesResponse.data && Object.keys(pricesResponse.data).length) {
                 const result = Object.entries(pricesResponse.data)
-                    .reduce((merged, current) => {
-                        const symbol = currencyIdToSymbol.get(current[0])
-                        symbol && (merged[symbol] = current[1])
+                    .reduce((merged, [currency, prices]) => {
+                        const symbol = currencyIdToSymbol.get(currency)
+                        symbol && (merged[symbol] = prices)
                         return merged
                     }, {} as CoinGeckoPriceResponse)
                 return ApiResponse.success(200, result,)
