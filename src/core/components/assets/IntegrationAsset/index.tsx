@@ -64,8 +64,8 @@ function buildOkxLogo() {
 
 export default function IntegrationAsset(asset: AssetDTO) {
     return Asset(asset, <>
-            {asset.isMonobankAsset ? buildMonobankLogo() : null}
-            {asset.isBinanceAsset ? buildBinanceLogo() : null}
+        {asset.isMonobankAsset ? buildMonobankLogo() : null}
+        {asset.isBinanceAsset ? buildBinanceLogo() : null}
         {asset.isOkxAsset ? buildOkxLogo() : null}
     </>)
 }
