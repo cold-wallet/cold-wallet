@@ -12,12 +12,32 @@ export default function NotLoggedIn(props: Props) {
         <div className={"startup-login-box layer-1-themed-color"}>
             {props.importOrExportSettingRequested === null
                 ? <>
-                    {CreateWalletButton(props.setUserDataHolder,)}
-                    {ImportWalletButton(props.setImportOrExportSettingRequested,)}
+                    {CreateWalletButton(props)}
+                    {ImportWalletButton(props)}
+                    {buildAgreeWithPolicyCheckbox(props)}
                 </>
                 : buildImportPad(props)}
         </div>
     );
+}
+
+function buildAgreeWithPolicyCheckbox(props: Props) {
+    return (
+        <div className="agree-with-policy--box">
+            <label className={"clickable"}>
+                <input className={"agree-with-policy--checkbox"}
+                       checked={props.termsAndPolicyAgreed}
+                       onChange={e => props.setTermsAndPolicyAgreed(e.target.checked)}
+                       type={"checkbox"}/>
+                &nbsp;
+                <span className={"agree-with-policy--label"}>
+                    I have read and accept&nbsp;
+                    <a href="/terms">Terms of Use</a>&nbsp;
+                    and <a href="/privacy-policy">Privacy Policy</a>
+                </span>
+            </label>
+        </div>
+    )
 }
 
 function buildImportPad(props: Props) {

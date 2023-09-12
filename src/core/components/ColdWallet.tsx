@@ -25,6 +25,8 @@ export default function ColdWallet(
         },
     }
 ) {
+    const [termsAndPolicyAgreed, setTermsAndPolicyAgreed] = useState<boolean>(false);
+
     const [
         pinCode,
         setPinCode
@@ -265,6 +267,7 @@ export default function ColdWallet(
         stateReset,
         showConfigsWindow, setShowConfigsWindow,
         integrationWindowNameSelected, setIntegrationWindowNameSelected,
+        termsAndPolicyAgreed, setTermsAndPolicyAgreed,
 
         enabledCcxtIntegrations, setEnabledCcxtIntegrations,
         loadingUserDataFromResource, setLoadingUserDataFromResource,

@@ -43,6 +43,8 @@ export default interface Props {
     setShowConfigsWindow: Dispatch<SetStateAction<boolean>>,
     integrationWindowNameSelected: string | null,
     setIntegrationWindowNameSelected: Dispatch<SetStateAction<string | null>>,
+    termsAndPolicyAgreed: boolean,
+    setTermsAndPolicyAgreed: Dispatch<SetStateAction<boolean>>,
 
     enabledCcxtIntegrations: Set<string>,
     setEnabledCcxtIntegrations: Dispatch<SetStateAction<Set<string>>>,
