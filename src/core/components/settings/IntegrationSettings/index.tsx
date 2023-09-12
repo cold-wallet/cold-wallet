@@ -38,7 +38,6 @@ async function validateGenericSettings(
             );
             if (response.success) {
                 const accountInfo = response.result;
-                console.log("accountInfo", accountInfo)
                 const newUserData = {...props.ccxtUserData}
                 newUserData[exchangeName] = accountInfo
                 props.setCcxtUserData(newUserData)
