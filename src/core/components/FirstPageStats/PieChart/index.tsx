@@ -6,6 +6,7 @@ import CurrencyRates from "../../../currencyRates/CurrencyRates";
 import Highcharts from "highcharts";
 import highCharts3d from 'highcharts/highcharts-3d'
 import HighchartsReact from "highcharts-react-official";
+import numberFormat from "../../../utils/numberFormat";
 
 highCharts3d(Highcharts);
 
@@ -46,6 +47,7 @@ export default function PieChart(
         prefix?: string,
         type: AssetType,
         trueAmount: number,
+        decimalScale: number,
         y: number, // point's value
     }
 
@@ -69,6 +71,7 @@ export default function PieChart(
                     type: asset.type,
                     currency: asset.currency,
                     trueAmount: +asset.amount,
+                    decimalScale: asset.decimalScale,
                     y: y,
                 } as Point)
             })
@@ -89,6 +92,7 @@ export default function PieChart(
                     prefix: "Other " + AssetType[current.type],
                     currency: "other" + AssetType[current.type],
                     trueAmount: merged.trueAmount + current.trueAmount,
+                    decimalScale: Math.max(merged.decimalScale, current.decimalScale),
                     y: merged.y + current.y,
                 } as Point))
 
@@ -112,6 +116,7 @@ export default function PieChart(
                 prefix: AssetType[merged.type].toUpperCase(),
                 type: merged.type,
                 currency: AssetType[merged.type],
+                decimalScale: Math.max(merged.decimalScale, current.decimalScale),
                 y: merged.y + current.y,
             } as Point))
         }
@@ -123,6 +128,7 @@ export default function PieChart(
             name: `${merged.name}<br>${current.name}`,
             prefix: isPortrait ? "" : "Total",
             currency: "Total",
+            decimalScale: Math.max(merged.decimalScale, current.decimalScale),
             y: merged.y + current.y,
         } as Point))
 
@@ -138,6 +144,7 @@ export default function PieChart(
                         thisCurrency.y += current.y
                         thisCurrency.trueAmount += current.trueAmount
                         thisCurrency.name = `${thisCurrency.name}<br>${current.name}`;
+                        thisCurrency.decimalScale = Math.max(thisCurrency.decimalScale, current.decimalScale)
                     } else {
                         merged[current.currency] = {
                             name: `${current.name}`,
@@ -145,12 +152,14 @@ export default function PieChart(
                             type: current.type,
                             y: current.y,
                             trueAmount: current.trueAmount,
+                            decimalScale: current.decimalScale,
                         } as Point
                     }
                     return merged
                 }, {}))
                 .map(point => {
-                    point.prefix = `<b>${stringifyAmount(point.trueAmount)} ${point.currency}</b><br/>`
+                    const amount = stringifyAmount(numberFormat(point.trueAmount, point.decimalScale));
+                    point.prefix = `<b>${amount} ${point.currency}</b><br/>`
                     return point
                 });
             return [separateTooSmallAssets(assetsPerCurrency), atLeastOneIsBiggerThatOnePercent]
