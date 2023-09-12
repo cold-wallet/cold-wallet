@@ -7,6 +7,7 @@ import binanceLogo from "./../../../../resources/images/binance_logo.png";
 import okxIcon from "./../../../../resources/images/okx_icon.png";
 import okxLogo from "./../../../../resources/images/okx_logo_full.png";
 import Asset from "../Asset";
+import ccxt from "ccxt";
 
 export default function IntegrationAsset(asset: AssetDTO) {
     return Asset(asset, <>
@@ -72,11 +73,18 @@ function buildOkxLogo() {
 }
 
 function buildCcxtLogo(exchangeName: string) {
+    let logo;
+    try {
+        logo = (ccxt as any)[exchangeName] && new (ccxt as any)[exchangeName]()?.describe()?.urls?.logo
+    } catch (e: any) {
+        console.error(e)
+        logo = null
+    }
     return (
         <div title={exchangeName + " integration"}
-             className={"asset-item-buttons-container--integration-logo--name"}>
-            <div className={"asset-item-buttons-container--ccxt-integration-name"}>
-                {exchangeName}
+             className={"asset-item-buttons-container--integration-logo--" + (logo ? "img" : "name")}>
+            <div className={"asset-item-buttons-container--ccxt-integration-" + (logo ? "img" : "name")}>
+                {logo ? <img src={logo} alt={exchangeName} title={exchangeName}/> : exchangeName}
             </div>
         </div>
     )

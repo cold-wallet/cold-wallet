@@ -1,6 +1,5 @@
 import ccxt from "ccxt";
 import ApiResponse from "../../domain/ApiResponse";
-import {Balances} from "ccxt/js/src/base/types";
 import fiatCurrencies from "../../fiatCurrencies";
 import AssetDTO, {AssetType} from "../../domain/AssetDTO";
 
@@ -15,26 +14,27 @@ const ccxtConnector = {
         const exchangeClass = (ccxt as any)[exchange];
         if (exchangeClass) {
             try {
-                const balances: Balances = await new exchangeClass({
+                const exchangeInstance = new exchangeClass({
                     apiKey: apiKey,
                     secret: apiSecret,
                     password: password,
                     proxyUrl,
-                }).fetchBalance();
-                const nonZeroBalances = {} as Balances
+                });
+                const balances: { [currency: string]: number } = await exchangeInstance.fetchTotalBalance()
+                const nonZeroBalances = {} as { [currency: string]: number }
                 Object.entries(balances)
-                    .filter(([, balance]) => Number(balance.total))
-                    .forEach(([currency, balance]) => nonZeroBalances[currency] = balance)
+                    .filter(([, total]) => Number(total))
+                    .forEach(([currency, total]) => nonZeroBalances[currency] = total)
                 console.log(`successfully loaded ${exchange} account data`, nonZeroBalances)
                 const assets = Object.entries(nonZeroBalances)
-                    .map(([currency, balance]) => {
+                    .map(([currency, total]) => {
                         const name = `${currency} SPOT`;
                         const fiatCurrency = fiatCurrencies.getByStringCode(currency);
                         const isFiat = !!fiatCurrency
                         return new AssetDTO(
                             `${exchange}_${name}`,
                             currency,
-                            String(balance.total),
+                            String(total),
                             name,
                             fiatCurrency?.afterDecimalPoint || 8, // todo: in future, inject correct value by fetching from appropriate service
                             isFiat ? AssetType.fiat : AssetType.crypto,
