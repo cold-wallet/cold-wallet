@@ -41,7 +41,10 @@ export default function FirstPageStatsChart(data: { props: Props }) {
             if (props.userData.settings.okxIntegrationEnabled) {
                 assets = assets.concat(OkxAccount.getAllAssets(props.okxUserData))
             }
-            return assets
+            return Object.values(props.ccxtUserData)
+                .reduce((merged, current) => {
+                    return merged.concat(current)
+                }, assets)
         },
         [
             props.userData,
