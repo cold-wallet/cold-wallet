@@ -59,7 +59,7 @@ export default function PieChart(
             .map(asset => {
                 let y = props.rates.transform(asset.currency, +asset.amount, "USD");
                 if (isNaN(y)) {
-                    console.warn("!!!!!")
+                    console.warn("!!!!!") // for debugging, in case this happen once more
                     y = props.rates.transform(asset.currency, +asset.amount, "USD");
                 }
                 return ({
