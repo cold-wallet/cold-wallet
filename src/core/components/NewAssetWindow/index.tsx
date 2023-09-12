@@ -5,22 +5,18 @@ import btcIcon from "../../../resources/images/btc.png";
 import ethIcon from "../../../resources/images/eth.png";
 import compareStrings from "../../utils/compareStrings";
 import React, {JSX} from "react";
-import thirdPartyIntegrations from "../integrations/ThirdPartyIntegrations";
 import binanceIntegration from "../integrations/BinanceIntegrationPad";
 import okxIntegration from "../integrations/OkxIntegrationPad";
 import monobankIntegration from "../integrations/MonobankIntegrationPad";
 import IntegrationSettings from "../settings/IntegrationSettings";
 import Props from "../Props";
+import SelectIntegration, {Option} from "../integrations/SelectIntegration";
 
 export default function NewAssetWindow(props: Props) {
 
     const onNewAssetCurrencySelected = (currency: string | null) => {
         props.setNewAssetCurrency(currency);
         props.setShowCreateNewAssetWindow(false);
-    }
-
-    const onNewAssetIntegrationSelected = (integration: string | null) => {
-        props.setIntegrationWindowNameSelected(integration)
     }
 
     const buildFiatCurrencyButton = ({symbol, child}: { symbol: string, child: JSX.Element }) => {
@@ -73,16 +69,6 @@ export default function NewAssetWindow(props: Props) {
         }
     }
 
-    interface Option {
-        label: string,
-        value: string,
-    }
-
-    const integrationOptions: Option[] = thirdPartyIntegrations.map(({name}) => ({
-        value: name,
-        label: name,
-    }))
-
     function defaultView() {
         return (<div className="new-asset-controls-box flex-box-centered flex-direction-row">
             <div className="new-asset-choose-box flex-box-centered flex-direction-column">
@@ -114,13 +100,7 @@ export default function NewAssetWindow(props: Props) {
             </div>
             <div className="new-asset-choose-box flex-box-centered flex-direction-column">
                 <div className="new-asset-choose-title text-label">Choose your integration</div>
-                <div className="new-asset-choose-select-box">
-                    <Select
-                        className={"new-asset-choose-select"}
-                        defaultValue={null}
-                        onChange={e => onNewAssetIntegrationSelected(e?.value || null)}
-                        options={integrationOptions}/>
-                </div>
+                <SelectIntegration onSelect={props.setIntegrationWindowNameSelected}/>
                 <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>{
                     [
                         {integration: binanceIntegration, isEnabled: props.binanceSettingsEnabled},
@@ -128,7 +108,7 @@ export default function NewAssetWindow(props: Props) {
                         {integration: monobankIntegration, isEnabled: props.monobankSettingsEnabled},
 
                     ].map(({integration, isEnabled}) => integration.element(
-                        () => onNewAssetIntegrationSelected(integration.name), isEnabled)
+                        () => props.setIntegrationWindowNameSelected(integration.name), isEnabled)
                     )
                 }</div>
             </div>

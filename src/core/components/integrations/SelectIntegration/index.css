@@ -1,0 +1,39 @@
+.new-asset-choose-select-box {
+    width: 100%;
+    height: 10%;
+}
+
+.integration-settings .new-asset-choose-select-box {
+    height: 100%;
+}
+
+.new-asset-choose-select {
+    width: 100%;
+}
+
+@media only screen and (max-width: 920px) and (orientation: landscape) {
+
+    .new-asset-choose-select-box .new-asset-choose-select--menu {
+        margin-top: 0;
+        height: 600%;
+    }
+
+    .new-asset-choose-select-box .new-asset-choose-select--menu-list {
+        height: 100%;
+    }
+
+    .new-asset-choose-buttons {
+        height: 75%;
+    }
+
+}
+
+
+@media only screen and (max-width: 920px) and (orientation: portrait) {
+
+    .new-asset-choose-select-box {
+        height: 5%;
+    }
+
+}
+

@@ -11,6 +11,7 @@ import PinCodeSetting from "../PinCode";
 import Props from "../../Props";
 import {buildSettingContent, onSaveSetting} from "../IntegrationSettings";
 import SettingUnit from "../SettingUnit";
+import SelectIntegration from "../../integrations/SelectIntegration";
 
 export default function SettingsWindow(props: Props) {
 
@@ -30,7 +31,9 @@ export default function SettingsWindow(props: Props) {
                 ].map(({integration, isEnabled}) => integration.element(
                     () => props.setIntegrationWindowNameSelected(integration.name), isEnabled
                 ))
-            }</div>
+            }
+                <SelectIntegration onSelect={props.setIntegrationWindowNameSelected}/>
+            </div>
             <div className={"setting-label text-label"}>Assets data import/export</div>
             <div className={"choose-setting--row flex-box"}>
                 <div
