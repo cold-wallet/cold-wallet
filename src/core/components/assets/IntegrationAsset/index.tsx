@@ -82,8 +82,10 @@ function buildCcxtLogo(exchangeName: string) {
     }
     return (
         <div title={exchangeName + " integration"}
-             className={"asset-item-buttons-container--integration-logo--" + (logo ? "img" : "name")}>
-            <div className={"asset-item-buttons-container--ccxt-integration-" + (logo ? "img" : "name")}>
+             className={"asset-item-buttons-container--integration-logo--"
+                 + (logo ? "img flex-box-centered" : "name")}>
+            <div className={" asset-item-buttons-container--ccxt-integration-"
+                + (logo ? "img flex-box-centered" : "name")}>
                 {logo ? <img src={logo} alt={exchangeName} title={exchangeName}/> : exchangeName}
             </div>
         </div>
