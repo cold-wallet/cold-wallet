@@ -50,8 +50,9 @@ export default function PieChart(
     }
 
     const isPortrait = window.innerHeight > window.innerWidth;
-    const chartHeight = isPortrait ? (window.innerWidth * 0.65) : (window.innerHeight * 0.7)
     const chartWidth = isPortrait ? (window.innerWidth) : (window.innerWidth * 0.6)
+    const chartHeight = isPortrait ? (window.innerWidth * 0.65)
+        : Math.min(window.innerHeight * 0.7, chartWidth * 0.65)
 
     const createChartOptions = (assets: AssetDTO[]) => {
         let amountPerTypeChartData: Point[] = []
@@ -120,7 +121,7 @@ export default function PieChart(
 
         const totalAmountAsset = amountPerTypeChartData.reduce((merged, current) => ({
             name: `${merged.name}<br>${current.name}`,
-            prefix: "Total",
+            prefix: isPortrait ? "" : "Total",
             currency: "Total",
             y: merged.y + current.y,
         } as Point))
@@ -244,7 +245,8 @@ export default function PieChart(
                     },
                 },
                 dataLabels: {
-                    distance: -20
+                    distance: -20,
+                    enabled: chartHeight >= 450// !isPortrait,
                 },
                 allowPointSelect: false,
                 data: [totalAmountAsset],
