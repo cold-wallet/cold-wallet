@@ -12,6 +12,9 @@ import MonobankCurrencyResponse from "../integrations/monobank/MonobankCurrencyR
 import CoinGeckoPriceResponse from "../integrations/coingecko/CoinGeckoPriceResponse";
 import CoinGeckoCurrencyResponse from "../integrations/coingecko/CoinGeckoCurrencyResponse";
 import {CcxtAccountsData} from "../integrations/ccxt/CcxtLoader";
+import {CurrencyService} from "../services/CurrencyService";
+import Option from "./integrations/SelectIntegration/Option";
+import PriceService from "../services/PriceService";
 
 export default interface Props {
     anyAssetExist: boolean,
@@ -149,4 +152,7 @@ export default interface Props {
     deletePinCodeRequested: boolean,
     setDeletePinCodeRequested: Dispatch<SetStateAction<boolean>>,
 
+    priceService: PriceService,
+    currencyService: CurrencyService,
+    currencyOptions: Option[],
 }

@@ -16,6 +16,10 @@ import AssetDTO from "../domain/AssetDTO";
 import OnStartupLoader from "./OnStartupLoader";
 import Props from "./Props";
 import CcxtLoader from "../integrations/ccxt/CcxtLoader";
+import {CurrencyService} from "../services/CurrencyService";
+import {compareStringsIgnoreCase} from "../utils/compareStrings";
+import Option from "./integrations/SelectIntegration/Option";
+import PriceService from "../services/PriceService";
 
 export default function ColdWallet(
     {properties}: {
@@ -251,6 +255,41 @@ export default function ColdWallet(
         setCurrentIntegrationApiAdditionalSetting(null)
     }
 
+    const currencyService = useMemo(() => new CurrencyService(
+        binanceCurrencies || {},
+        monobankCurrencies || {},
+        okxCurrencies || {},
+        coinGeckoCurrencies || {},
+    ), [binanceCurrencies,
+        monobankCurrencies,
+        okxCurrencies,
+        coinGeckoCurrencies])
+
+    const priceService = useMemo(() => new PriceService(
+        binancePrices || {},
+        monobankRates || [],
+        okxPrices || {},
+        coinGeckoPrices || {},
+    ), [binancePrices,
+        monobankRates,
+        okxPrices,
+        coinGeckoPrices])
+
+    function getCurrencyOptions(): Option[] {
+        return Array.from(currencyService.getCurrencyList())
+            .sort(compareStringsIgnoreCase)
+            .filter(o => o)
+            .map(option => ({
+                value: option,
+                label: option,
+            }))
+    }
+
+    const currencyOptions = useMemo(getCurrencyOptions, [binanceCurrencies,
+        monobankCurrencies,
+        okxCurrencies,
+        coinGeckoCurrencies])
+
     const props: Props = {
         anyAssetExist,
         showCreateNewAssetWindow, setShowCreateNewAssetWindow,
@@ -323,6 +362,9 @@ export default function ColdWallet(
         invalidPinCode, setInvalidPinCode,
         currentPinCodeConfirmed, setCurrentPinCodeConfirmed,
         deletePinCodeRequested, setDeletePinCodeRequested,
+        currencyService,
+        priceService,
+        currencyOptions,
     };
     return (
         <div className={"application layer-0-themed-color"}>

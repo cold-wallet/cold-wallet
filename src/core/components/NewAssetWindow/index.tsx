@@ -1,16 +1,15 @@
 import './index.css';
-import Select from 'react-select'
 import usdtIcon from "../../../resources/images/usdt.png";
 import btcIcon from "../../../resources/images/btc.png";
 import ethIcon from "../../../resources/images/eth.png";
-import compareStrings from "../../utils/compareStrings";
 import React, {JSX} from "react";
 import binanceIntegration from "../integrations/BinanceIntegrationPad";
 import okxIntegration from "../integrations/OkxIntegrationPad";
 import monobankIntegration from "../integrations/MonobankIntegrationPad";
 import IntegrationSettings from "../settings/IntegrationSettings";
 import Props from "../Props";
-import SelectIntegration, {Option} from "../integrations/SelectIntegration";
+import SelectIntegration from "../integrations/SelectIntegration";
+import Select from "react-select";
 
 export default function NewAssetWindow(props: Props) {
 
@@ -19,7 +18,10 @@ export default function NewAssetWindow(props: Props) {
         props.setShowCreateNewAssetWindow(false);
     }
 
-    const buildFiatCurrencyButton = ({symbol, child}: { symbol: string, child: JSX.Element }) => {
+    const buildFiatCurrencyButton = ({symbol, child}: {
+        symbol: string,
+        child: JSX.Element
+    }) => {
         return {
             symbol,
             type: "fiat",
@@ -30,7 +32,10 @@ export default function NewAssetWindow(props: Props) {
         }
     }
 
-    const buildCryptoCurrencyButton = ({symbol, icon}: { symbol: string, icon: string }) => {
+    const buildCryptoCurrencyButton = ({symbol, icon}: {
+        symbol: string,
+        icon: string
+    }) => {
         return {
             symbol,
             type: "crypto",
@@ -50,16 +55,6 @@ export default function NewAssetWindow(props: Props) {
         {symbol: "BTC", icon: btcIcon},
         {symbol: "ETH", icon: ethIcon},
     ].map(buildCryptoCurrencyButton));
-
-    let totalCurrencies = Object.keys(props.monobankCurrencies || {})
-        .concat(props.binanceCurrencies ? Object.keys(props.binanceCurrencies) : []);
-
-    const currencyOptions: Option[] = Array.from(new Set<string>(totalCurrencies))
-        .sort(compareStrings)
-        .map(option => ({
-            value: option,
-            label: option,
-        }))
 
     const onClose = () => {
         props.stateReset()
@@ -82,7 +77,8 @@ export default function NewAssetWindow(props: Props) {
                         }}
                         defaultValue={null}
                         onChange={e => onNewAssetCurrencySelected(e?.value || null)}
-                        options={currencyOptions}/>
+                        options={props.currencyOptions}
+                    />
                 </div>
                 <div className="new-asset-choose-buttons flex-box-centered">
                     {

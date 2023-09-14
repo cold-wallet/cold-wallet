@@ -2,7 +2,7 @@ import './index.css';
 import React, {useMemo} from "react";
 import AssetDTO, {AssetType} from "../../../domain/AssetDTO";
 import noExponents from "../../../utils/noExponents";
-import CurrencyRates from "../../../currencyRates/CurrencyRates";
+import PriceService from "../../../services/PriceService";
 import Highcharts from "highcharts";
 import highCharts3d from 'highcharts/highcharts-3d'
 import HighchartsReact from "highcharts-react-official";
@@ -36,7 +36,7 @@ export default function PieChart(
     {props}: {
         props: {
             assets: AssetDTO[],
-            rates: CurrencyRates,
+            rates: PriceService,
         },
     }
 ) {

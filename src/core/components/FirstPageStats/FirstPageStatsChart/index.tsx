@@ -4,18 +4,13 @@ import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
 import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 import PieChartSvg from "../PieChartSvg";
 import TreemapChartSvg from "../TreemapChartSvg";
-import CurrencyRates from "../../../currencyRates/CurrencyRates";
 import TreeChart from "../TreeChart";
 import PieChart from "../PieChart";
 import NextPageButtonSvg from "../../buttons/NextPageButtonSvg/NextPageButton.svg";
 import {OkxAccount} from "../../../integrations/okx/okxApiClient";
 import Props from "../../Props";
 
-export default function FirstPageStatsChart(data: { props: Props }) {
-    const props = data.props
-    const rates = (props.binancePrices && props.monobankRates && props.okxPrices &&
-        new CurrencyRates(props.binancePrices, props.monobankRates, props.okxPrices)) || null
-
+export default function FirstPageStatsChart({props}: { props: Props }) {
     const pieControls = [{
         image: props.firstPageChartView === 'tree' ? <PieChartSvg/> : <TreemapChartSvg/>,
         text: "Chart type",
@@ -53,20 +48,16 @@ export default function FirstPageStatsChart(data: { props: Props }) {
             props.okxUserData,
         ]);
 
-    if (!rates) {
-        return null
-    }
-
     return <div className={"chart-total-pie-box flex-box-centered flex-direction-column layer-0-themed-color"}>
         <div className="chart-total-pie-main flex-box-centered">
             {props.firstPageChartView === 'tree'
                 ? <TreeChart props={{
                     assets,
-                    rates,
+                    rates: props.priceService,
                 }}/>
                 : <PieChart props={{
                     assets,
-                    rates,
+                    rates: props.priceService,
                 }}/>}
         </div>
         <div className="chart-total-pie-controls flex-box flex-direction-row">{

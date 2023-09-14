@@ -1,5 +1,6 @@
 import fiatCurrencies from "../fiatCurrencies";
 import MonobankCurrencyResponse from "../integrations/monobank/MonobankCurrencyResponse";
+import CoinGeckoPriceResponse from "../integrations/coingecko/CoinGeckoPriceResponse";
 
 const uahNumCode = 980;
 const eurNumCode = 978;
@@ -12,11 +13,12 @@ function isFiat(currency: string) {
     return !!fiatCurrencies.getByStringCode(currency)
 }
 
-export default class CurrencyRates {
+export default class PriceService {
     constructor(
-        private binancePrices: { [index: string]: string },
-        private monobankRates: MonobankCurrencyResponse[],
-        private okxPrices: { [index: string]: string },
+        private binancePrices: { [p: string]: string },
+        private monobankPrices: MonobankCurrencyResponse[],
+        private okxPrices: { [p: string]: string },
+        private coingeckoPrices: CoinGeckoPriceResponse,
     ) {
     }
 
@@ -36,7 +38,7 @@ export default class CurrencyRates {
     }
 
     private findFiatRate(left: number, right: number) {
-        const rate = this.monobankRates.filter(r => (r.currencyCodeA === left)
+        const rate = this.monobankPrices.filter(r => (r.currencyCodeA === left)
             && (r.currencyCodeB === right))[0];
 
         return (rate.rateCross || rate.rateBuy)// ((rate.rateBuy + rate.rateSell) / 2));
@@ -71,6 +73,29 @@ export default class CurrencyRates {
     }
 
     private getCryptoPrice(left: string, right: string) {
+        const fetchPrice = (receiver: (left: string, right: string) => number) => {
+            try {
+                return receiver(left, right)
+            } catch (e: any) {
+                console.error(e)
+            }
+        }
+        const prices = [
+            () => this.getCryptoPriceBinance(left, right),
+            () => this.getCryptoPriceOKX(left, right),
+            () => this.getCryptoPriceCoingecko(left, right),]
+            .map(fetchPrice)
+            .filter(o => o) as number[]
+
+        if (!prices.length) {
+            console.warn(`price ${left}-${right} not found`)
+            return 0
+        }
+        const pricesSum = prices.reduce((a, b) => a + b, 0)
+        return pricesSum / prices.length
+    }
+
+    private getCryptoPriceBinance(left: string, right: string) {
         let price = +(this.binancePrices[`${left}${right}`]);
         if (price && !isNaN(price)) {
             return price;
@@ -101,6 +126,23 @@ export default class CurrencyRates {
         }
         const price1 = +(this.okxPrices[`${left}-${USDT}`]);
         const price2 = +(this.okxPrices[`${right}-${USDT}`]);
+        price = price1 / price2;
+        return price;
+    }
+
+    private getCryptoPriceCoingecko(left: string, right: string) {
+        const leftLower = left.toLowerCase();
+        const rightLower = right.toLowerCase();
+        const pricesLeft = this.coingeckoPrices[leftLower];
+        const pricesRight = this.coingeckoPrices[rightLower];
+        let price = pricesLeft
+            ? pricesLeft[rightLower]
+            : pricesRight ? pricesRight[leftLower] : undefined;
+        if (price) {
+            return price;
+        }
+        const price1 = pricesLeft['uah'];
+        const price2 = pricesRight['uah'];
         price = price1 / price2;
         return price;
     }

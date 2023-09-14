@@ -32,7 +32,7 @@ export default function FirstPageStats(props: Props) {
         <div className={"first-page-stats-box"}>
             {props.loaded
                 ? <Suspense fallback={getLoadingWindow()}>
-                    <FirstPageStatsChart props={{...props}}/>
+                    <FirstPageStatsChart props={props}/>
                 </Suspense>
                 : getLoadingWindow()}
         </div>
