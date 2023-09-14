@@ -61,7 +61,7 @@ const apiClient = {
             if (response.data?.length) {
                 const currencies = response.data
                     .reduce((merged: { [p: string]: CoinGeckoCurrencyResponse }, currency) => {
-                        merged[currency.symbol] = currency
+                        merged[currency.symbol.toUpperCase()] = currency
                         return merged
                     }, {});
                 return ApiResponse.success(200, currencies,)
