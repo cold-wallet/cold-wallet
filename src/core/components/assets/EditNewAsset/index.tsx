@@ -9,7 +9,8 @@ export default function EditNewAsset(props: Props) {
     let fiatCurrency = fiatCurrencies.getByStringCode(newAssetCurrency);
     const decimalScale = fiatCurrency
         ? fiatCurrency.afterDecimalPoint
-        : ((props.binanceCurrencies && props.binanceCurrencies[newAssetCurrency].precision) || 8);
+        : ((props.binanceCurrencies && props.binanceCurrencies[newAssetCurrency]
+            && props.binanceCurrencies[newAssetCurrency].precision) || 8);
     if (props.newAssetName == null) {
         props.setNewAssetName(`${props.newAssetCurrency} amount`);
     }
