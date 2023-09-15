@@ -3,13 +3,11 @@ import usdtIcon from "../../../resources/images/usdt.png";
 import btcIcon from "../../../resources/images/btc.png";
 import ethIcon from "../../../resources/images/eth.png";
 import React, {JSX} from "react";
-import binanceIntegration from "../integrations/BinanceIntegrationPad";
-import okxIntegration from "../integrations/OkxIntegrationPad";
-import monobankIntegration from "../integrations/MonobankIntegrationPad";
 import IntegrationSettings from "../settings/IntegrationSettings";
 import Props from "../Props";
 import SelectIntegration from "../integrations/SelectIntegration";
 import Select from "react-select";
+import IntegrationPads from "../integrations/IntegrationPads";
 
 export default function NewAssetWindow(props: Props) {
 
@@ -97,16 +95,9 @@ export default function NewAssetWindow(props: Props) {
             <div className="new-asset-choose-box flex-box-centered flex-direction-column">
                 <div className="new-asset-choose-title text-label">Choose your integration</div>
                 <SelectIntegration onSelect={props.setIntegrationWindowNameSelected}/>
-                <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>{
-                    [
-                        {integration: binanceIntegration, isEnabled: props.binanceSettingsEnabled},
-                        {integration: okxIntegration, isEnabled: props.okxSettingsEnabled},
-                        {integration: monobankIntegration, isEnabled: props.monobankSettingsEnabled},
-
-                    ].map(({integration, isEnabled}) => integration.element(
-                        () => props.setIntegrationWindowNameSelected(integration.name), isEnabled)
-                    )
-                }</div>
+                <div className={"new-asset-choose-buttons flex-box-centered flex-direction-column"}>
+                    {IntegrationPads(props)}
+                </div>
             </div>
         </div>)
     }

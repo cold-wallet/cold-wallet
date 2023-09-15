@@ -1,8 +1,5 @@
 import './index.css';
 import React from "react";
-import monobankIntegration from "../../integrations/MonobankIntegrationPad";
-import binanceIntegration from "../../integrations/BinanceIntegrationPad";
-import okxIntegration from "../../integrations/OkxIntegrationPad";
 import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
 import ModalWindow from "../../ModalWindow";
@@ -12,6 +9,7 @@ import Props from "../../Props";
 import {buildSettingContent, onSaveSetting} from "../IntegrationSettings";
 import SettingUnit from "../SettingUnit";
 import SelectIntegration from "../../integrations/SelectIntegration";
+import IntegrationPads from "../../integrations/IntegrationPads";
 
 export default function SettingsWindow(props: Props) {
 
@@ -22,16 +20,8 @@ export default function SettingsWindow(props: Props) {
     function buildDefaultView() {
         return (<>
             <div className={"setting-label text-label"}>Configure integrations with third-party services</div>
-            <div className="integration-settings">{
-                [
-                    {integration: binanceIntegration, isEnabled: props.binanceSettingsEnabled},
-                    {integration: okxIntegration, isEnabled: props.okxSettingsEnabled},
-                    {integration: monobankIntegration, isEnabled: props.monobankSettingsEnabled},
-
-                ].map(({integration, isEnabled}) => integration.element(
-                    () => props.setIntegrationWindowNameSelected(integration.name), isEnabled
-                ))
-            }
+            <div className="integration-settings">
+                {IntegrationPads(props)}
                 <SelectIntegration onSelect={props.setIntegrationWindowNameSelected}/>
             </div>
             <div className={"setting-label text-label"}>Assets data import/export</div>
