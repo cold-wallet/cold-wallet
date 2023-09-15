@@ -24,7 +24,7 @@
 
 .integration-settings {
   display: grid;
-  grid-auto-rows: 48%;
+  grid-auto-rows: 33%;
   grid-template-columns: 49% 49%;
   grid-column-gap: 1%;
   grid-row-gap: 4%;
