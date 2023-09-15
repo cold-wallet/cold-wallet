@@ -18,6 +18,11 @@ export default function SelectIntegration(
     return (
         <div className="new-asset-choose-select-box flex-box-centered">
             <Select
+                classNames={{
+                    container: () => "new-asset-choose-select",
+                    menu: () => "new-asset-choose-select--menu",
+                    menuList: () => "new-asset-choose-select--menu-list",
+                }}
                 placeholder="Select integration..."
                 className={"new-asset-choose-select"}
                 defaultValue={null}
