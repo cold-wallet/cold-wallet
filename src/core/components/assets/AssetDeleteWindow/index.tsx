@@ -3,9 +3,6 @@ import './index.css'
 import ModalWindow from "../../ModalWindow";
 import NegativeButton from "../../buttons/NegativeButton";
 import NeutralButton from "../../buttons/NeutralButton";
-import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
-import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
-import {OkxAccount} from "../../../integrations/okx/okxApiClient";
 import Props from "../../Props";
 
 export default function AssetDeleteWindow(props: Props) {
@@ -19,10 +16,8 @@ export default function AssetDeleteWindow(props: Props) {
         props.setUserData(userDataNew);
         props.stateReset();
 
-        let anyAssetExist = !!(userDataNew.assets.length)
-            || (props.userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(props.binanceUserData))
-            || (props.userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(props.okxUserData))
-            || (props.userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(props.monobankUserData))
+        let anyAssetExist = props.getAnyAssetExist(userDataNew, props.binanceUserData, props.okxUserData,
+            props.monobankUserData, props.ccxtUserData)
 
         if (!anyAssetExist) {
             props.setCreatingNewAsset(true);

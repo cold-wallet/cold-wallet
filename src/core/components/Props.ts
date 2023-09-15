@@ -26,6 +26,13 @@ export default interface Props {
     setUserData: Dispatch<SetStateAction<UserData>>,
     userDataHolder: UserDataHolder,
     setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>,
+    getAnyAssetExist: (
+        userData: UserData,
+        binanceUserData: AccountInfo | null,
+        okxUserData: OkxAccount | null,
+        monobankUserData: MonobankUserData | null,
+        ccxtAccountData: CcxtAccountsData,
+    ) => boolean,
 
     newAssetAmount: string | null,
     setNewAssetAmount: Dispatch<SetStateAction<string | null>>,

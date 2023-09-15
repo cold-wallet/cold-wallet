@@ -15,7 +15,7 @@ import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 import AssetDTO from "../domain/AssetDTO";
 import OnStartupLoader from "./OnStartupLoader";
 import Props from "./Props";
-import CcxtLoader from "../integrations/ccxt/CcxtLoader";
+import CcxtLoader, {CcxtAccountsData} from "../integrations/ccxt/CcxtLoader";
 import {CurrencyService} from "../services/CurrencyService";
 import {compareStringsIgnoreCase} from "../utils/compareStrings";
 import Option from "./integrations/SelectIntegration/Option";
@@ -169,15 +169,17 @@ export default function ColdWallet(
         binanceUserData: AccountInfo | null,
         okxUserData: OkxAccount | null,
         monobankUserData: MonobankUserData | null,
+        ccxtUserData: CcxtAccountsData,
     ) {
         return !!(userData.assets.length)
             || (userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData))
             || (userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData))
             || (userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData))
+            || !!(Object.values(ccxtUserData).reduce((r, c) => r.concat(c), []).length)
     }
 
     const anyAssetExist = useMemo(
-        () => getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData,),
+        () => getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData),
         [userData, binanceUserData, okxUserData, monobankUserData,]
     )
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow]
@@ -204,8 +206,12 @@ export default function ColdWallet(
     const [deletePinCodeRequested, setDeletePinCodeRequested] = useState(false);
 
     function stateReset() {
-        setShowCreateNewAssetWindow(!getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData,));
-        setCreatingNewAsset(!getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData,));
+        setShowCreateNewAssetWindow(!getAnyAssetExist(
+            userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData,
+        ));
+        setCreatingNewAsset(!getAnyAssetExist(
+            userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData,
+        ));
         setNewAssetCurrency(null);
         setNewAssetAmount(null);
         setNewAssetName(null);
@@ -307,6 +313,7 @@ export default function ColdWallet(
         showConfigsWindow, setShowConfigsWindow,
         integrationWindowNameSelected, setIntegrationWindowNameSelected,
         termsAndPolicyAgreed, setTermsAndPolicyAgreed,
+        getAnyAssetExist,
 
         enabledCcxtIntegrations, setEnabledCcxtIntegrations,
         loadingUserDataFromResource, setLoadingUserDataFromResource,
