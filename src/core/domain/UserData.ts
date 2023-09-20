@@ -12,6 +12,14 @@ export interface IntegrationSettingsData {
     additionalSetting: string | null,
 }
 
+export interface MetaMaskIntegrationSettingsData {
+    enabled: boolean,
+    apiKey: string,
+    apiSecret: string,
+    password: string | null,
+    additionalSetting: string | null,
+}
+
 export class UserSettings {
     constructor(
         public monobankIntegrationEnabled: boolean = false,
@@ -26,6 +34,9 @@ export class UserSettings {
         public okxIntegrationSubAccountName: string | null = null,
         public pinCode: string | null = null,
         public integrations: Integrations = {},
+        public metaMask: MetaMaskIntegrationSettingsData = {
+            enabled: false,
+        } as MetaMaskIntegrationSettingsData,
     ) {
     }
 }

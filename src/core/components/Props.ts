@@ -15,6 +15,7 @@ import {CcxtAccountsData} from "../integrations/ccxt/CcxtLoader";
 import {CurrencyService} from "../services/CurrencyService";
 import Option from "./integrations/SelectIntegration/Option";
 import PriceService from "../services/PriceService";
+import {MetaMaskWallet} from "../integrations/metamask/MetaMaskWallet";
 
 export default interface Props {
     anyAssetExist: boolean,
@@ -128,6 +129,18 @@ export default interface Props {
     coinGeckoPricesLoaded: boolean,
     coinGeckoCurrencies: { [index: string]: CoinGeckoCurrencyResponse } | null,
     coinGeckoCurrenciesLoaded: boolean,
+
+    metaMaskSettingsEnabled: boolean,
+    setMetaMaskSettingsEnabled: Dispatch<SetStateAction<boolean>>,
+    metaMaskSettingsLoading: boolean,
+    setMetaMaskSettingsLoading: Dispatch<SetStateAction<boolean>>,
+    hasProvider: boolean,
+    wallet: MetaMaskWallet,
+    isConnecting: boolean,
+    handleConnect: () => Promise<void>,
+    error: boolean,
+    setError: Dispatch<SetStateAction<boolean>>,
+    errorMessage: string,
 
     selectedPageNumber: number,
     setSelectedPageNumber: Dispatch<SetStateAction<number>>,

@@ -20,6 +20,7 @@ import {CurrencyService} from "../services/CurrencyService";
 import {compareStringsIgnoreCase} from "../utils/compareStrings";
 import Option from "./integrations/SelectIntegration/Option";
 import PriceService from "../services/PriceService";
+import MetaMaskLoader from "../integrations/metamask/MetaMaskLoader";
 
 export default function ColdWallet(
     {properties}: {
@@ -163,6 +164,17 @@ export default function ColdWallet(
     const [currentIntegrationApiSecret, setCurrentIntegrationApiSecret] = useState<string | null>(null);
     const [currentIntegrationApiPassword, setCurrentIntegrationApiPassword] = useState<string | null>(null);
     const [currentIntegrationApiAdditionalSetting, setCurrentIntegrationApiAdditionalSetting] = useState<string | null>(null);
+
+    const {
+        metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
+        metaMaskSettingsLoading, setMetaMaskSettingsLoading,
+        hasProvider,
+        wallet,
+        isConnecting,
+        handleConnect,
+        error, setError,
+        errorMessage,
+    } = MetaMaskLoader(userData)
 
     function getAnyAssetExist(
         userData: UserData,
@@ -353,6 +365,15 @@ export default function ColdWallet(
 
         coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
         coinGeckoPrices, coinGeckoPricesLoaded,
+
+        metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
+        metaMaskSettingsLoading, setMetaMaskSettingsLoading,
+        hasProvider,
+        wallet,
+        isConnecting,
+        handleConnect,
+        error, setError,
+        errorMessage,
 
         loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded,
 
