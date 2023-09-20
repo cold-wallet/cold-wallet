@@ -13,10 +13,7 @@ import monobankSettingsValidation from "./.././MonobankSettings/monobankSettings
 import binanceSettingsValidation from "./.././BinanceSettings/binanceSettingsValidation";
 import okxSettingsValidation from "../OkxSettings/okxSettingsValidation";
 import Props from "../../Props";
-import {metaMaskIntegrationPad} from "../../integrations/MetaMaskIntegrationPad";
-import MetaMaskSettings from "../MetaMaskSettings";
 import CoinGeckoSettings from "../CoinGeckoSettings";
-import {metaMaskSettingsValidation} from "../MetaMaskSettings/metaMaskSettingsValidation";
 import {genericExchangeSettingsValidation} from "../CoinGeckoSettings/genericExchangeSettingsValidation";
 
 export function onSaveSetting(props: Props, onDefault: () => void) {
@@ -27,8 +24,6 @@ export function onSaveSetting(props: Props, onDefault: () => void) {
             return binanceSettingsValidation(props)
         case okxIntegration.name:
             return okxSettingsValidation(props)
-        case metaMaskIntegrationPad.name:
-            return metaMaskSettingsValidation(props)
         case null:
         case "":
             return onDefault()
@@ -45,8 +40,6 @@ export function buildSettingContent(props: Props, onDefault: () => JSX.Element) 
             return BinanceSettings(props)
         case okxIntegration.name:
             return OkxSettings(props)
-        case metaMaskIntegrationPad.name:
-            return MetaMaskSettings(props)
         case "":
         case null:
             return onDefault()
