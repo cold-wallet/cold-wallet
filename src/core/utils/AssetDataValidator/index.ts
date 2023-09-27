@@ -3,7 +3,7 @@ const MAX_ASSET_NAME_LENGTH = 40;
 const assetDataValidator = {
 
     isAssetAmountValid: (value: number | string | null) => {
-        return !!value && !isNaN(Number(value)) && (value > 0);
+        return Boolean(value) && !isNaN(Number(value)) && (Number(value) > 0);
     },
 
     isAssetNameValid: (newAssetName: string | null) => {

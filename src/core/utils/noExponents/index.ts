@@ -9,7 +9,7 @@ export default function noExponents(fixME: number | string) {
     }
 
     let z = '';
-    let sign = fixME < 0 ? '-' : '';
+    let sign = Number(fixME) < 0 ? '-' : '';
     let str = data[0].replace('.', '');
     let mag = Number(data[1]) + 1;
 
