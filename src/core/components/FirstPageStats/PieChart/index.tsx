@@ -296,6 +296,11 @@ export default function PieChart(
             },
             plotOptions: {
                 pie: {
+                    states: {
+                        inactive: {
+                            enabled: false
+                        }
+                    },
                     allowPointSelect: true,
                     cursor: 'pointer',
                     depth: 35,
