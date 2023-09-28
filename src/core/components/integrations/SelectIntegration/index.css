@@ -11,6 +11,14 @@
     width: 100%;
 }
 
+.new-asset-choose-select--menu {
+  height: 500%;
+}
+
+.new-asset-choose-select--menu-list {
+  height: 100%;
+}
+
 @media only screen and (max-width: 920px) and (orientation: landscape) {
 
     .new-asset-choose-select-box .new-asset-choose-select--menu {

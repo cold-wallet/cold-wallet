@@ -167,14 +167,14 @@ export default function ColdWallet(
 
     const {
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
-        metaMaskSettingsLoading, setMetaMaskSettingsLoading,
-        hasProvider,
-        wallet,
-        isConnecting,
-        handleConnect,
-        error, setError,
-        errorMessage,
-    } = MetaMaskLoader(userData)
+        metaMaskAssets,
+        metaMaskWallet,
+        metaMaskIsError,
+        metaMaskErrorMessage,
+        metaMaskHasProvider,
+        metaMaskIsConnecting,
+        metaMaskHandleConnect,
+    } = MetaMaskLoader(loadingUserDataAllowed, binanceCurrencies, properties.storageFactory, userData)
 
     function getAnyAssetExist(
         userData: UserData,
@@ -367,13 +367,13 @@ export default function ColdWallet(
         coinGeckoPrices, coinGeckoPricesLoaded,
 
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
-        metaMaskSettingsLoading, setMetaMaskSettingsLoading,
-        hasProvider,
-        wallet,
-        isConnecting,
-        handleConnect,
-        error, setError,
-        errorMessage,
+        metaMaskHasProvider,
+        metaMaskIsConnecting,
+        metaMaskAssets,
+        metaMaskWallet,
+        metaMaskIsError,
+        metaMaskErrorMessage,
+        metaMaskHandleConnect,
 
         loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded,
 

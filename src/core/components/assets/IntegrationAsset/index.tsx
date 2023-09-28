@@ -6,6 +6,8 @@ import monobankLogo from "./../../../../resources/images/monobank-logo-192x192.p
 import binanceLogo from "./../../../../resources/images/binance_logo.png";
 import okxIcon from "./../../../../resources/images/okx_icon.png";
 import okxLogo from "./../../../../resources/images/okx_logo_full.png";
+import MetaMaskIcon from "./../../../../resources/images/MetaMaskIcon";
+import MetaMaskLogo from "./../../../../resources/images/MetaMaskLogo";
 import Asset from "../Asset";
 import ccxt from "ccxt";
 
@@ -15,6 +17,7 @@ export default function IntegrationAsset(asset: AssetDTO) {
         {asset.isBinanceAsset ? buildBinanceLogo() : null}
         {asset.isOkxAsset ? buildOkxLogo() : null}
         {asset.isCcxtAsset ? buildCcxtLogo(asset.ccxtExchangeName || "CCXT") : null}
+        {asset.isMetaMaskAsset ? buildMetaMaskLogo() : null}
     </>)
 }
 
@@ -87,6 +90,21 @@ function buildCcxtLogo(exchangeName: string) {
             <div className={" asset-item-buttons-container--ccxt-integration-"
                 + (logo ? "img flex-box-centered" : "name")}>
                 {logo ? <img src={logo} alt={exchangeName} title={exchangeName}/> : exchangeName}
+            </div>
+        </div>
+    )
+}
+
+function buildMetaMaskLogo() {
+    return (
+        <div title={"MetaMask integration"}
+             className={"asset-item-buttons-container--integration-logo--wide asset-item-buttons-container--integration-logo--metamask"}>
+            <div
+                className={"asset-item-buttons-container--integration-name asset-item-buttons-container--integration-metamask"}>
+                <MetaMaskLogo/>
+            </div>
+            <div className={"asset-item-buttons-container--integration-logo--container metamask-logo"}>
+                <MetaMaskIcon/>
             </div>
         </div>
     )

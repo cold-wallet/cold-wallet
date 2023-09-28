@@ -21,6 +21,7 @@ export default class AssetDTO {
         public isOkxAsset: boolean = false,
         public isCcxtAsset: boolean = false,
         public ccxtExchangeName: string | null = null,
+        public isMetaMaskAsset: boolean = false,
     ) {
         if (!id || !currency || !amount || !name || !decimalScale || (+amount) <= 0) {
             throw new Error(`invalid asset parameters: ${id}, ${currency}, ${amount}, ${name}, ${decimalScale}`)
@@ -38,5 +39,6 @@ export default class AssetDTO {
         this.isOkxAsset = isOkxAsset;
         this.isCcxtAsset = isCcxtAsset;
         this.ccxtExchangeName = ccxtExchangeName;
+        this.isMetaMaskAsset = isMetaMaskAsset;
     }
 }

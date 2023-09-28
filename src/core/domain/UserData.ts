@@ -1,4 +1,5 @@
 import AssetDTO from "./AssetDTO";
+import {MetaMaskAccount} from "../integrations/metamask/MetaMaskWallet";
 
 export interface Integrations {
     [p: string]: IntegrationSettingsData,
@@ -14,10 +15,7 @@ export interface IntegrationSettingsData {
 
 export interface MetaMaskIntegrationSettingsData {
     enabled: boolean,
-    apiKey: string,
-    apiSecret: string,
-    password: string | null,
-    additionalSetting: string | null,
+    accounts: MetaMaskAccount,
 }
 
 export class UserSettings {
@@ -36,6 +34,7 @@ export class UserSettings {
         public integrations: Integrations = {},
         public metaMask: MetaMaskIntegrationSettingsData = {
             enabled: false,
+            accounts: {} as MetaMaskAccount,
         } as MetaMaskIntegrationSettingsData,
     ) {
     }

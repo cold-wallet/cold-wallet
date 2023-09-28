@@ -81,6 +81,12 @@ export default function AssetsDashboard(props: Props) {
             .map(IntegrationAsset)
     }
 
+    function buildMetaMaskIntegrationAssets() {
+        return props.metaMaskSettingsEnabled
+            ? (props.metaMaskAssets || []).map(IntegrationAsset)
+            : null
+    }
+
     function buildMonobankIntegrationAssets() {
         return props.userData.settings.monobankIntegrationEnabled && props.monobankUserData
             ? MonobankUserData.getAllAssets(props.monobankUserData).map(IntegrationAsset)
@@ -103,6 +109,7 @@ export default function AssetsDashboard(props: Props) {
                 {buildBinanceIntegrationAssets()}
                 {buildOkxIntegrationAssets()}
                 {buildCcxtIntegrationAssets()}
+                {buildMetaMaskIntegrationAssets()}
                 {buildMonobankIntegrationAssets()}
             </div>
             {buildFirstPageStats()}

@@ -1,56 +1,54 @@
-import {MetaMaskIntegrationSettingsData} from "../../../domain/UserData";
+import {MetaMaskIntegrationSettingsData, UserSettings} from "../../../domain/UserData";
 import Props from "../../Props";
-
-async function validateMetaMaskSettings(
-    props: Props,
-) {
-    let isValidSettings = true;
-
-    // if (isPreValid) {
-    // if (!props.okxApiKeyInput || !props.okxApiSecretInput || !props.okxApiPassPhraseInput) {
-    //     isValidSettings = false;
-    // } else {
-    // let accountInfo = await metaMaskConnector.getUserInfo(
-    //     props.okxApiKeyInput, props.okxApiSecretInput, props.okxApiPassPhraseInput,
-    //     props.okxApiSubAccountNameInput, props.okxCurrencies, props.okxUserData
-    // );
-    // if (accountInfo.subAccountBalances || accountInfo.spotAccountBalances) {
-    //     props.setOkxUserData(accountInfo)
-    // } else {
-    //     isValidSettings = false;
-    // }
-    // }
-    // }
-    return isValidSettings;
-}
+import {MetaMaskAccount} from "../../../integrations/metamask/MetaMaskWallet";
 
 export function metaMaskSettingsValidation(props: Props) {
     const settings = props.userData.settings.metaMask
         || {} as MetaMaskIntegrationSettingsData;
 
-    if (settings.enabled == props.metaMaskSettingsEnabled
-        // && settings.apiKey == props.currentIntegrationApiKey
-        // && settings.apiSecret == props.currentIntegrationApiSecret
-        // && settings.password == props.currentIntegrationApiPassword
-        // && settings.additionalSetting == props.currentIntegrationApiAdditionalSetting
-    ) {
+    const hasAddresses = Object.keys(props.metaMaskWallet?.accounts || {}).length > 0;
+
+    if (!hasAddresses || settings.enabled == props.metaMaskSettingsEnabled) {
         props.stateReset()
         return
     }
-    if (settings.enabled && !props.metaMaskSettingsEnabled) {
-        // saveUserSettings(exchangeName, props, props.metaMaskSettingsEnabled, settings)
-        return
+    saveUserSettings(props, props.metaMaskSettingsEnabled, settings)
+}
+
+
+function saveUserSettings(
+    props: Props, isEnabledInProps: boolean, settings: MetaMaskIntegrationSettingsData,
+) {
+    const userDataNew = {...props.userData};
+    if (!userDataNew.settings) {
+        userDataNew.settings = new UserSettings();
     }
-    validateMetaMaskSettings(props)
-        .then(isValid => {
-            if (isValid) {
-                // saveUserSettings(exchangeName, props, props.metaMaskSettingsEnabled, settings)
-            } else {
-                props.setCurrentSettingInputsInvalid(true)
-                props.setLoadingUserDataFromResource(null)
+    if (!userDataNew.settings.metaMask) {
+        userDataNew.settings.metaMask = {} as MetaMaskIntegrationSettingsData;
+    }
+    if (!userDataNew.settings.metaMask.accounts) {
+        userDataNew.settings.metaMask.accounts = {} as MetaMaskAccount;
+    }
+    const newSettings = userDataNew.settings.metaMask;
+    let shouldSave = false;
+    if (settings.enabled !== isEnabledInProps) {
+        newSettings.enabled = isEnabledInProps;
+        shouldSave = true;
+    }
+    if (Object.keys(newSettings.accounts || {}).length != (props.metaMaskWallet?.accounts.length || 0)) {
+        props.metaMaskWallet.accounts.forEach(account => {
+            if (!newSettings.accounts[account]) {
+                newSettings.accounts[account] = {}
+                shouldSave = true
             }
         })
-        .catch(reason => {
-            console.info(reason)
-        })
+    }
+    console.log("setUserData", userDataNew)
+    console.log("shouldSave", shouldSave)
+    if (shouldSave) {
+        props.setUserData(userDataNew);
+    }
+    props.stateReset();
+    props.setCreatingNewAsset(false);
+    props.setShowCreateNewAssetWindow(false)
 }

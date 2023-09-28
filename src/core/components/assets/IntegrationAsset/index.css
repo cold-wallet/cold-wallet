@@ -114,6 +114,10 @@
   height: 70%;
 }
 
+.asset-item-buttons-container--integration-metamask {
+  width: 100%;
+}
+
 @media only screen and (max-width: 1100px) {
 
   .asset-item-buttons-container--integration-logo--wide {
