@@ -30,13 +30,6 @@ const treemapColors = [
     // "#d8f3dc",
 ];
 
-let colorIndex = 0;
-
-function pickUpNextColor() {
-    const index = colorIndex++ % treemapColors.length;
-    return treemapColors[index];
-}
-
 function addCommas(toMe: string | number) {
     return noExponents(toMe)
         .toString()
@@ -170,9 +163,9 @@ export default function TreeChart(
                     assetByCurrency.color = treemapColors[(i % treemapColors.length)];
                     resultAssets.push(assetByCurrency)
 
-                    assetByCurrency.children?.forEach(point => {
+                    assetByCurrency.children?.forEach((point, i) => {
                         point.parent = assetByCurrency.id
-                        point.color = pickUpNextColor();
+                        point.color = treemapColors[i];
                         resultAssets.push(point)
                     })
                 })
@@ -249,6 +242,7 @@ export default function TreeChart(
                 type: 'treemap',
                 height: chartHeight,
                 width: chartWidth,
+                color: treemapColors,
             },
             tooltip: {
                 pointFormat: `{point.fullName}<br/>
@@ -258,7 +252,7 @@ export default function TreeChart(
             },
             plotOptions: {
                 treemap: {
-                    // colors: treemapColors,
+                    colors: treemapColors,
                     dataLabels: {
                         fontSize: '2rem',
                         format: '<b>{point.name}</b> <br>{point.percentage:.2f} %',

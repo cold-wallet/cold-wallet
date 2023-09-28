@@ -202,6 +202,7 @@ export default function PieChart(
             series.push({
                 name: 'Per Currency',
                 size: '57%',
+                animation: false,
                 innerSize: showPerType ? '50%' : showTotal ? '15%' : 0,
                 accessibility: {
                     announceNewData: {
@@ -225,6 +226,7 @@ export default function PieChart(
             series.push({
                 name: 'Per Type',
                 size: '24%',
+                animation: false,
                 innerSize: showTotal ? '35%' : 0,
                 accessibility: {
                     announceNewData: {
@@ -247,6 +249,7 @@ export default function PieChart(
             series.push({
                 name: 'Total',
                 innerSize: 0,
+                animation: false,
                 size: showPerCurrency || showPerType ? '4%' : '30%',
                 accessibility: {
                     announceNewData: {
