@@ -146,14 +146,14 @@ export default function MetaMaskLoader(
     ] = storageFactory.createStorage<MetaMaskAccount>("metamaskUserData", () => ({} as MetaMaskAccount));
 
     const metaMaskAssets = useMemo(() => {
-        if (!binanceCurrencies) {
+        if (!binanceCurrencies || !userData.settings?.metaMask?.enabled) {
             return []
         }
         const balances = Object.values(metaMaskUserData)
             .map(e => Object.values(e))
-            .reduce((a, b) => a.concat(b))
+            .reduce((a, b) => a.concat(b), [])
             .map(e => Object.values(e))
-            .reduce((a, b) => a.concat(b));
+            .reduce((a, b) => a.concat(b), []);
         return balances.map(balance => {
             const chainName = chainIdToName[balance.chainId] || balance.chainId
             const name = `${balance.symbol} ${chainName} ${balance.address}`
@@ -232,7 +232,7 @@ export default function MetaMaskLoader(
             newResult
         ])
         const percentage = Number(Number(fullResult.length * 100 / initData.length).toFixed(2));
-        console.log(`Loaded ${fullResult.length} of ${initData.length}, ${percentage}%`)
+        console.log(`Loaded ${fullResult.length} of ${initData.length}, ${percentage}% of tokens for metamask`)
     }
 
     const options = useMemo<BalanceRequest[]>(() => {

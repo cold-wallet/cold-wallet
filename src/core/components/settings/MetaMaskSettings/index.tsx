@@ -35,11 +35,6 @@ export default function MetaMaskSettings(props: Props) {
                     Install MetaMask
                 </a>}
 
-                {/*{window.ethereum?.isMetaMask && (!metaMaskWallet.accounts || metaMaskWallet.accounts?.length < 1) &&*/}
-                {/*    <button disabled={Boolean(metaMaskWallet) && metaMaskIsConnecting}*/}
-                {/*            onClick={metaMaskHandleConnect}>Connect MetaMask</button>*/}
-                {/*}*/}
-
                 {props.userData.settings.metaMask.accounts
                     && Object.keys(props.userData.settings.metaMask.accounts || {}).length > 0
                     && <div>Wallet address: {Object.keys(props.userData.settings.metaMask.accounts)[0]}</div>

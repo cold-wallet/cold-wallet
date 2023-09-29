@@ -43,8 +43,6 @@ function saveUserSettings(
             }
         })
     }
-    console.log("setUserData", userDataNew)
-    console.log("shouldSave", shouldSave)
     if (shouldSave) {
         props.setUserData(userDataNew);
     }
