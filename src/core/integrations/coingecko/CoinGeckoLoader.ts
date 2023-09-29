@@ -101,7 +101,7 @@ export default function CoinGeckoLoader(
             })
     };
     useEffect(loadPrices, []);
-    useInterval(loadPrices, 4_000)
+    useInterval(loadPrices, 5_000)
 
     useInterval(() => {
         setCoinGeckoPricesAlreadyLoaded({} as CoinGeckoPriceResponse)
