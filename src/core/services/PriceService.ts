@@ -108,9 +108,6 @@ export default class PriceService {
         const price1 = +(this.binancePrices[`${left}${USDT}`]);
         const price2 = +(this.binancePrices[`${right}${USDT}`]);
         price = price1 / price2;
-        if (isNaN(price)) {
-            price = this.getCryptoPriceOKX(left, right)
-        }
         return price;
     }
 
@@ -137,7 +134,7 @@ export default class PriceService {
         const pricesRight = this.coingeckoPrices[rightLower];
         let price = pricesLeft
             ? pricesLeft[rightLower]
-            : pricesRight ? pricesRight[leftLower] : undefined;
+            : pricesRight ? (pricesRight[leftLower] && (1 / pricesRight[leftLower])) : undefined;
         if (price) {
             return price;
         }
