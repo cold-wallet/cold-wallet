@@ -35,7 +35,7 @@ export default function MetaMaskSettings(props: Props) {
                     Install MetaMask
                 </a>}
 
-                {props.userData.settings.metaMask.accounts
+                {props.userData.settings?.metaMask?.accounts
                     && Object.keys(props.userData.settings.metaMask.accounts || {}).length > 0
                     && <div>Wallet address: {Object.keys(props.userData.settings.metaMask.accounts)[0]}</div>
                 }
