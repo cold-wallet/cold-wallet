@@ -83,7 +83,7 @@ export default function CoinGeckoLoader(
                         ...(response.result),
                     }
                     const refreshed = Object.keys(allNewPrices).length;
-                    const percentage = Number((refreshed / currencies.length).toFixed(2));
+                    const percentage = Number((refreshed * 100 / currencies.length).toFixed(2));
                     console.log(`refreshed ${refreshed} of ${currencies.length} coingecko prices, ${percentage}%`)
                     setCoinGeckoPricesAlreadyLoaded(allNewPrices)
                     const allPrices = {
