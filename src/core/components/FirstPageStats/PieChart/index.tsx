@@ -53,7 +53,7 @@ export default function PieChart(
 
     const isPortrait = window.innerHeight > window.innerWidth;
     const chartWidth = isPortrait ? (window.innerWidth) : (window.innerWidth * 0.6)
-    const chartHeight = isPortrait ? (window.innerWidth * 0.65)
+    const chartHeight = isPortrait ? (window.innerWidth * 0.6)
         : Math.min(window.innerHeight * 0.7, chartWidth * 0.65)
 
     const createChartOptions = (assets: AssetDTO[]) => {
@@ -189,7 +189,7 @@ export default function PieChart(
                 },
             },
             dataLabels: {
-                distance: 20,
+                distance: 15,
                 filter: {
                     property: 'percentage',
                     operator: '>',

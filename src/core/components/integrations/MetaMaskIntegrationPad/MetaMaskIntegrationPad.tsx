@@ -1,6 +1,6 @@
 import React from "react";
 import IntegrationPad, {PartnerThirdPartyIntegration} from "../IntegrationPad";
-import MetaMaskLogoSvg from "../../../../resources/images/MetaMaskIcon";
+import MetaMaskLogoSvg from "../../../../resources/images/MetaMaskLogo";
 
 const name: string = "metamask";
 
