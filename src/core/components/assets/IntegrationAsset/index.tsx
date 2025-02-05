@@ -64,7 +64,7 @@ function buildOkxLogo() {
         <div title={"OKX integration"}
              className={"asset-item-buttons-container--integration-logo--wide asset-item-buttons-container--integration-logo--okx"}>
             <div className={"asset-item-buttons-container--integration-name"}>
-                <img src={okxLogo} alt="OKX logo"/>
+                <img className={"okx-logo-img"} src={okxLogo} alt="OKX logo"/>
             </div>
             <div className={"asset-item-buttons-container--integration-logo--container okx-logo"}>
                 <img alt="OKX logo"
