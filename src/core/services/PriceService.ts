@@ -41,7 +41,12 @@ export default class PriceService {
         const rate = this.monobankPrices.filter(r => (r.currencyCodeA === left)
             && (r.currencyCodeB === right))[0];
 
-        return (rate.rateCross || rate.rateBuy)// ((rate.rateBuy + rate.rateSell) / 2));
+        if (rate) {
+            return (rate.rateCross || rate.rateBuy)// ((rate.rateBuy + rate.rateSell) / 2));
+        } else {
+            console.warn("no rate!!!", left, right)
+            return 0
+        }
     }
 
     private findFiatRateToEUR(currencyNumCode: number) {
@@ -137,6 +142,10 @@ export default class PriceService {
             : pricesRight ? (pricesRight[leftLower] && (1 / pricesRight[leftLower])) : undefined;
         if (price) {
             return price;
+        }
+        if (!pricesLeft || !pricesRight) {
+            // smth wrong
+            return 0
         }
         const price1 = pricesLeft['uah'];
         const price2 = pricesRight['uah'];
