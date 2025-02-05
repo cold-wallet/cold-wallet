@@ -60,6 +60,9 @@ export default function PieChart(
         let amountPerTypeChartData: Point[] = []
         const preparedAssetsData = assets
             .map(asset => {
+                if (!asset.currency.replaceAll(" ", "")) {
+                    console.warn("no currency", asset)
+                }
                 let y = props.rates.transform(asset.currency, +asset.amount, "USD");
                 if (isNaN(y)) {
                     console.warn("!!!!!") // for debugging, in case this happen once more

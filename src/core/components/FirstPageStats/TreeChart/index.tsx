@@ -73,14 +73,19 @@ export default function TreeChart(
 
     function createChartOptions(assets: AssetDTO[]) {
         const preparedAssetsData = assets
-            .map(asset => ({
-                name: buildHighChartsTitle(asset),
-                fullName: `${stringifyAmount(asset.amount)}&nbsp;&nbsp;&nbsp;–&nbsp;&nbsp;&nbsp;${asset.normalizedName}`,
-                description: buildHighChartsTitle(asset),
-                type: asset.type,
-                currency: asset.currency,
-                value: props.rates.transform(asset.currency, +asset.amount, "USD"),
-            } as Point))
+            .map(asset => {
+                if (!asset.currency.replaceAll(" ", "")) {
+                    console.warn("no currency", asset)
+                }
+                return ({
+                    name: buildHighChartsTitle(asset),
+                    fullName: `${stringifyAmount(asset.amount)}&nbsp;&nbsp;&nbsp;–&nbsp;&nbsp;&nbsp;${asset.normalizedName}`,
+                    description: buildHighChartsTitle(asset),
+                    type: asset.type,
+                    currency: asset.currency,
+                    value: props.rates.transform(asset.currency, +asset.amount, "USD"),
+                } as Point)
+            })
             .sort((a, b) => b.value - a.value)
 
         const totalInUSD = preparedAssetsData.reduce((total, asset) => total + asset.value, 0)
