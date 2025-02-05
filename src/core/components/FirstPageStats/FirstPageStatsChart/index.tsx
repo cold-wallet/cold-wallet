@@ -36,6 +36,9 @@ export default function FirstPageStatsChart({props}: { props: Props }) {
             if (props.userData.settings.okxIntegrationEnabled) {
                 assets = assets.concat(OkxAccount.getAllAssets(props.okxUserData))
             }
+            if (props.metaMaskSettingsEnabled && props.metaMaskAssets) {
+                assets = assets.concat((props.metaMaskAssets))
+            }
             return Object.values(props.ccxtUserData)
                 .reduce((merged, current) => {
                     return merged.concat(current)
@@ -46,6 +49,7 @@ export default function FirstPageStatsChart({props}: { props: Props }) {
             props.monobankUserData,
             props.binanceUserData,
             props.okxUserData,
+            props.metaMaskAssets,
         ]);
 
     return <div className={"chart-total-pie-box flex-box-centered flex-direction-column layer-0-themed-color"}>
