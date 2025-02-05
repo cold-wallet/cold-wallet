@@ -3,7 +3,7 @@ import ApiResponse from "../../domain/ApiResponse";
 import fiatCurrencies from "../../fiatCurrencies";
 import AssetDTO, {AssetType} from "../../domain/AssetDTO";
 
-const proxyUrl = 'https://corsproxy.io/?';
+const proxyUrl = 'https://corsproxy.io/?url=';
 
 const ccxtConnector = {
     getExchanges() {
