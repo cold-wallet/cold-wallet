@@ -8,7 +8,7 @@ export function metaMaskSettingsValidation(props: Props) {
 
     const hasAddresses = Object.keys(props.metaMaskWallet?.accounts || {}).length > 0;
 
-    if (!hasAddresses || settings.enabled == props.metaMaskSettingsEnabled) {
+    if (!settings.enabled && (settings.enabled == props.metaMaskSettingsEnabled) && !hasAddresses) {
         props.stateReset()
         return
     }
@@ -35,7 +35,9 @@ function saveUserSettings(
         newSettings.enabled = isEnabledInProps;
         shouldSave = true;
     }
-    if (Object.keys(newSettings.accounts || {}).length != (props.metaMaskWallet?.accounts.length || 0)) {
+    if (props.metaMaskWallet?.accounts
+        && (Object.keys(newSettings.accounts || {}).length != (props.metaMaskWallet?.accounts?.length || 0))
+    ) {
         props.metaMaskWallet.accounts.forEach(account => {
             if (!newSettings.accounts[account]) {
                 newSettings.accounts[account] = {}
