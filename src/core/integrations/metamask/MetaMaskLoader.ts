@@ -218,7 +218,14 @@ export default function MetaMaskLoader(
                 value: spreadElements.value.toString(),
                 address: request.address,
                 chainId: request.chainId,
+                symbol: request.symbol,
             } : null
+            if (newResult && Uint8Array.from(newResult.symbol, e => e.charCodeAt(0))
+                .reduce((a, b) => a + b) == 2
+            ) {// value 2 received in an empirical way
+                console.warn("strange result", newResult)
+                newResult = null
+            }
         } catch (e: any) {
             console.warn(e)
             newResult = null
