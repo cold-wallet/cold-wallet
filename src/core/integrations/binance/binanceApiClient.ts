@@ -98,7 +98,7 @@ const binanceApiClient = {
             console.warn("failed to load fundingAssets from binance", e)
         }
         try {
-            accountInfo.lockedStaking = await binanceApiService.lockedStaking()
+            accountInfo.lockedStaking = []//await binanceApiService.lockedStaking()
         } catch (e) {
             console.warn("failed to load lockedStaking from binance", e)
         }

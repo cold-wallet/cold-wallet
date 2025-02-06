@@ -7,6 +7,7 @@ module.exports = function override(config) {
         "crypto": require.resolve("crypto-browserify"),
         "stream": require.resolve("stream-browserify"),
         "cipher": require.resolve("browserify-cipher"),
+        "console": require.resolve("console-browserify"),
         "assert": false,// require.resolve("assert"),
         "http": false,// require.resolve("stream-http"),
         "https": false,// require.resolve("https-browserify"),

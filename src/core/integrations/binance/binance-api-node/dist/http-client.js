@@ -12,6 +12,7 @@ var _httpsProxyAgent = _interopRequireDefault(require("https-proxy-agent"));
 var _jsonBigint = _interopRequireDefault(require("json-bigint"));
 
 require("isomorphic-fetch");
+const {SimpleEarnLockedProductPositionResponse} = require("binance-api-node");
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {default: obj};
@@ -883,6 +884,12 @@ var _default = function _default(opts) {
     },
     lendingAccount: function lendingAccount(payload) {
       return privCall('/sapi/v1/lending/union/account', payload);
+    },
+    getSimpleEarnFlexibleProductPosition: function getSimpleEarnFlexibleProductPosition(payload) {
+      return privCall('/sapi/v1/simple-earn/flexible/position', payload);
+    },
+    getSimpleEarnLockedProductPosition: function getSimpleEarnLockedProductPosition(payload) {
+        return privCall('/sapi/v1/simple-earn/locked/position', payload);
     },
     fundingWallet: function fundingWallet(payload) {
       return privCall('/sapi/v1/asset/get-funding-asset', payload, 'POST');

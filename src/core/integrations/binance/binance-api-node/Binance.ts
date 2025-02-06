@@ -43,6 +43,8 @@ import {
     IsolatedCrossAccount,
     IsolatedMarginAccount,
     LendingAccount,
+    SimpleEarnFlexibleProductPositionResponse,
+    SimpleEarnLockedProductPositionResponse,
     LeverageBracketResult,
     MarginBorrowOptions,
     marginIsolatedTransfer,
@@ -102,6 +104,12 @@ export default interface Binance {
     exchangeInfo(options?: { symbol: string }): Promise<ExchangeInfo>
 
     lendingAccount(options?: { useServerTime: boolean }): Promise<LendingAccount>
+
+    getSimpleEarnFlexibleProductPosition(options?: { useServerTime: boolean }):
+        Promise<SimpleEarnFlexibleProductPositionResponse>
+
+    getSimpleEarnLockedProductPosition(options?: { useServerTime: boolean }):
+        Promise<SimpleEarnLockedProductPositionResponse>
 
     fundingWallet(options?: {
         asset?: string

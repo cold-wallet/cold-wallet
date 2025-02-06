@@ -169,6 +169,70 @@ declare module 'binance-api-node' {
     totalFlexibleInUSDT: string
   }
 
+    export interface SimpleEarnFlexibleProductPosition {
+        totalAmount: string // "75.46000000",
+        tierAnnualPercentageRate: {
+            [index: string]: number
+            // "0-5BTC": 0.05,
+            // "5-10BTC": 0.03
+        },
+        latestAnnualPercentageRate: string, //"0.02599895",
+        yesterdayAirdropPercentageRate: string, //"0.02599895",
+        asset: string, //"USDT",
+        airDropAsset: string, //"BETH",
+        canRedeem: boolean //true,
+        collateralAmount: string, //"232.23123213",
+        productId: string, //"USDT001",
+        yesterdayRealTimeRewards: string, //"0.10293829",
+        cumulativeBonusRewards: string, //"0.22759183",
+        cumulativeRealTimeRewards: string, //"0.22759183",
+        cumulativeTotalRewards: string, //"0.45459183",
+        autoSubscribe: boolean //true
+    }
+
+    export interface SimpleEarnFlexibleProductPositionResponse {
+        rows: SimpleEarnFlexibleProductPosition[],
+        total: number
+    }
+
+    export interface SimpleEarnLockedProductPosition {
+        positionId: number,//123123,  //Locked position ID
+        parentPositionId: number,//123122, // Parent position ID
+        projectId: string,// "Axs*90",  //Locked project ID
+        asset: string,//"AXS",          //Locked asset
+        amount: string,//"122.09202928",  //Locked Amount
+        purchaseTime: string,// "1646182276000",  //Subscription time
+        duration: string,// "60",    //Lock period(days)
+        accrualDays: string,// "4",  //Accrue days
+        rewardAsset: string,//"AXS", //Earned asset
+        apy: string,//"0.2032",
+        rewardAmt: string,// "5.17181528",  //Earned amount
+        extraRewardAsset: string,//"BNB",   //Rewards assets of extra staking type
+        extraRewardAPR: string,//"0.0203",  //APR of extra staking type
+        estExtraRewardAmt: string,// "5.17181528", //Rewards of extra staking type, distribute when order expires
+        nextPay: string,// "1.29295383",   //Next estimated rewards payment
+        nextPayDate: string,// "1646697600000", //Next rewards payment date
+        payPeriod: string,// "1",  //Payment cycle
+        redeemAmountEarly: string,// "2802.24068892", //Early redemption amount
+        rewardsEndDate: string,// "1651449600000",   //Rewards accrual end date
+        deliverDate: string,// "1651536000000",       //Redemption arrival time
+        redeemPeriod: string,// "1",           //Redemption interval
+        redeemingAmt: string,//"232.2323",     //Amount under redemption
+        redeemTo: string,//"FLEXIBLE", // Redeem to Flexible product or Spot wallet
+        partialAmtDeliverDate: string,//"1651536000000", //Arrival time of partial redemption amount of order
+        canRedeemEarly: boolean,// true,        //When it is true, early redemption can be operated
+        canFastRedemption: boolean,// true,  //When it is true, fast redemption can be operated
+        autoSubscribe: boolean,//true,  //When it is true, auto staking can be operated
+        type: string,//"AUTO",   //Order type is auto subscribe or normal
+        status: string,// "HOLDING",
+        canReStake: boolean,// true
+    }
+
+    export interface SimpleEarnLockedProductPositionResponse {
+        rows: SimpleEarnLockedProductPosition[],
+        total: number
+    }
+
   export interface FundingWallet {
     asset: string
     free: string // available balance
@@ -509,6 +573,12 @@ declare module 'binance-api-node' {
     exchangeInfo(options?: { symbol: string }): Promise<ExchangeInfo>
 
     lendingAccount(options?: { useServerTime: boolean }): Promise<LendingAccount>
+
+      getSimpleEarnFlexibleProductPosition(options?: { useServerTime: boolean }):
+          Promise<SimpleEarnFlexibleProductPositionResponse>
+
+      getSimpleEarnLockedProductPosition(options?: { useServerTime: boolean }):
+          Promise<SimpleEarnLockedProductPositionResponse>
 
     fundingWallet(options?: {
       asset?: string
