@@ -278,7 +278,7 @@ export default function PieChart(
                 width: chartWidth,
                 style: {
                     width: "100%",
-                    height: "100%",
+                    height: isPortrait ? "110%" : "100%",
                 },
             },
             title: false,
