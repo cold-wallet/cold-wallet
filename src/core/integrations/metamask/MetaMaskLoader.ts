@@ -38,6 +38,9 @@ export default function MetaMaskLoader(
     const [metaMaskSettingsEnabled, setMetaMaskSettingsEnabled] = useState(
         userData.settings.metaMask?.enabled
     );
+    useEffect(() => {
+        setMetaMaskSettingsEnabled(userData.settings.metaMask?.enabled)
+    }, [userData.settings.metaMask?.enabled]);
 
     const [hasProvider, setHasProvider] = useState<boolean>(false)
     const initialState = {} as MetaMaskWallet
