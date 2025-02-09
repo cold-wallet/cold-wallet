@@ -18,7 +18,7 @@ const ccxtConnector = {
                     apiKey: apiKey,
                     secret: apiSecret,
                     password: password,
-                    proxyUrl,
+                    //proxyUrl,
                 });
                 const balances: { [currency: string]: number } = await exchangeInstance.fetchTotalBalance()
                 const nonZeroBalances = {} as { [currency: string]: number }
