@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import './App.css';
 import ColdWallet from "./core/components/ColdWallet";
 import storageFactory from './impl/Storage';
@@ -7,6 +7,7 @@ import {configureChains, createConfig, WagmiConfig} from 'wagmi'
 import {publicProvider} from 'wagmi/providers/public'
 import {InjectedConnector} from "@wagmi/core";
 import {metaMaskChains} from "./core/integrations/metamask/MetaMaskChains";
+import TagManager from 'react-gtm-module';
 
 function App() {
 
@@ -21,6 +22,12 @@ function App() {
         webSocketPublicClient,
         // storage: createStorage({ storage: window.localStorage }),
     })
+
+    useEffect(() => {
+        TagManager.initialize({
+            gtmId: 'G-2CWGTRX202'
+        });
+    }, []);
 
     return (
         <WagmiConfig config={config}>
