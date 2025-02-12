@@ -3,7 +3,7 @@ import ApiResponse from "../../domain/ApiResponse";
 import fiatCurrencies from "../../fiatCurrencies";
 import AssetDTO, {AssetType} from "../../domain/AssetDTO";
 
-const proxyUrl = 'https://corsproxy.io/?url=';
+const proxyUrl = 'https://proxy.corsfix.com/?';
 
 const ccxtConnector = {
     getExchanges() {
@@ -18,7 +18,7 @@ const ccxtConnector = {
                     apiKey: apiKey,
                     secret: apiSecret,
                     password: password,
-                    //proxyUrl,
+                    proxyUrl,
                 });
                 const balances: { [currency: string]: number } = await exchangeInstance.fetchTotalBalance()
                 const nonZeroBalances = {} as { [currency: string]: number }
