@@ -121,7 +121,7 @@ div {
 
 @media only screen and (orientation: portrait) {
   .application {
-    justify-content: center;
+    justify-content: unset;
   }
 
   .application:has(.startup-loading-box) {
