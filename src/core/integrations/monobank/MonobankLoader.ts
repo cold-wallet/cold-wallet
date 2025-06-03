@@ -8,8 +8,10 @@ import MonobankCurrencyResponse from "../../../core/integrations/monobank/Monoba
 import StorageFactory from "../../domain/StorageFactory";
 import MonobankUserDataStorage from "./MonobankUserDataStorage";
 import MonobankUserData from "./MonobankUserData";
+import {createDemoMonobankAssets} from "../../utils/DemoAssetsGenerator";
 
 const MonobankLoader = (
+    isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
     monobankIntegrationEnabled: boolean,
@@ -47,6 +49,17 @@ const MonobankLoader = (
     ] = MonobankUserDataStorage(storageFactory)
 
     const loadMonobankUserData = () => {
+        if (isDemoMode) {
+            setMonobankUserData(new MonobankUserData(
+                "clientId",
+                "name",
+                "null",
+                "null",
+                createDemoMonobankAssets(),
+                [],
+            ));
+            return;
+        }
         if (!monobankIntegrationEnabled
             || !monobankIntegrationToken
             || !loadingUserDataAllowed

@@ -1,6 +1,7 @@
 import './index.css';
 import React from "react";
 import CreateWalletButton from "../button/CreateWalletButton";
+import InitDemoModeButton from "../button/InitDemoModeButton";
 import ImportWalletButton from "../button/ImportWalletButton";
 import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
@@ -13,6 +14,7 @@ export default function NotLoggedIn(props: Props) {
             {props.importOrExportSettingRequested === null
                 ? <>
                     {CreateWalletButton(props)}
+                    {InitDemoModeButton(props)}
                     {ImportWalletButton(props)}
                     {buildAgreeWithPolicyCheckbox(props)}
                 </>

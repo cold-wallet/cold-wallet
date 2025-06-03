@@ -10,6 +10,7 @@ import StorageFactory from "../../domain/StorageFactory";
 import AssetDTO, {crypto} from "../../domain/AssetDTO";
 import {chainIdToName} from "./MetaMaskChains";
 import BinanceCurrencyResponse from "../binance/BinanceCurrencyResponse";
+import {createDemoMetamaskAssets} from "../../utils/DemoAssetsGenerator";
 
 interface Token {
     chainId: number
@@ -29,6 +30,7 @@ interface BalanceRequest {
 }
 
 export default function MetaMaskLoader(
+    isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     binanceCurrencies: { [symbol: string]: BinanceCurrencyResponse } | null,
     storageFactory: StorageFactory,
@@ -149,6 +151,9 @@ export default function MetaMaskLoader(
     ] = storageFactory.createStorage<MetaMaskAccount>("metamaskUserData", () => ({} as MetaMaskAccount));
 
     const metaMaskAssets = useMemo(() => {
+        if (isDemoMode) {
+            return createDemoMetamaskAssets()
+        }
         if (!binanceCurrencies || !userData.settings?.metaMask?.enabled) {
             return []
         }

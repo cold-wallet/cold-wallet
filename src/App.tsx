@@ -3,6 +3,7 @@ import './App.css';
 import ColdWallet from "./core/components/ColdWallet";
 import storageFactory from './impl/Storage';
 import sessionStorageFactory from './impl/SessionStorage';
+import userDataStorageFactory from './impl/UserDataStorage';
 import {configureChains, createConfig, WagmiConfig} from 'wagmi'
 import {publicProvider} from 'wagmi/providers/public'
 import {InjectedConnector} from "@wagmi/core";
@@ -31,7 +32,7 @@ function App() {
 
     return (
         <WagmiConfig config={config}>
-            <ColdWallet properties={{storageFactory, sessionStorageFactory}}/>
+            <ColdWallet properties={{storageFactory, sessionStorageFactory, userDataStorageFactory}}/>
         </WagmiConfig>
     );
 }

@@ -21,12 +21,14 @@ import {compareStringsIgnoreCase} from "../utils/compareStrings";
 import Option from "./integrations/SelectIntegration/Option";
 import PriceService from "../services/PriceService";
 import MetaMaskLoader from "../integrations/metamask/MetaMaskLoader";
+import UserDataStorageFactory from "../domain/UserDataStorageFactory";
 
 export default function ColdWallet(
     {properties}: {
         properties: {
             storageFactory: StorageFactory,
             sessionStorageFactory: StorageFactory,
+            userDataStorageFactory: UserDataStorageFactory,
         },
     }
 ) {
@@ -41,9 +43,10 @@ export default function ColdWallet(
         userData, setUserData,
         userDataHolder, setUserDataHolder,
         shouldEnterPinCode,
+        isDemoMode,
         loggedIn,
     } = UserDataService({
-        storageFactory: properties.storageFactory,
+        storageFactory: properties.userDataStorageFactory,
         pinCode,
     });
 
@@ -52,13 +55,14 @@ export default function ColdWallet(
         coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
     } = CoinGeckoLoader(properties.storageFactory)
 
-    const loadingUserDataAllowed = !shouldEnterPinCode;
+    const loadingUserDataAllowed = !isDemoMode && !shouldEnterPinCode;
     const {
         binancePrices, binancePricesLoaded,
         binanceCurrencies, binanceCurrenciesLoaded,
         binanceUserData, setBinanceUserData,
         loadBinanceUserData,
     } = BinanceLoader(
+        isDemoMode,
         loadingUserDataAllowed,
         properties.storageFactory,
         userData.settings.binanceIntegrationEnabled,
@@ -71,6 +75,7 @@ export default function ColdWallet(
         okxUserData, setOkxUserData,
         loadOkxUserData,
     } = OkxLoader(
+        isDemoMode,
         loadingUserDataAllowed,
         properties.storageFactory,
         userData.settings.okxIntegrationEnabled,
@@ -86,6 +91,7 @@ export default function ColdWallet(
         setMonobankUserData,
         loadMonobankUserData,
     } = MonobankLoader(
+        isDemoMode,
         loadingUserDataAllowed,
         properties.storageFactory,
         userData.settings.monobankIntegrationEnabled,
@@ -174,7 +180,7 @@ export default function ColdWallet(
         metaMaskHasProvider,
         metaMaskIsConnecting,
         metaMaskHandleConnect,
-    } = MetaMaskLoader(loadingUserDataAllowed, binanceCurrencies, properties.storageFactory, userData)
+    } = MetaMaskLoader(isDemoMode, loadingUserDataAllowed, binanceCurrencies, properties.storageFactory, userData)
 
     function getAnyAssetExist(
         userData: UserData,

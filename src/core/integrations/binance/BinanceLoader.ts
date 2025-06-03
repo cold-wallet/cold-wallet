@@ -1,11 +1,13 @@
 import {useEffect, useState} from "react";
-import binanceApiClient, {AccountInfo} from "../../../core/integrations/binance/binanceApiClient";
+import binanceApiClient, {AccountInfo, SpotAccount} from "../../../core/integrations/binance/binanceApiClient";
 import useInterval from "../../../core/utils/useInterval";
 import ApiResponse from "../../../core/domain/ApiResponse";
 import StorageFactory from "../../domain/StorageFactory";
 import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
+import {createDemoBinanceAssets} from "../../utils/DemoAssetsGenerator";
 
 const BinanceLoader = (
+    isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
     binanceIntegrationEnabled: boolean,
@@ -56,6 +58,13 @@ const BinanceLoader = (
     ] = storageFactory.createStorageNullable<AccountInfo>("binanceUserData");
 
     let loadBinanceUserData = () => {
+        if (isDemoMode) {
+            setBinanceUserData(new AccountInfo({
+                accountType: "SPOT",
+                balances: createDemoBinanceAssets()
+            } as SpotAccount));
+            return;
+        }
         if (!binanceIntegrationEnabled
             || !binanceIntegrationApiKey
             || !binanceIntegrationApiSecret

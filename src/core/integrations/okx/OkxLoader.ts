@@ -4,8 +4,10 @@ import useInterval from "../../../core/utils/useInterval";
 import ApiResponse from "../../../core/domain/ApiResponse";
 import StorageFactory from "../../domain/StorageFactory";
 import OkxCurrencyResponse from "./OkxCurrencyResponse";
+import {createDemoOkxAssets} from "../../utils/DemoAssetsGenerator";
 
 const OkxLoader = (
+    isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
     okxIntegrationEnabled: boolean,
@@ -58,6 +60,10 @@ const OkxLoader = (
     ] = storageFactory.createStorageNullable<OkxAccount>("okxUserData");
 
     let loadOkxUserData = () => {
+        if (isDemoMode) {
+            setOkxUserData(new OkxAccount(createDemoOkxAssets()));
+            return;
+        }
         if (!okxIntegrationEnabled
             || !okxIntegrationApiKey
             || !okxIntegrationApiSecret

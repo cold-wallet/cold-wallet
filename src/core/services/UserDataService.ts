@@ -1,9 +1,9 @@
 import UserData from "../domain/UserData";
-import StorageFactory from "../domain/StorageFactory";
 import UserDataHolder from "../domain/UserDataHolder";
 import {Dispatch, SetStateAction, useMemo} from "react";
 import useInterval from "../utils/useInterval";
 import cypherService from "./CypherService";
+import UserDataStorageFactory from "../domain/UserDataStorageFactory";
 
 const DEFAULT_PIN_CODE = "0123456789"
 export const DELAY_BEFORE_RELOGIN = 5 * 60_000;
@@ -15,25 +15,22 @@ function getPinCode(userData: UserData) {
     return {pinCode, pinCodeEncrypted: !!userPinCode}
 }
 
-export function initUserDataHolder(userData: UserData) {
+export function initUserDataHolder(userData: UserData, demo: boolean = false): UserDataHolder {
     const {pinCode, pinCodeEncrypted} = getPinCode(userData);
     const encryptedData = cypherService.encrypt(userData, pinCode);
-    return new UserDataHolder(pinCodeEncrypted, encryptedData)
+    return new UserDataHolder(pinCodeEncrypted, encryptedData, demo)
 }
 
 export default function UserDataService(
     {storageFactory, pinCode,}: {
-        storageFactory: StorageFactory,
+        storageFactory: UserDataStorageFactory,
         pinCode: string | null,
     }
 ) {
 
-    const [userDataPlain] = storageFactory.createStorageNullable<UserData>(
-        "userData"
-    );
     const [userDataHolder, setUserDataHolder]
-        = storageFactory.createStorage<UserDataHolder>(
-        "userDataHolder", () => initUserDataHolder(userDataPlain || new UserData())
+        = storageFactory.createStorage(
+        "userDataHolder", () => initUserDataHolder(new UserData(), true)
     );
     const userData: UserData = useMemo(() => {
         if (userDataHolder.pinCodeEncrypted && !pinCode) {
@@ -52,8 +49,12 @@ export default function UserDataService(
         return !!userData.id && userData.id !== unauthorizedId;
     }, [userData])
 
+    const isDemoMode = useMemo(() => {
+        return userDataHolder.demo
+    }, [userData])
+
     const shouldEnterPinCode = useMemo(() => {
-        return userDataHolder.pinCodeEncrypted
+        return !isDemoMode && userDataHolder.pinCodeEncrypted
             && ((userData.lastOnline && (Date.now() > ((userData.lastOnline || 0) + DELAY_BEFORE_RELOGIN)))
                 || (!pinCode || userData.settings.pinCode !== pinCode))
     }, [userDataHolder, userData, pinCode])
@@ -89,6 +90,7 @@ export default function UserDataService(
         userData, setUserData,
         userDataHolder, setUserDataHolder,
         shouldEnterPinCode,
+        isDemoMode,
         loggedIn,
     }
 };
