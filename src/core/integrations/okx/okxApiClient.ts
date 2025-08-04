@@ -23,19 +23,25 @@ const okxApiClient = {
     },
     fetchCurrencies: async (): Promise<ApiResponse<{ [index: string]: OkxCurrencyResponse } | any>> => {
         try {
-            const extractPrecision = (lotSize: string) => {
-                if (+lotSize >= 1) {
-                    return 1
-                } else {
-                    return lotSize.split(".")[1].length;
+            const extractPrecision = (instrument: Instrument) => {
+                try {
+                    if (+instrument.lotSz >= 1) {
+                        return 1
+                    } else {
+                        return instrument.lotSz.split(".")[1].length;
+                    }
+                } catch (e: any) {
+                    console.error("error on " + instrument, e)
+                    return 0
                 }
             }
             const instruments: Instrument[] = await new RestClient().getInstruments("SPOT")
             const currencies = instruments
+                .filter(instrument => instrument.state != "preopen")
                 .reduce((merged: { [p: string]: OkxCurrencyResponse }, instrument) => {
                     merged[instrument.baseCcy] = {
                         symbol: instrument.baseCcy,
-                        precision: extractPrecision(instrument.lotSz)
+                        precision: extractPrecision(instrument)
                     }
                     return merged
                 }, {});
