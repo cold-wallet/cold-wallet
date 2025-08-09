@@ -2,7 +2,8 @@ import {useEffect, useMemo, useState} from "react";
 import detectEthereumProvider from "@metamask/detect-provider";
 import UserData from "../../domain/UserData";
 import {AddressBalanceResult, MetaMaskAccount, MetaMaskWallet} from "./MetaMaskWallet";
-import {fetchBalance, FetchBalanceResult} from "@wagmi/core";
+import { fetchBalance, GetBalanceReturnType } from "@wagmi/core";
+import { wagmiConfig } from '../../../wagmiConfig';
 import defaultTokens from "@uniswap/default-token-list"
 import erc20top100 from "./../../../resources/erc20top100_2023.json"
 import useInterval from "../../utils/useInterval";
@@ -205,7 +206,7 @@ export default function MetaMaskLoader(
 
     const fetch = async (
         initData: BalanceRequest[],
-        fetcher: (r: BalanceRequest) => Promise<FetchBalanceResult | null>,
+        fetcher: (r: BalanceRequest) => Promise<GetBalanceReturnType | null>,
     ) => {
         const fullLength = initData.length;
         const currentLoaded = fullResult.length;
@@ -298,7 +299,7 @@ export default function MetaMaskLoader(
             options,
             ({address, chainId, token}) => {
                 try {
-                    return fetchBalance({
+                    return fetchBalance(wagmiConfig, {
                         address, chainId, token,
                     })
                 } catch (e: any) {
