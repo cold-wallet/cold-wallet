@@ -1,28 +1,14 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import './App.css';
 import ColdWallet from "./core/components/ColdWallet";
 import storageFactory from './impl/Storage';
 import sessionStorageFactory from './impl/SessionStorage';
 import userDataStorageFactory from './impl/UserDataStorage';
-import {configureChains, createConfig, WagmiConfig} from 'wagmi'
-import {publicProvider} from 'wagmi/providers/public'
-import {InjectedConnector} from "@wagmi/core";
-import {metaMaskChains} from "./core/integrations/metamask/MetaMaskChains";
+import { WagmiProvider } from 'wagmi';
+import { wagmiConfig } from './wagmiConfig';
 import TagManager from 'react-gtm-module';
 
 function App() {
-
-    const {chains, publicClient, webSocketPublicClient} = configureChains(
-        metaMaskChains,
-        [publicProvider()],
-    )
-    const config = createConfig({
-        autoConnect: true,
-        connectors: [new InjectedConnector({chains})],
-        publicClient,
-        webSocketPublicClient,
-        // storage: createStorage({ storage: window.localStorage }),
-    })
 
     useEffect(() => {
         TagManager.initialize({
@@ -31,9 +17,9 @@ function App() {
     }, []);
 
     return (
-        <WagmiConfig config={config}>
-            <ColdWallet properties={{storageFactory, sessionStorageFactory, userDataStorageFactory}}/>
-        </WagmiConfig>
+        <WagmiProvider config={wagmiConfig}>
+            <ColdWallet properties={{ storageFactory, sessionStorageFactory, userDataStorageFactory }} />
+        </WagmiProvider>
     );
 }
 
