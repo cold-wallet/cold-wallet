@@ -221,6 +221,7 @@ export default function MetaMaskLoader(
         let newResult: AddressBalanceResult | null;
         try {
             const spreadElements = await fetcher(request);
+            console.log("spreadElements", spreadElements);
             newResult = (spreadElements) ? {
                 ...spreadElements,
                 value: spreadElements.value.toString(),
@@ -234,13 +235,27 @@ export default function MetaMaskLoader(
                 console.warn("strange result", newResult)
                 newResult = null
             }
-        } catch (e: any) {
+        } catch (e) {
             console.warn(e)
-            newResult = null
+            if (e instanceof Error &&
+                (e.message.includes("Internal error")
+                    || e.message.includes("Missing or invalid parameters")
+                    || e.message.includes("Failed to fetch")
+                    || e.message.includes("The contract function")
+                    || e.message.includes("API key is not allowed to access blockchain")
+                )) {
+                newResult = null
+            } else {
+                console.warn("probably should try again")
+                return
+            }
         }
 
         if (currentLoaded === fullLength) {
             setIsLoaded(true)
+        }
+        if (newResult) {
+            console.log("newResult", newResult)
         }
         setFullResult([
             ...fullResult,
@@ -248,13 +263,29 @@ export default function MetaMaskLoader(
         ])
         const percentage = Number(Number(fullResult.length * 100 / initData.length).toFixed(2));
         console.log(`Loaded ${fullResult.length} of ${initData.length}, ${percentage}% of tokens for metamask`)
+        // }
     }
 
     const options = useMemo<BalanceRequest[]>(() => {
         if (!wallet || !wallet.accounts?.length) {
             return []
         }
-        return getAllOptions(wallet.accounts[0])
+        return wallet.accounts.map(account => getAllOptions(account))
+            .reduce((a, b) => a.concat(b), [])
+            .sort((a, b) => {
+                return a.symbol === "USDT"
+                || a.symbol === "USDC"
+                || a.symbol === "BUSD"
+                || a.symbol === "ETH"
+                || a.symbol === "DAI"
+                || a.symbol === "SOL"
+                || a.symbol === "MATIC"
+                || a.symbol === "WETH"
+                || a.symbol === "XRP"
+                || a.symbol === "BNB"
+                    ? -1 : 1
+            })
+        //return getAllOptions(wallet.accounts[0])
     }, [wallet])
 
     useInterval(() => {
