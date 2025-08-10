@@ -244,6 +244,8 @@ export default function MetaMaskLoader(
                     || e.message.includes("Failed to fetch")
                     || e.message.includes("The contract function")
                     || e.message.includes("API key is not allowed to access blockchain")
+                    || e.message.includes("Invalid chain")
+                    || e.message.includes("Chain not configured")
                 )) {
                 newResult = null
             } else {
