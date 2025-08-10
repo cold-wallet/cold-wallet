@@ -7,7 +7,7 @@ import OkxCurrencyResponse from "./OkxCurrencyResponse";
 const okxApiClient = {
     fetchPrices: async (): Promise<ApiResponse<{ [p: string]: string } | any>> => {
         try {
-            const tickers: Ticker[] = await new RestClient().getTickers("SPOT")
+            const tickers: Ticker[] = await new RestClient().getTickers({instType: "SPOT"})
             const prices = tickers.reduce((merged: { [p: string]: string }, ticker) => {
                 merged[ticker.instId/*.replace("-", "_")*/] = ticker.last
                 return merged
@@ -35,7 +35,7 @@ const okxApiClient = {
                     return 0
                 }
             }
-            const instruments: Instrument[] = await new RestClient().getInstruments("SPOT")
+            const instruments: Instrument[] = await new RestClient().getInstruments({instType: "SPOT"})
             const currencies = instruments
                 .filter(instrument => instrument.state !== "preopen")
                 .reduce((merged: { [p: string]: OkxCurrencyResponse }, instrument) => {
@@ -95,7 +95,9 @@ const okxApiClient = {
         }
         if (subAccountName) {
             try {
-                const subAccountBalances: SubAccountBalances[] = await client.getSubAccountBalances(subAccountName);
+                const subAccountBalances: SubAccountBalances[] = await client.getSubAccountBalances({
+                    subAcct: subAccountName
+                });
                 accountInfo.subAccountBalances = subAccountBalances[0].details
                     .filter(balance => Number(balance.eq))
                     .map(asset => extractAsset("sub", asset))
