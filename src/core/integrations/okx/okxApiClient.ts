@@ -37,7 +37,7 @@ const okxApiClient = {
             }
             const instruments: Instrument[] = await new RestClient().getInstruments("SPOT")
             const currencies = instruments
-                .filter(instrument => instrument.state != "preopen")
+                .filter(instrument => instrument.state !== "preopen")
                 .reduce((merged: { [p: string]: OkxCurrencyResponse }, instrument) => {
                     merged[instrument.baseCcy] = {
                         symbol: instrument.baseCcy,

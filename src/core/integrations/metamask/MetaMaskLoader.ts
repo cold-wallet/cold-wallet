@@ -2,8 +2,8 @@ import {useEffect, useMemo, useState} from "react";
 import detectEthereumProvider from "@metamask/detect-provider";
 import UserData from "../../domain/UserData";
 import {AddressBalanceResult, MetaMaskAccount, MetaMaskWallet} from "./MetaMaskWallet";
-import { fetchBalance, GetBalanceReturnType } from "@wagmi/core";
-import { wagmiConfig } from '../../../wagmiConfig';
+import {fetchBalance, GetBalanceReturnType} from "@wagmi/core";
+import {wagmiConfig} from '../../../wagmiConfig';
 import defaultTokens from "@uniswap/default-token-list"
 import erc20top100 from "./../../../resources/erc20top100_2023.json"
 import useInterval from "../../utils/useInterval";
@@ -222,7 +222,7 @@ export default function MetaMaskLoader(
         let newResult: AddressBalanceResult | null;
         try {
             const spreadElements = await fetcher(request);
-            console.log("spreadElements", spreadElements);
+            // console.log("spreadElements", spreadElements);
             newResult = (spreadElements) ? {
                 ...spreadElements,
                 value: spreadElements.value.toString(),
@@ -231,7 +231,7 @@ export default function MetaMaskLoader(
                 symbol: request.symbol,
             } : null
             if (newResult && Uint8Array.from(newResult.symbol, e => e.charCodeAt(0))
-                .reduce((a, b) => a + b) == 2
+                .reduce((a, b) => a + b) === 2
             ) {// value 2 received in an empirical way
                 console.warn("strange result", newResult)
                 newResult = null
@@ -255,9 +255,9 @@ export default function MetaMaskLoader(
         if (currentLoaded === fullLength) {
             setIsLoaded(true)
         }
-        if (newResult) {
-            console.log("newResult", newResult)
-        }
+        // if (newResult) {
+        //     console.log("newResult", newResult)
+        // }
         setFullResult([
             ...fullResult,
             newResult

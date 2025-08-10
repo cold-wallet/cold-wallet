@@ -126,7 +126,7 @@ function getRandomBoolean() {
 function getRandomCurrency() {
     const type = getRandomBoolean() ? AssetType.crypto : AssetType.fiat;
     return {
-        currency: type == AssetType.crypto ? getRandomCryptoCurrency() : getRandomFiatCurrency(),
+        currency: type === AssetType.crypto ? getRandomCryptoCurrency() : getRandomFiatCurrency(),
         type: type,
     };
 }
