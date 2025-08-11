@@ -6,6 +6,7 @@ import {readContracts, getPublicClient} from "@wagmi/core";
 import {wagmiConfig} from '../../../wagmiConfig';
 import defaultTokens from "@uniswap/default-token-list"
 import erc20top100 from "./../../../resources/erc20top100_2023.json"
+import useInterval from "../../utils/useInterval";
 import StorageFactory from "../../domain/StorageFactory";
 import AssetDTO, {crypto} from "../../domain/AssetDTO";
 import {chainIdToName} from "./MetaMaskChains";
@@ -30,6 +31,18 @@ interface BalanceRequest {
     address: `0x${string}`
     decimals: number
 }
+
+const IGNORED_ERROR_MESSAGES = [
+    "Internal error",
+    "Missing or invalid parameters",
+    "Failed to fetch",
+    "The contract function",
+    "API key is not allowed to access blockchain",
+    "Invalid chain",
+    "Chain not configured",
+];
+
+const BATCH_SIZE = 20;
 
 export default function MetaMaskLoader(
     isDemoMode: boolean,
@@ -208,7 +221,6 @@ export default function MetaMaskLoader(
         })
         setMetaMaskUserData(newData)
     }, [nonZeroTokens, isLoaded]);
-
     const fetchAllBalances = async (requests: BalanceRequest[]) => {
         const tokenRequests = requests
             .map((req, index) => ({req, index}))
@@ -271,6 +283,41 @@ export default function MetaMaskLoader(
         return results;
     }
 
+    const fetchBatch = async (initData: BalanceRequest[]) => {
+        const fullLength = initData.length;
+        const currentLoaded = fullResult.length;
+        if (currentLoaded === fullLength) {
+            setIsLoaded(true);
+            return;
+        }
+        const slice = initData.slice(currentLoaded, currentLoaded + BATCH_SIZE);
+        try {
+            const batchResults = await fetchAllBalances(slice);
+            setFullResult([...fullResult, ...batchResults]);
+            const loaded = currentLoaded + batchResults.length;
+            const percentage = Number((loaded * 100 / fullLength).toFixed(2));
+            console.log(`Loaded ${loaded} of ${fullLength}, ${percentage}% of tokens for metamask`);
+            if (loaded === fullLength) {
+                setIsLoaded(true);
+            }
+        } catch (e) {
+            console.warn(e);
+            const message = e instanceof Error ? e.message : String(e);
+            if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                const nulls = new Array(slice.length).fill(null);
+                const loaded = currentLoaded + slice.length;
+                setFullResult([...fullResult, ...nulls]);
+                const percentage = Number((loaded * 100 / fullLength).toFixed(2));
+                console.log(`Loaded ${loaded} of ${fullLength}, ${percentage}% of tokens for metamask`);
+                if (loaded === fullLength) {
+                    setIsLoaded(true);
+                }
+            } else {
+                console.warn("probably should try again");
+            }
+        }
+    }
+
     const options = useMemo<BalanceRequest[]>(() => {
         if (!wallet || !wallet.accounts?.length) {
             return []
@@ -293,20 +340,19 @@ export default function MetaMaskLoader(
     }, [wallet])
 
     useEffect(() => {
+        setFullResult([])
+        setIsLoaded(false)
+    }, [wallet, metaMaskSettingsEnabled, options, loadingUserDataAllowed])
+
+    useInterval(() => {
         if (!wallet || !wallet.accounts || !wallet.accounts.length
             || !metaMaskSettingsEnabled || !options.length
             || !loadingUserDataAllowed
         ) {
             return
         }
-        setIsLoaded(false)
-        fetchAllBalances(options)
-            .then(result => {
-                setFullResult(result)
-                setIsLoaded(true)
-            })
-            .catch(console.error)
-    }, [wallet, metaMaskSettingsEnabled, options, loadingUserDataAllowed])
+        fetchBatch(options).catch(console.error)
+    }, (isLoaded || !loadingUserDataAllowed || !metaMaskSettingsEnabled) ? null : 600)
 
     return {
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
