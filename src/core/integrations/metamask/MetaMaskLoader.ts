@@ -245,12 +245,20 @@ export default function MetaMaskLoader(
                 if (!client) return Promise.resolve({index, result: null});
                 return client.getBalance({address: req.address})
                     .then(result => ({index, result}))
-                    .catch(() => ({index, result: null}));
+                    .catch(e => {
+                        const message = e instanceof Error ? e.message : String(e);
+                        if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                            return {index, result: null};
+                        }
+                        throw e;
+                    });
             }).filter(Boolean) as Promise<{index: number, result: bigint | null}>[];
 
             const nativeResults = await Promise.all(nativePromises);
 
             const results: Array<AddressBalanceResult | null> = new Array(requests.length).fill(null);
+
+            let unknownError: any = null;
 
             tokenResults.forEach((res, idx) => {
                 const {req, index} = tokenRequests[idx];
@@ -264,8 +272,19 @@ export default function MetaMaskLoader(
                         symbol: req.symbol,
                         value: value.toString(),
                     }
+                } else if (res.status === 'failure') {
+                    const message = res.error instanceof Error ? res.error.message : String(res.error);
+                    if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                        results[index] = null;
+                    } else {
+                        unknownError = res.error;
+                    }
                 }
             });
+
+            if (unknownError) {
+                throw unknownError;
+            }
 
             nativeResults.forEach(({index, result}) => {
                 const req = requests[index];
