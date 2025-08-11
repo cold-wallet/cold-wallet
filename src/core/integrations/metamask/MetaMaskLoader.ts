@@ -222,65 +222,73 @@ export default function MetaMaskLoader(
         setMetaMaskUserData(newData)
     }, [nonZeroTokens, isLoaded]);
     const fetchAllBalances = async (requests: BalanceRequest[]) => {
-        const tokenRequests = requests
-            .map((req, index) => ({req, index}))
-            .filter(({req}) => !!req.token);
+        try {
+            const tokenRequests = requests
+                .map((req, index) => ({req, index}))
+                .filter(({req}) => !!req.token);
 
-        const contracts = tokenRequests.map(({req}) => ({
-            address: req.token!,
-            abi: erc20Abi,
-            functionName: 'balanceOf',
-            args: [req.address],
-            chainId: req.chainId,
-        }));
+            const contracts = tokenRequests.map(({req}) => ({
+                address: req.token!,
+                abi: erc20Abi,
+                functionName: 'balanceOf',
+                args: [req.address],
+                chainId: req.chainId,
+            }));
 
-        const tokenResults = contracts.length
-            ? await readContracts(wagmiConfig, {contracts, allowFailure: true})
-            : [];
+            const tokenResults = contracts.length
+                ? await readContracts(wagmiConfig, {contracts, allowFailure: true})
+                : [];
 
-        const nativePromises = requests.map((req, index) => {
-            if (req.token) return null;
-            const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
-            if (!client) return Promise.resolve({index, result: null});
-            return client.getBalance({address: req.address})
-                .then(result => ({index, result}))
-                .catch(() => ({index, result: null}));
-        }).filter(Boolean) as Promise<{index: number, result: bigint | null}>[];
+            const nativePromises = requests.map((req, index) => {
+                if (req.token) return null;
+                const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
+                if (!client) return Promise.resolve({index, result: null});
+                return client.getBalance({address: req.address})
+                    .then(result => ({index, result}))
+                    .catch(() => ({index, result: null}));
+            }).filter(Boolean) as Promise<{index: number, result: bigint | null}>[];
 
-        const nativeResults = await Promise.all(nativePromises);
+            const nativeResults = await Promise.all(nativePromises);
 
-        const results: Array<AddressBalanceResult | null> = new Array(requests.length).fill(null);
+            const results: Array<AddressBalanceResult | null> = new Array(requests.length).fill(null);
 
-        tokenResults.forEach((res, idx) => {
-            const {req, index} = tokenRequests[idx];
-            if (res.status === 'success') {
-                const value = res.result as bigint;
-                results[index] = {
-                    chainId: req.chainId,
-                    address: req.address,
-                    decimals: req.decimals,
-                    formatted: formatUnits(value, req.decimals),
-                    symbol: req.symbol,
-                    value: value.toString(),
+            tokenResults.forEach((res, idx) => {
+                const {req, index} = tokenRequests[idx];
+                if (res.status === 'success') {
+                    const value = res.result as bigint;
+                    results[index] = {
+                        chainId: req.chainId,
+                        address: req.address,
+                        decimals: req.decimals,
+                        formatted: formatUnits(value, req.decimals),
+                        symbol: req.symbol,
+                        value: value.toString(),
+                    }
                 }
-            }
-        });
+            });
 
-        nativeResults.forEach(({index, result}) => {
-            const req = requests[index];
-            if (result !== null) {
-                results[index] = {
-                    chainId: req.chainId,
-                    address: req.address,
-                    decimals: req.decimals,
-                    formatted: formatUnits(result, req.decimals),
-                    symbol: req.symbol,
-                    value: result.toString(),
+            nativeResults.forEach(({index, result}) => {
+                const req = requests[index];
+                if (result !== null) {
+                    results[index] = {
+                        chainId: req.chainId,
+                        address: req.address,
+                        decimals: req.decimals,
+                        formatted: formatUnits(result, req.decimals),
+                        symbol: req.symbol,
+                        value: result.toString(),
+                    }
                 }
-            }
-        });
+            });
 
-        return results;
+            return results;
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                return new Array(requests.length).fill(null);
+            }
+            throw e;
+        }
     }
 
     const fetchBatch = async (initData: BalanceRequest[]) => {
@@ -302,19 +310,7 @@ export default function MetaMaskLoader(
             }
         } catch (e) {
             console.warn(e);
-            const message = e instanceof Error ? e.message : String(e);
-            if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                const nulls = new Array(slice.length).fill(null);
-                const loaded = currentLoaded + slice.length;
-                setFullResult([...fullResult, ...nulls]);
-                const percentage = Number((loaded * 100 / fullLength).toFixed(2));
-                console.log(`Loaded ${loaded} of ${fullLength}, ${percentage}% of tokens for metamask`);
-                if (loaded === fullLength) {
-                    setIsLoaded(true);
-                }
-            } else {
-                console.warn("probably should try again");
-            }
+            console.warn("probably should try again");
         }
     }
 
