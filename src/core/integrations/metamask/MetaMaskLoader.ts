@@ -68,6 +68,18 @@ export default function MetaMaskLoader(
     const [errorMessage, setErrorMessage] = useState("")
 
     useEffect(() => {
+        const handleRejection = (event: PromiseRejectionEvent) => {
+            const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
+            if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                event.preventDefault();
+                console.warn(event.reason);
+            }
+        };
+        window.addEventListener('unhandledrejection', handleRejection);
+        return () => window.removeEventListener('unhandledrejection', handleRejection);
+    }, []);
+
+    useEffect(() => {
         const refreshAccounts = (accounts: any) => {
             if (accounts.length > 0) {
                 updateWallet(accounts)
@@ -366,7 +378,7 @@ export default function MetaMaskLoader(
         ) {
             return
         }
-        fetchBatch(options).catch(console.error)
+        fetchBatch(options).catch(e => console.warn(e))
     }, (isLoaded || !loadingUserDataAllowed || !metaMaskSettingsEnabled) ? null : 600)
 
     return {
