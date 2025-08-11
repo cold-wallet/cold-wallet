@@ -1,5 +1,6 @@
 import ApiResponse from "../../domain/ApiResponse";
 import {AccountBalance, Instrument, RestClient, SubAccountBalances, Ticker} from 'okx-api';
+import axios from 'axios';
 import AssetDTO, {crypto, fiat} from "../../domain/AssetDTO";
 import fiatCurrencies from "../../fiatCurrencies";
 import OkxCurrencyResponse from "./OkxCurrencyResponse";
@@ -7,10 +8,13 @@ import OkxCurrencyResponse from "./OkxCurrencyResponse";
 const okxApiClient = {
     fetchPrices: async (): Promise<ApiResponse<{ [p: string]: string } | any>> => {
         try {
-            const tickers: Ticker[] = await new RestClient().getTickers({instType: "SPOT"})
+            const response = await axios.get('https://www.okx.com/api/v5/market/tickers', {
+                params: { instType: 'SPOT' }
+            });
+            const tickers: Ticker[] = response.data.data;
             const prices = tickers.reduce((merged: { [p: string]: string }, ticker) => {
-                merged[ticker.instId/*.replace("-", "_")*/] = ticker.last
-                return merged
+                merged[ticker.instId/*.replace("-", "_")*/] = ticker.last;
+                return merged;
             }, {});
             return ApiResponse.success(200, prices,)
         } catch (error: any) {
@@ -35,15 +39,18 @@ const okxApiClient = {
                     return 0
                 }
             }
-            const instruments: Instrument[] = await new RestClient().getInstruments({instType: "SPOT"})
+            const response = await axios.get('https://www.okx.com/api/v5/public/instruments', {
+                params: { instType: 'SPOT' }
+            });
+            const instruments: Instrument[] = response.data.data;
             const currencies = instruments
                 .filter(instrument => instrument.state !== "preopen")
                 .reduce((merged: { [p: string]: OkxCurrencyResponse }, instrument) => {
                     merged[instrument.baseCcy] = {
                         symbol: instrument.baseCcy,
                         precision: extractPrecision(instrument)
-                    }
-                    return merged
+                    };
+                    return merged;
                 }, {});
             return ApiResponse.success(200, currencies,)
         } catch (error: any) {
