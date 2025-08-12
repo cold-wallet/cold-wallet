@@ -2,7 +2,7 @@ import {useEffect, useMemo, useState} from "react";
 import detectEthereumProvider from "@metamask/detect-provider";
 import UserData from "../../domain/UserData";
 import {AddressBalanceResult, MetaMaskAccount, MetaMaskWallet} from "./MetaMaskWallet";
-import {readContracts, getPublicClient} from "@wagmi/core";
+import {getPublicClient, readContracts} from "@wagmi/core";
 import {wagmiConfig} from '../../../wagmiConfig';
 import defaultTokens from "@uniswap/default-token-list"
 import erc20top100 from "./../../../resources/erc20top100_2023.json"
@@ -40,9 +40,11 @@ const IGNORED_ERROR_MESSAGES = [
     "API key is not allowed to access blockchain",
     "Invalid chain",
     "Chain not configured",
+    "Requested resource not found"
 ];
 
 const BATCH_SIZE = 20;
+const REQUEST_DELAY_MS = 1000;
 
 export default function MetaMaskLoader(
     isDemoMode: boolean,
@@ -66,18 +68,6 @@ export default function MetaMaskLoader(
     const [isConnecting, setIsConnecting] = useState(false)
     const [error, setError] = useState(false)
     const [errorMessage, setErrorMessage] = useState("")
-
-    useEffect(() => {
-        const handleRejection = (event: PromiseRejectionEvent) => {
-            const message = event.reason instanceof Error ? event.reason.message : String(event.reason);
-            if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                event.preventDefault();
-                console.warn(event.reason);
-            }
-        };
-        window.addEventListener('unhandledrejection', handleRejection);
-        return () => window.removeEventListener('unhandledrejection', handleRejection);
-    }, []);
 
     useEffect(() => {
         const refreshAccounts = (accounts: any) => {
@@ -233,6 +223,7 @@ export default function MetaMaskLoader(
         })
         setMetaMaskUserData(newData)
     }, [nonZeroTokens, isLoaded]);
+
     const fetchAllBalances = async (requests: BalanceRequest[]) => {
         try {
             const tokenRequests = requests
@@ -265,7 +256,7 @@ export default function MetaMaskLoader(
                         }
                         return {index, result: null};
                     });
-            }).filter(Boolean) as Promise<{index: number, result: bigint | null}>[];
+            }).filter(Boolean) as Promise<{ index: number, result: bigint | null }>[];
 
             const nativeResults = await Promise.all(nativePromises);
 
@@ -315,11 +306,15 @@ export default function MetaMaskLoader(
         }
     }
 
-    const REQUEST_DELAY_MS = 300;
-    const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+    const sleep = (ms: number) => new Promise(res => {
+        console.log("sleeping, time: {}", new Date().toISOString())
+        setTimeout(res, ms)
+        console.log("slept, time: {}", new Date().toISOString())
+    });
 
     const fetchWithRetry = async (reqs: BalanceRequest[]): Promise<Array<AddressBalanceResult | null>> => {
         try {
+            await sleep(REQUEST_DELAY_MS);
             const {results, retryIndices} = await fetchAllBalances(reqs);
             if (!retryIndices.length) {
                 return results;
@@ -328,7 +323,6 @@ export default function MetaMaskLoader(
                 return results;
             }
             const retryReqs = retryIndices.map(i => reqs[i]);
-            await sleep(REQUEST_DELAY_MS);
             const retried = await fetchWithRetry(retryReqs);
             retryIndices.forEach((idx, i) => {
                 results[idx] = retried[i];
@@ -337,12 +331,10 @@ export default function MetaMaskLoader(
         } catch (e) {
             if (reqs.length === 1) {
                 console.warn(e);
-                await sleep(REQUEST_DELAY_MS);
                 return [null];
             }
             const mid = Math.ceil(reqs.length / 2);
             const first = await fetchWithRetry(reqs.slice(0, mid));
-            await sleep(REQUEST_DELAY_MS);
             const second = await fetchWithRetry(reqs.slice(mid));
             return [...first, ...second];
         }
@@ -405,7 +397,7 @@ export default function MetaMaskLoader(
             return
         }
         fetchBatch(options).catch(e => console.warn(e))
-    }, (isLoaded || !loadingUserDataAllowed || !metaMaskSettingsEnabled) ? null : 600)
+    }, (isLoaded || !loadingUserDataAllowed || !metaMaskSettingsEnabled) ? null : REQUEST_DELAY_MS)
 
     return {
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
