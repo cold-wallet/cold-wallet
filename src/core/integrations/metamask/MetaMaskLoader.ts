@@ -251,6 +251,7 @@ export default function MetaMaskLoader(
                 ? await readContracts(wagmiConfig, {contracts, allowFailure: true})
                 : [];
 
+            const retryIndices: number[] = [];
             const nativePromises = requests.map((req, index) => {
                 if (req.token) return null;
                 const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
@@ -259,18 +260,16 @@ export default function MetaMaskLoader(
                     .then(result => ({index, result}))
                     .catch(e => {
                         const message = e instanceof Error ? e.message : String(e);
-                        if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                            return {index, result: null};
+                        if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                            retryIndices.push(index);
                         }
-                        throw e;
+                        return {index, result: null};
                     });
             }).filter(Boolean) as Promise<{index: number, result: bigint | null}>[];
 
             const nativeResults = await Promise.all(nativePromises);
 
             const results: Array<AddressBalanceResult | null> = new Array(requests.length).fill(null);
-
-            let unknownError: any = null;
 
             tokenResults.forEach((res, idx) => {
                 const {req, index} = tokenRequests[idx];
@@ -286,17 +285,11 @@ export default function MetaMaskLoader(
                     }
                 } else if (res.status === 'failure') {
                     const message = res.error instanceof Error ? res.error.message : String(res.error);
-                    if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                        results[index] = null;
-                    } else {
-                        unknownError = res.error;
+                    if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                        retryIndices.push(index);
                     }
                 }
             });
-
-            if (unknownError) {
-                throw unknownError;
-            }
 
             nativeResults.forEach(({index, result}) => {
                 const req = requests[index];
@@ -312,13 +305,46 @@ export default function MetaMaskLoader(
                 }
             });
 
-            return results;
+            return {results, retryIndices};
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
             if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                return new Array(requests.length).fill(null);
+                return {results: new Array(requests.length).fill(null), retryIndices: []};
             }
             throw e;
+        }
+    }
+
+    const REQUEST_DELAY_MS = 300;
+    const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+    const fetchWithRetry = async (reqs: BalanceRequest[]): Promise<Array<AddressBalanceResult | null>> => {
+        try {
+            const {results, retryIndices} = await fetchAllBalances(reqs);
+            if (!retryIndices.length) {
+                return results;
+            }
+            if (reqs.length === 1) {
+                return results;
+            }
+            const retryReqs = retryIndices.map(i => reqs[i]);
+            await sleep(REQUEST_DELAY_MS);
+            const retried = await fetchWithRetry(retryReqs);
+            retryIndices.forEach((idx, i) => {
+                results[idx] = retried[i];
+            });
+            return results;
+        } catch (e) {
+            if (reqs.length === 1) {
+                console.warn(e);
+                await sleep(REQUEST_DELAY_MS);
+                return [null];
+            }
+            const mid = Math.ceil(reqs.length / 2);
+            const first = await fetchWithRetry(reqs.slice(0, mid));
+            await sleep(REQUEST_DELAY_MS);
+            const second = await fetchWithRetry(reqs.slice(mid));
+            return [...first, ...second];
         }
     }
 
@@ -331,7 +357,7 @@ export default function MetaMaskLoader(
         }
         const slice = initData.slice(currentLoaded, currentLoaded + BATCH_SIZE);
         try {
-            const batchResults = await fetchAllBalances(slice);
+            const batchResults = await fetchWithRetry(slice);
             setFullResult([...fullResult, ...batchResults]);
             const loaded = currentLoaded + batchResults.length;
             const percentage = Number((loaded * 100 / fullLength).toFixed(2));
