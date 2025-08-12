@@ -159,6 +159,7 @@ export default function MetaMaskLoader(
     }
     const [fullResult, setFullResult] = useState<Array<AddressBalanceResult | null>>([])
     const [isLoaded, setIsLoaded] = useState(false)
+    const [batchSize, setBatchSize] = useState(BATCH_SIZE)
 
     const nonZeroTokens = useMemo(() => {
         const filtered = fullResult.filter(balance =>
@@ -242,8 +243,7 @@ export default function MetaMaskLoader(
                 ? await readContracts(wagmiConfig, {contracts, allowFailure: true})
                 : [];
 
-            const retryIndices: number[] = [];
-            const nativePromises = requests.map((req, index) => {
+            const nativePromises = (requests.map((req, index) => {
                 if (req.token) return null;
                 const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
                 if (!client) return Promise.resolve({index, result: null});
@@ -251,12 +251,12 @@ export default function MetaMaskLoader(
                     .then(result => ({index, result}))
                     .catch(e => {
                         const message = e instanceof Error ? e.message : String(e);
-                        if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                            retryIndices.push(index);
+                        if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                            return {index, result: null};
                         }
-                        return {index, result: null};
+                        throw e;
                     });
-            }).filter(Boolean) as Promise<{ index: number, result: bigint | null }>[];
+            }).filter(Boolean)) as Promise<{ index: number, result: bigint | null }>[];
 
             const nativeResults = await Promise.all(nativePromises);
 
@@ -277,7 +277,7 @@ export default function MetaMaskLoader(
                 } else if (res.status === 'failure') {
                     const message = res.error instanceof Error ? res.error.message : String(res.error);
                     if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                        retryIndices.push(index);
+                        throw new Error(message);
                     }
                 }
             });
@@ -296,47 +296,13 @@ export default function MetaMaskLoader(
                 }
             });
 
-            return {results, retryIndices};
+            return results;
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
             if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                return {results: new Array(requests.length).fill(null), retryIndices: []};
+                return new Array(requests.length).fill(null);
             }
             throw e;
-        }
-    }
-
-    const sleep = (ms: number) => new Promise(res => {
-        console.log("sleeping, time: {}", new Date().toISOString())
-        setTimeout(res, ms)
-        console.log("slept, time: {}", new Date().toISOString())
-    });
-
-    const fetchWithRetry = async (reqs: BalanceRequest[]): Promise<Array<AddressBalanceResult | null>> => {
-        try {
-            await sleep(REQUEST_DELAY_MS);
-            const {results, retryIndices} = await fetchAllBalances(reqs);
-            if (!retryIndices.length) {
-                return results;
-            }
-            if (reqs.length === 1) {
-                return results;
-            }
-            const retryReqs = retryIndices.map(i => reqs[i]);
-            const retried = await fetchWithRetry(retryReqs);
-            retryIndices.forEach((idx, i) => {
-                results[idx] = retried[i];
-            });
-            return results;
-        } catch (e) {
-            if (reqs.length === 1) {
-                console.warn(e);
-                return [null];
-            }
-            const mid = Math.ceil(reqs.length / 2);
-            const first = await fetchWithRetry(reqs.slice(0, mid));
-            const second = await fetchWithRetry(reqs.slice(mid));
-            return [...first, ...second];
         }
     }
 
@@ -347,9 +313,9 @@ export default function MetaMaskLoader(
             setIsLoaded(true);
             return;
         }
-        const slice = initData.slice(currentLoaded, currentLoaded + BATCH_SIZE);
+        const slice = initData.slice(currentLoaded, currentLoaded + batchSize);
         try {
-            const batchResults = await fetchWithRetry(slice);
+            const batchResults = await fetchAllBalances(slice);
             setFullResult([...fullResult, ...batchResults]);
             const loaded = currentLoaded + batchResults.length;
             const percentage = Number((loaded * 100 / fullLength).toFixed(2));
@@ -357,9 +323,14 @@ export default function MetaMaskLoader(
             if (loaded === fullLength) {
                 setIsLoaded(true);
             }
+            if (batchSize < BATCH_SIZE) {
+                setBatchSize(b => Math.min(BATCH_SIZE, b + 1));
+            }
         } catch (e) {
-            console.warn(e);
-            console.warn("probably should try again");
+            const message = e instanceof Error ? e.message : String(e);
+            if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                setBatchSize(b => Math.max(1, Math.floor(b / 2)));
+            }
         }
     }
 
@@ -387,6 +358,7 @@ export default function MetaMaskLoader(
     useEffect(() => {
         setFullResult([])
         setIsLoaded(false)
+        setBatchSize(BATCH_SIZE)
     }, [wallet, metaMaskSettingsEnabled, options, loadingUserDataAllowed])
 
     useInterval(() => {
