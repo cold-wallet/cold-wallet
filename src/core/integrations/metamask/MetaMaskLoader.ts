@@ -2,7 +2,7 @@ import {useEffect, useMemo, useState} from "react";
 import detectEthereumProvider from "@metamask/detect-provider";
 import UserData from "../../domain/UserData";
 import {AddressBalanceResult, MetaMaskAccount, MetaMaskWallet} from "./MetaMaskWallet";
-import {fetchBalance, GetBalanceReturnType} from "@wagmi/core";
+import {getPublicClient, readContracts} from "@wagmi/core";
 import {wagmiConfig} from '../../../wagmiConfig';
 import defaultTokens from "@uniswap/default-token-list"
 import erc20top100 from "./../../../resources/erc20top100_2023.json"
@@ -12,6 +12,7 @@ import AssetDTO, {crypto} from "../../domain/AssetDTO";
 import {chainIdToName} from "./MetaMaskChains";
 import BinanceCurrencyResponse from "../binance/BinanceCurrencyResponse";
 import {createDemoMetamaskAssets} from "../../utils/DemoAssetsGenerator";
+import {erc20Abi, formatUnits} from "viem";
 
 interface Token {
     chainId: number
@@ -24,11 +25,26 @@ interface Token {
 }
 
 interface BalanceRequest {
-    token: `0x${string}`
+    token?: `0x${string}`
     chainId: number
     symbol: string
     address: `0x${string}`
+    decimals: number
 }
+
+const IGNORED_ERROR_MESSAGES = [
+    "Internal error",
+    "Missing or invalid parameters",
+    "Failed to fetch",
+    "The contract function",
+    "API key is not allowed to access blockchain",
+    "Invalid chain",
+    "Chain not configured",
+    "Requested resource not found"
+];
+
+const BATCH_SIZE = 20;
+const REQUEST_DELAY_MS = 1000;
 
 export default function MetaMaskLoader(
     isDemoMode: boolean,
@@ -124,6 +140,7 @@ export default function MetaMaskLoader(
             token: token.address,
             chainId: token.chainId,
             symbol: token.symbol,
+            decimals: token.decimals,
         } as BalanceRequest)
         const tokenOptions = ((defaultTokens.tokens || []) as Token[])
             .sort((a, b) => {
@@ -133,12 +150,16 @@ export default function MetaMaskLoader(
             })
             .map(tokenToOption)
         const optionEth = {
-            address, chainId: 1, symbol: "ETH",
+            address,
+            chainId: 1,
+            symbol: "ETH",
+            decimals: 18,
         } as BalanceRequest;
         return [optionEth, ...tokenOptions]
     }
     const [fullResult, setFullResult] = useState<Array<AddressBalanceResult | null>>([])
     const [isLoaded, setIsLoaded] = useState(false)
+    const [batchSize, setBatchSize] = useState(BATCH_SIZE)
 
     const nonZeroTokens = useMemo(() => {
         const filtered = fullResult.filter(balance =>
@@ -204,69 +225,113 @@ export default function MetaMaskLoader(
         setMetaMaskUserData(newData)
     }, [nonZeroTokens, isLoaded]);
 
-    const fetch = async (
-        initData: BalanceRequest[],
-        fetcher: (r: BalanceRequest) => Promise<GetBalanceReturnType | null>,
-    ) => {
+    const fetchAllBalances = async (requests: BalanceRequest[]) => {
+        try {
+            const tokenRequests = requests
+                .map((req, index) => ({req, index}))
+                .filter(({req}) => !!req.token);
+
+            const contracts = tokenRequests.map(({req}) => ({
+                address: req.token!,
+                abi: erc20Abi,
+                functionName: 'balanceOf',
+                args: [req.address],
+                chainId: req.chainId,
+            }));
+
+            const tokenResults = contracts.length
+                ? await readContracts(wagmiConfig, {contracts, allowFailure: true})
+                : [];
+
+            const nativePromises = (requests.map((req, index) => {
+                if (req.token) return null;
+                const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
+                if (!client) return Promise.resolve({index, result: null});
+                return client.getBalance({address: req.address})
+                    .then(result => ({index, result}))
+                    .catch(e => {
+                        const message = e instanceof Error ? e.message : String(e);
+                        if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                            return {index, result: null};
+                        }
+                        throw e;
+                    });
+            }).filter(Boolean)) as Promise<{ index: number, result: bigint | null }>[];
+
+            const nativeResults = await Promise.all(nativePromises);
+
+            const results: Array<AddressBalanceResult | null> = new Array(requests.length).fill(null);
+
+            tokenResults.forEach((res, idx) => {
+                const {req, index} = tokenRequests[idx];
+                if (res.status === 'success') {
+                    const value = res.result as bigint;
+                    results[index] = {
+                        chainId: req.chainId,
+                        address: req.address,
+                        decimals: req.decimals,
+                        formatted: formatUnits(value, req.decimals),
+                        symbol: req.symbol,
+                        value: value.toString(),
+                    }
+                } else if (res.status === 'failure') {
+                    const message = res.error instanceof Error ? res.error.message : String(res.error);
+                    if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                        throw new Error(message);
+                    }
+                }
+            });
+
+            nativeResults.forEach(({index, result}) => {
+                const req = requests[index];
+                if (result !== null) {
+                    results[index] = {
+                        chainId: req.chainId,
+                        address: req.address,
+                        decimals: req.decimals,
+                        formatted: formatUnits(result, req.decimals),
+                        symbol: req.symbol,
+                        value: result.toString(),
+                    }
+                }
+            });
+
+            return results;
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                return new Array(requests.length).fill(null);
+            }
+            throw e;
+        }
+    }
+
+    const fetchBatch = async (initData: BalanceRequest[]) => {
         const fullLength = initData.length;
         const currentLoaded = fullResult.length;
         if (currentLoaded === fullLength) {
-            setIsLoaded(true)
-            return
+            setIsLoaded(true);
+            return;
         }
-        const request = initData.at(currentLoaded);
-        if (!request) {
-            console.warn(`no element at {} in {}`, currentLoaded, initData)
-            return
-        }
-        let newResult: AddressBalanceResult | null;
+        const slice = initData.slice(currentLoaded, currentLoaded + batchSize);
         try {
-            const spreadElements = await fetcher(request);
-            // console.log("spreadElements", spreadElements);
-            newResult = (spreadElements) ? {
-                ...spreadElements,
-                value: spreadElements.value.toString(),
-                address: request.address,
-                chainId: request.chainId,
-                symbol: request.symbol,
-            } : null
-            if (newResult && Uint8Array.from(newResult.symbol, e => e.charCodeAt(0))
-                .reduce((a, b) => a + b) === 2
-            ) {// value 2 received in an empirical way
-                console.warn("strange result", newResult)
-                newResult = null
+            const batchResults = await fetchAllBalances(slice);
+            setFullResult([...fullResult, ...batchResults]);
+            const loaded = currentLoaded + batchResults.length;
+            const percentage = Number((loaded * 100 / fullLength).toFixed(2));
+            console.log(`Loaded ${loaded} of ${fullLength}, ${percentage}% of tokens for metamask`);
+            if (loaded === fullLength) {
+                setIsLoaded(true);
+            }
+            if (batchSize < BATCH_SIZE) {
+                setBatchSize(b => Math.min(BATCH_SIZE, b + 1));
             }
         } catch (e) {
-            console.warn(e)
-            if (e instanceof Error &&
-                (e.message.includes("Internal error")
-                    || e.message.includes("Missing or invalid parameters")
-                    || e.message.includes("Failed to fetch")
-                    || e.message.includes("The contract function")
-                    || e.message.includes("API key is not allowed to access blockchain")
-                    || e.message.includes("Invalid chain")
-                    || e.message.includes("Chain not configured")
-                )) {
-                newResult = null
-            } else {
-                console.warn("probably should try again")
-                return
+            const message = e instanceof Error ? e.message : String(e);
+            if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                setBatchSize(b => Math.max(1, Math.floor(b / 2)));
             }
         }
-
-        if (currentLoaded === fullLength) {
-            setIsLoaded(true)
-        }
-        // if (newResult) {
-        //     console.log("newResult", newResult)
-        // }
-        setFullResult([
-            ...fullResult,
-            newResult
-        ])
-        const percentage = Number(Number(fullResult.length * 100 / initData.length).toFixed(2));
-        console.log(`Loaded ${fullResult.length} of ${initData.length}, ${percentage}% of tokens for metamask`)
-        // }
     }
 
     const options = useMemo<BalanceRequest[]>(() => {
@@ -288,29 +353,23 @@ export default function MetaMaskLoader(
                 || a.symbol === "BNB"
                     ? -1 : 1
             })
-        //return getAllOptions(wallet.accounts[0])
     }, [wallet])
+
+    useEffect(() => {
+        setFullResult([])
+        setIsLoaded(false)
+        setBatchSize(BATCH_SIZE)
+    }, [wallet, metaMaskSettingsEnabled, options, loadingUserDataAllowed])
 
     useInterval(() => {
         if (!wallet || !wallet.accounts || !wallet.accounts.length
             || !metaMaskSettingsEnabled || !options.length
+            || !loadingUserDataAllowed
         ) {
             return
         }
-        fetch(
-            options,
-            ({address, chainId, token}) => {
-                try {
-                    return fetchBalance(wagmiConfig, {
-                        address, chainId, token,
-                    })
-                } catch (e: any) {
-                    console.warn(e)
-                    return Promise.resolve(null)
-                }
-            },
-        ).catch(console.error)
-    }, (isLoaded || !loadingUserDataAllowed || !metaMaskSettingsEnabled) ? null : 600)
+        fetchBatch(options).catch(e => console.warn(e))
+    }, (isLoaded || !loadingUserDataAllowed || !metaMaskSettingsEnabled) ? null : REQUEST_DELAY_MS)
 
     return {
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
