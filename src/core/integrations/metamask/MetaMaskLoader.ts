@@ -44,7 +44,7 @@ const IGNORED_ERROR_MESSAGES = [
 ];
 
 const BATCH_SIZE = 20;
-const REQUEST_DELAY_MS = 1000;
+const REQUEST_DELAY_MS = 2000;
 
 export default function MetaMaskLoader(
     isDemoMode: boolean,
@@ -324,7 +324,7 @@ export default function MetaMaskLoader(
                 setIsLoaded(true);
             }
             if (batchSize < BATCH_SIZE) {
-                setBatchSize(b => Math.min(BATCH_SIZE, b + 1));
+                setBatchSize(b => BATCH_SIZE);
             }
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
