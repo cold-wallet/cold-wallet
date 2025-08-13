@@ -45,7 +45,7 @@ export default function AssetsTotalAmount({props}: { props: Props }) {
         <div>Total: $<NumericFormat
             allowLeadingZeros={false}
             allowNegative={false}
-            isNumericString={true}
+            valueIsNumericString={true}
             displayType={"text"}
             decimalScale={2}
             thousandSeparator={true}
