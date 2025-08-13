@@ -11,7 +11,7 @@ export default function Asset(asset: AssetDTO, controls: JSX.Element) {
                 <NumericFormat
                     allowLeadingZeros={false}
                     allowNegative={false}
-                    isNumericString={true}
+                    valueIsNumericString={true}
                     displayType={"text"}
                     decimalScale={asset.decimalScale || 8}
                     thousandSeparator={true}

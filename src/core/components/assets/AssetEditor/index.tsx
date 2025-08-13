@@ -45,7 +45,7 @@ export default function AssetEditor(
                         getInputRef={(input: HTMLInputElement) => {
                             input && !input.value && input.focus();
                         }}
-                        isNumericString={true}
+                        valueIsNumericString={true}
                         displayType={"input"}
                         decimalScale={props.assetToEdit?.decimalScale}
                         thousandSeparator={true}
