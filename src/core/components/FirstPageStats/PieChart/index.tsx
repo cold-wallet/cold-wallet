@@ -4,11 +4,11 @@ import AssetDTO, {AssetType} from "../../../domain/AssetDTO";
 import noExponents from "../../../utils/noExponents";
 import PriceService from "../../../services/PriceService";
 import Highcharts from "highcharts";
-import highCharts3d from 'highcharts/highcharts-3d'
+import highcharts3d from 'highcharts/modules/3d'
 import HighchartsReact from "highcharts-react-official";
 import numberFormat from "../../../utils/numberFormat";
 
-highCharts3d(Highcharts);
+highcharts3d(Highcharts);
 
 const pieColors = [
     "#1a5048",
