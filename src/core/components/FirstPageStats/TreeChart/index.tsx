@@ -4,17 +4,17 @@ import AssetDTO, {AssetType} from "../../../domain/AssetDTO";
 import noExponents from "../../../utils/noExponents";
 import PriceService from "../../../services/PriceService";
 import Highcharts from "highcharts";
-import HighchartsData from "highcharts/modules/data";
-import Accessibility from "highcharts/modules/accessibility";
-import HighchartsHeatmap from "highcharts/modules/heatmap";
-import HighchartsTreeChart from "highcharts/modules/treemap";
+import DataModule from "highcharts/modules/data";
+import AccessibilityModule from "highcharts/modules/accessibility";
+import HeatmapModule from "highcharts/modules/heatmap";
+import TreemapModule from "highcharts/modules/treemap";
 import HighchartsReact from "highcharts-react-official";
 
 // initialize Highcharts modules
-HighchartsData(Highcharts);
-Accessibility(Highcharts);
-HighchartsHeatmap(Highcharts);
-HighchartsTreeChart(Highcharts);
+DataModule(Highcharts);
+AccessibilityModule(Highcharts);
+HeatmapModule(Highcharts);
+TreemapModule(Highcharts);
 
 const treemapColors = [
     "#103b34",
