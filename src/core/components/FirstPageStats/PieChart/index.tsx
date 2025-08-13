@@ -4,11 +4,14 @@ import AssetDTO, {AssetType} from "../../../domain/AssetDTO";
 import noExponents from "../../../utils/noExponents";
 import PriceService from "../../../services/PriceService";
 import Highcharts from "highcharts";
-import highcharts3d from 'highcharts/modules/3d'
 import HighchartsReact from "highcharts-react-official";
 import numberFormat from "../../../utils/numberFormat";
 
-highcharts3d(Highcharts);
+// Initialize the 3D module for Highcharts. The module's type definitions
+// export the Highcharts namespace rather than the initialization function, so
+// we cast to `any` before invoking.
+import Highcharts3d from "highcharts/highcharts-3d";
+(Highcharts3d as any)(Highcharts);
 
 const pieColors = [
     "#1a5048",
