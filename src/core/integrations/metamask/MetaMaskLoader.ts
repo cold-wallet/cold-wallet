@@ -43,9 +43,10 @@ const IGNORED_ERROR_MESSAGES = [
     "Requested resource not found"
 ];
 
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 10;
 const REQUEST_DELAY_MS = 2000;
 
+const REDUCE_BATCH_SIZE_ERROR = "error, reduce batch size";
 export default function MetaMaskLoader(
     isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
@@ -226,7 +227,7 @@ export default function MetaMaskLoader(
     }, [nonZeroTokens, isLoaded]);
 
     const fetchAllBalances = async (requests: BalanceRequest[]) => {
-        try {
+        // try {
             const tokenRequests = requests
                 .map((req, index) => ({req, index}))
                 .filter(({req}) => !!req.token);
@@ -239,21 +240,36 @@ export default function MetaMaskLoader(
                 chainId: req.chainId,
             }));
 
-            const tokenResults = contracts.length
-                ? await readContracts(wagmiConfig, {contracts, allowFailure: true})
-                : [];
+        let tokenResults;
+        try {
+            tokenResults = !contracts.length ? []
+                : await readContracts(wagmiConfig, {contracts, allowFailure: true});
+        } catch (e) {
+            console.warn("Error fetching token balances", e)
+            if (requests.length === 1) {
+                return [null];
+            }
+            throw new Error(REDUCE_BATCH_SIZE_ERROR);
+        }
 
             const nativePromises = (requests.map((req, index) => {
                 if (req.token) return null;
+                console.log("address requested", req.symbol)
                 const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
                 if (!client) return Promise.resolve({index, result: null});
                 return client.getBalance({address: req.address})
+                    .then(r => {
+                        console.log("address found", req.symbol)
+                        return r
+                    })
                     .then(result => ({index, result}))
                     .catch(e => {
                         const message = e instanceof Error ? e.message : String(e);
                         if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                            console.log("address failed normally", req.symbol)
                             return {index, result: null};
                         }
+                        console.log("address failed unexpected", req.symbol)
                         throw e;
                     });
             }).filter(Boolean)) as Promise<{ index: number, result: bigint | null }>[];
@@ -265,6 +281,7 @@ export default function MetaMaskLoader(
             tokenResults.forEach((res, idx) => {
                 const {req, index} = tokenRequests[idx];
                 if (res.status === 'success') {
+                    console.log("token found", req.symbol)
                     const value = res.result as bigint;
                     results[index] = {
                         chainId: req.chainId,
@@ -277,8 +294,12 @@ export default function MetaMaskLoader(
                 } else if (res.status === 'failure') {
                     const message = res.error instanceof Error ? res.error.message : String(res.error);
                     if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                        console.log("token failed unexpectedly", req.symbol)
                         throw new Error(message);
                     }
+                    console.log("token failed normally", req.symbol)
+                } else {
+                    console.log("empty result for ", req.symbol, req, res)
                 }
             });
 
@@ -297,13 +318,15 @@ export default function MetaMaskLoader(
             });
 
             return results;
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                return new Array(requests.length).fill(null);
-            }
-            throw e;
-        }
+        // } catch (e) {
+        //     if (requests.length === 1) {
+        //         const message = e instanceof Error ? e.message : String(e);
+        //         if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+        //             return new Array(requests.length).fill(null);
+        //         }
+        //     }
+        //     throw e;
+        // }
     }
 
     const fetchBatch = async (initData: BalanceRequest[]) => {
@@ -313,7 +336,7 @@ export default function MetaMaskLoader(
             setIsLoaded(true);
             return;
         }
-        const slice = initData.slice(currentLoaded, currentLoaded + batchSize);
+        const slice = initData.slice(currentLoaded, currentLoaded + (batchSize === 2 ? 1 : batchSize));
         try {
             const batchResults = await fetchAllBalances(slice);
             setFullResult([...fullResult, ...batchResults]);
@@ -324,13 +347,16 @@ export default function MetaMaskLoader(
                 setIsLoaded(true);
             }
             if (batchSize < BATCH_SIZE) {
-                setBatchSize(b => BATCH_SIZE);
+                setBatchSize(b => Math.min(BATCH_SIZE, b * 2));
             }
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
-            if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+            // if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
                 setBatchSize(b => Math.max(1, Math.floor(b / 2)));
+            if (message !== REDUCE_BATCH_SIZE_ERROR) {
+                console.log("reducing batch size because of error", message)
             }
+            // }
         }
     }
 
@@ -341,17 +367,11 @@ export default function MetaMaskLoader(
         return wallet.accounts.map(account => getAllOptions(account))
             .reduce((a, b) => a.concat(b), [])
             .sort((a, b) => {
-                return a.symbol === "USDT"
-                || a.symbol === "USDC"
-                || a.symbol === "BUSD"
-                || a.symbol === "ETH"
-                || a.symbol === "DAI"
-                || a.symbol === "SOL"
-                || a.symbol === "MATIC"
-                || a.symbol === "WETH"
-                || a.symbol === "XRP"
-                || a.symbol === "BNB"
-                    ? -1 : 1
+                if (a.symbol === "ETH") return -1
+                if (b.symbol === "ETH") return 1
+                const numberA = (erc20top100.indexOf(a.symbol) + 1) || 100;
+                const numberB = (erc20top100.indexOf(b.symbol) + 1) || 100;
+                return (numberA - numberB) || -1
             })
     }, [wallet])
 
