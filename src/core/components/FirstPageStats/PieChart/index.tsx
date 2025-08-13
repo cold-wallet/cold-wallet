@@ -7,11 +7,8 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import numberFormat from "../../../utils/numberFormat";
 
-// Initialize the 3D module for Highcharts. The module's type definitions
-// export the Highcharts namespace rather than the initialization function, so
-// we cast to `any` before invoking.
-import Highcharts3d from "highcharts/highcharts-3d";
-(Highcharts3d as any)(Highcharts);
+// Load the 3D module. It self-registers with Highcharts upon import.
+import "highcharts/highcharts-3d";
 
 const pieColors = [
     "#1a5048",
