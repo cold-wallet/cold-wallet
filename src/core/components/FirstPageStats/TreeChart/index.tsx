@@ -4,17 +4,15 @@ import AssetDTO, {AssetType} from "../../../domain/AssetDTO";
 import noExponents from "../../../utils/noExponents";
 import PriceService from "../../../services/PriceService";
 import Highcharts from "highcharts";
-import HighchartsData from "highcharts/modules/data";
-import Accessibility from "highcharts/modules/accessibility";
-import HighchartsHeatmap from "highcharts/modules/heatmap";
-import HighchartsTreeChart from "highcharts/modules/treemap";
 import HighchartsReact from "highcharts-react-official";
 
-// initialize Highcharts modules
-HighchartsData(Highcharts);
-Accessibility(Highcharts);
-HighchartsHeatmap(Highcharts);
-HighchartsTreeChart(Highcharts);
+// Load Highcharts modules for data, accessibility, heatmap, and treemap support.
+// These modules self-register with Highcharts when imported, so no explicit
+// initialization call is required.
+import "highcharts/modules/data";
+import "highcharts/modules/accessibility";
+import "highcharts/modules/heatmap";
+import "highcharts/modules/treemap";
 
 const treemapColors = [
     "#103b34",

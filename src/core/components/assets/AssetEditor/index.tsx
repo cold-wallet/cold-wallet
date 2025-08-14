@@ -1,6 +1,6 @@
 import './index.css';
 
-import NumberFormat from "react-number-format";
+import {NumericFormat} from "react-number-format";
 import React from "react";
 import assetDataValidator from "./../../../utils/AssetDataValidator";
 import AssetControls from "./../AssetControls";
@@ -38,14 +38,14 @@ export default function AssetEditor(
             <div className="asset-row-edit-first-row flex-box-centered flex-direction-row ">
                 <div className={"edit-asset-item-value"
                     + (props.isNewAssetAmountInvalid ? " edit-asset-item-value-input--invalid" : "")}>
-                    <NumberFormat
+                    <NumericFormat
                         key={props.assetToEdit?.id}
                         allowNegative={false}
                         allowLeadingZeros={false}
                         getInputRef={(input: HTMLInputElement) => {
                             input && !input.value && input.focus();
                         }}
-                        isNumericString={true}
+                        valueIsNumericString={true}
                         displayType={"input"}
                         decimalScale={props.assetToEdit?.decimalScale}
                         thousandSeparator={true}

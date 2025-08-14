@@ -1,5 +1,5 @@
 import './index.css'
-import NumberFormat from "react-number-format";
+import {NumericFormat} from "react-number-format";
 import noExponents from "../../../utils/noExponents";
 import React, {JSX} from "react";
 import AssetDTO from "../../../domain/AssetDTO";
@@ -8,10 +8,10 @@ export default function Asset(asset: AssetDTO, controls: JSX.Element) {
     return (<div key={asset.id} className="asset-row-wrapper flex-box-centered">
         <div className={"asset-row flex-box-centered flex-direction-row layer-2-themed-color"}>
             <div className={"asset-item-value"}>
-                <NumberFormat
+                <NumericFormat
                     allowLeadingZeros={false}
                     allowNegative={false}
-                    isNumericString={true}
+                    valueIsNumericString={true}
                     displayType={"text"}
                     decimalScale={asset.decimalScale || 8}
                     thousandSeparator={true}

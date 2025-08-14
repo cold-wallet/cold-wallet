@@ -5,7 +5,7 @@ import {AccountInfo} from "../../../integrations/binance/binanceApiClient";
 import MonobankUserData from "../../../integrations/monobank/MonobankUserData";
 import {OkxAccount} from "../../../integrations/okx/okxApiClient";
 import noExponents from "../../../utils/noExponents";
-import NumberFormat from "react-number-format";
+import {NumericFormat} from "react-number-format";
 
 export default function AssetsTotalAmount({props}: { props: Props }) {
     const assetsTotal = useMemo(() => {
@@ -42,10 +42,10 @@ export default function AssetsTotalAmount({props}: { props: Props }) {
         ]);
 
     return (<div className={"assets-total-amount"}>
-        <div>Total: $<NumberFormat
+        <div>Total: $<NumericFormat
             allowLeadingZeros={false}
             allowNegative={false}
-            isNumericString={true}
+            valueIsNumericString={true}
             displayType={"text"}
             decimalScale={2}
             thousandSeparator={true}
