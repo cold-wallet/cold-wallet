@@ -227,106 +227,91 @@ export default function MetaMaskLoader(
     }, [nonZeroTokens, isLoaded]);
 
     const fetchAllBalances = async (requests: BalanceRequest[]) => {
-        // try {
-            const tokenRequests = requests
-                .map((req, index) => ({req, index}))
-                .filter(({req}) => !!req.token);
+        const tokenRequests = requests
+            .map((req, index) => ({req, index}))
+            .filter(({req}) => !!req.token);
 
-            const contracts = tokenRequests.map(({req}) => ({
-                address: req.token!,
-                abi: erc20Abi,
-                functionName: 'balanceOf',
-                args: [req.address],
-                chainId: req.chainId,
-            }));
+        const contracts = tokenRequests.map(({req}) => ({
+            address: req.token!,
+            abi: erc20Abi,
+            functionName: 'balanceOf',
+            args: [req.address],
+            chainId: req.chainId,
+        }));
 
         let tokenResults;
         try {
-            tokenResults = !contracts.length ? []
-                : await readContracts(wagmiConfig, {contracts, allowFailure: true});
+            tokenResults = contracts.length ? await readContracts(wagmiConfig, {contracts, allowFailure: true}) : [];
         } catch (e) {
-            console.warn("Error fetching token balances", e)
+            console.warn("Error fetching token balance", e)
             if (requests.length === 1) {
                 return [null];
             }
             throw new Error(REDUCE_BATCH_SIZE_ERROR);
         }
 
-            const nativePromises = (requests.map((req, index) => {
-                if (req.token) return null;
-                console.log("address requested", req.symbol)
-                const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
-                if (!client) return Promise.resolve({index, result: null});
-                return client.getBalance({address: req.address})
-                    .then(r => {
-                        console.log("address found", req.symbol)
-                        return r
-                    })
-                    .then(result => ({index, result}))
-                    .catch(e => {
-                        const message = e instanceof Error ? e.message : String(e);
-                        if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                            console.log("address failed normally", req.symbol)
-                            return {index, result: null};
-                        }
-                        console.log("address failed unexpected", req.symbol)
-                        throw e;
-                    });
-            }).filter(Boolean)) as Promise<{ index: number, result: bigint | null }>[];
-
-            const nativeResults = await Promise.all(nativePromises);
-
-            const results: Array<AddressBalanceResult | null> = new Array(requests.length).fill(null);
-
-            tokenResults.forEach((res, idx) => {
-                const {req, index} = tokenRequests[idx];
-                if (res.status === 'success') {
-                    console.log("token found", req.symbol)
-                    const value = res.result as bigint;
-                    results[index] = {
-                        chainId: req.chainId,
-                        address: req.address,
-                        decimals: req.decimals,
-                        formatted: formatUnits(value, req.decimals),
-                        symbol: req.symbol,
-                        value: value.toString(),
+        const nativePromises = (requests.map((req, index) => {
+            if (req.token) return null;
+            const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
+            if (!client) return Promise.resolve({index, result: null});
+            return client.getBalance({address: req.address})
+                .then(result => {
+                    console.log("received address balance", req.symbol)
+                    return ({index, result})
+                })
+                .catch(e => {
+                    const message = e instanceof Error ? e.message : String(e);
+                    console.log("getBalance failed", req.symbol)
+                    if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                        return {index, result: null};
                     }
-                } else if (res.status === 'failure') {
-                    const message = res.error instanceof Error ? res.error.message : String(res.error);
-                    if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                        console.log("token failed unexpectedly", req.symbol)
-                        throw new Error(message);
-                    }
-                    console.log("token failed normally", req.symbol)
-                } else {
-                    console.log("empty result for ", req.symbol, req, res)
+                    throw e;
+                });
+        }).filter(Boolean)) as Promise<{ index: number, result: bigint | null }>[];
+
+        const nativeResults = await Promise.all(nativePromises);
+        const results: Array<AddressBalanceResult | null> = new Array(requests.length).fill(null);
+
+        tokenResults.forEach((res, idx) => {
+            const {req, index} = tokenRequests[idx];
+            if (res.status === 'success') {
+                console.log("received token balance", req.symbol)
+                const value = res.result as bigint;
+                results[index] = {
+                    chainId: req.chainId,
+                    address: req.address,
+                    decimals: req.decimals,
+                    formatted: formatUnits(value, req.decimals),
+                    symbol: req.symbol,
+                    value: value.toString(),
                 }
-            });
-
-            nativeResults.forEach(({index, result}) => {
-                const req = requests[index];
-                if (result !== null) {
-                    results[index] = {
-                        chainId: req.chainId,
-                        address: req.address,
-                        decimals: req.decimals,
-                        formatted: formatUnits(result, req.decimals),
-                        symbol: req.symbol,
-                        value: result.toString(),
-                    }
+            } else if (res.status === 'failure') {
+                const message = res.error instanceof Error ? res.error.message : String(res.error);
+                console.log("fetch token balance failed", req.symbol)
+                if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
+                    console.log("fetch token balance failed unexpectedly", req.symbol)
+                    throw new Error(message);
                 }
-            });
+            } else {
+                console.log("empty result for ", req.symbol, req, res)
+            }
+        });
 
-            return results;
-        // } catch (e) {
-        //     if (requests.length === 1) {
-        //         const message = e instanceof Error ? e.message : String(e);
-        //         if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-        //             return new Array(requests.length).fill(null);
-        //         }
-        //     }
-        //     throw e;
-        // }
+        nativeResults.forEach(({index, result}) => {
+            const req = requests[index];
+            if (result !== null) {
+                results[index] = {
+                    chainId: req.chainId,
+                    address: req.address,
+                    decimals: req.decimals,
+                    formatted: formatUnits(result, req.decimals),
+                    symbol: req.symbol,
+                    value: result.toString(),
+                }
+            }
+        });
+
+        return results;
     }
 
     const fetchBatch = async (initData: BalanceRequest[]) => {
@@ -351,12 +336,10 @@ export default function MetaMaskLoader(
             }
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
-            // if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                setBatchSize(b => Math.max(1, Math.floor(b / 2)));
+            setBatchSize(b => Math.max(1, Math.floor(b / 2)));
             if (message !== REDUCE_BATCH_SIZE_ERROR) {
                 console.log("reducing batch size because of error", message)
             }
-            // }
         }
     }
 
