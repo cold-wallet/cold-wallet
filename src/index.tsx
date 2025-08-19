@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals';
 import Terms from "./core/components/legal/Terms";
 import PrivacyPolicy from "./core/components/legal/PrivacyPolicy";
 import ErrorPage from "./core/components/ErrorPage";
+import Landing from "./core/components/landing";
 
 const router = createBrowserRouter([
     {
@@ -26,6 +27,10 @@ const router = createBrowserRouter([
     {
         path: "/privacy-policy",
         element: <PrivacyPolicy/>,
+    },
+    {
+        path: "/landing",
+        element: <Landing/>,
     },
 ]);
 
