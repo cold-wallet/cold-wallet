@@ -13,6 +13,9 @@ export default function Landing() {
                     <a className="buy-button"
                        href="https://www.sushi.com/ethereum/swap?token0=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&token1=0xa9995a928EbFa3030B86Ab62e85007e1AB7eb208"
                        target="_blank" rel="noopener noreferrer">Buy on SushiSwap</a>
+                    <a className="buy-button"
+                       href="https://dex.coinmarketcap.com/token/ethereum/0xa9995a928ebfa3030b86ab62e85007e1ab7eb208/"
+                       target="_blank" rel="noopener noreferrer">Watch CWT trading on CoinMarketCap DEX</a>
                 </div>
                 <p>
                     <a href="/whitepaper.pdf" target="_blank" rel="noopener noreferrer">Whitepaper</a>
