@@ -15,7 +15,7 @@ export default function Landing() {
                        target="_blank" rel="noopener noreferrer">Buy on SushiSwap</a>
                     <a className="buy-button"
                        href="https://dex.coinmarketcap.com/token/ethereum/0xa9995a928ebfa3030b86ab62e85007e1ab7eb208/"
-                       target="_blank" rel="noopener noreferrer">Watch CWT trading on CoinMarketCup DEX</a>
+                       target="_blank" rel="noopener noreferrer">Watch CWT trading on CoinMarketCap DEX</a>
                 </div>
                 <p>
                     <a href="/whitepaper.pdf" target="_blank" rel="noopener noreferrer">Whitepaper</a>
