@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 32 32" role="img"
+     aria-label="ColdWallet non-custodial dashboard icon">
+    <title>ColdWallet</title>
+    <desc>Eye over a small network to represent view-only integrations</desc>
+    <circle cx="16" cy="16" r="15.0" fill="none" stroke="#0B4A2F" stroke-width="2"/>
+    <path d="M 9,13.5 Q 16,9.0 23,13.5 Q 16,18.0 9,13.5 Z"
+          fill="none" stroke="#0B4A2F" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="16" cy="13.5" r="2.2" fill="#0B4A2F"/>
+    <line x1="10" y1="21.5" x2="16" y2="24.5" stroke="#0B4A2F" stroke-width="2" stroke-linecap="round"/>
+    <line x1="16" y1="24.5" x2="22" y2="21.5" stroke="#0B4A2F" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="10" cy="21.5" r="1.8" fill="#0B4A2F"/>
+    <circle cx="16" cy="24.5" r="1.8" fill="#0B4A2F"/>
+    <circle cx="22" cy="21.5" r="1.8" fill="#0B4A2F"/>
+</svg>
