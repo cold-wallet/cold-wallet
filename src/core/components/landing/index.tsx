@@ -10,8 +10,9 @@ export default function Landing() {
                     on your device.
                 </p>
                 <div className="buy-buttons">
-                    <a className="buy-button" href="https://www.sushi.com/ethereum/pool/v3/0x79d1ad6e84819e3e9fb7f73512c49203a4037750" target="_blank" rel="noopener noreferrer">Buy on SushiSwap V3</a>
-                    <a className="buy-button" href="https://www.sushi.com/ethereum/pool/v2/0xe9fb36429fa2da71ec7c7a2d50bef0939ad920bd" target="_blank" rel="noopener noreferrer">Buy on SushiSwap V2</a>
+                    <a className="buy-button"
+                       href="https://www.sushi.com/ethereum/swap?token0=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&token1=0xa9995a928EbFa3030B86Ab62e85007e1AB7eb208"
+                       target="_blank" rel="noopener noreferrer">Buy on SushiSwap</a>
                 </div>
                 <p>
                     <a href="/whitepaper.pdf" target="_blank" rel="noopener noreferrer">Whitepaper</a>
