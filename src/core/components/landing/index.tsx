@@ -13,6 +13,9 @@ export default function Landing() {
                     <a className="buy-button" href="https://www.sushi.com/ethereum/pool/v3/0x79d1ad6e84819e3e9fb7f73512c49203a4037750" target="_blank" rel="noopener noreferrer">Buy on SushiSwap V3</a>
                     <a className="buy-button" href="https://www.sushi.com/ethereum/pool/v2/0xe9fb36429fa2da71ec7c7a2d50bef0939ad920bd" target="_blank" rel="noopener noreferrer">Buy on SushiSwap V2</a>
                 </div>
+                <p>
+                    <a href="/whitepaper.pdf" target="_blank" rel="noopener noreferrer">Whitepaper</a>
+                </p>
             </section>
 
             <section className="section">
