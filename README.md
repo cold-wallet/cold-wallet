@@ -81,3 +81,8 @@ here: [https://facebook.github.io/create-react-app/docs/deployment](https://face
 
 This section has moved
 here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Resources
+
+- [ColdWallet icon](src/resources/images/logo/icon_32x32.svg)
+- [ColdWallet Whitepaper](src/resources/images/whitepaper/ColdWallet_Whitepaper.pdf)
