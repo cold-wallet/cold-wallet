@@ -76,7 +76,7 @@ export function createDemoMonobankAssets() {
             getRandomAmount(currency, AssetType.fiat).toString(),
             "demo monobank amount",
             8,
-            AssetType.crypto,
+            AssetType.fiat,
             false,
             true,
             false,
