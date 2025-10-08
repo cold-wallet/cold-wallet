@@ -58,18 +58,30 @@ export default function AssetsDashboard(props: Props) {
     }
 
     function buildAssets() {
-        return (props.userData.assets || []).map(buildAsset)
+        return (props.userData.assets || []).map((asset) => (
+            <React.Fragment key={asset.id}>
+                {buildAsset(asset)}
+            </React.Fragment>
+        ))
     }
 
     function buildBinanceIntegrationAssets() {
         return props.userData.settings.binanceIntegrationEnabled && props.binanceUserData
-            ? AccountInfo.getAllAssets(props.binanceUserData).map(IntegrationAsset)
+            ? AccountInfo.getAllAssets(props.binanceUserData).map((asset, index) => (
+                <React.Fragment key={`binance-${asset.currency}-${index}`}>
+                    {IntegrationAsset(asset)}
+                </React.Fragment>
+            ))
             : null
     }
 
     function buildOkxIntegrationAssets() {
         return props.userData.settings.okxIntegrationEnabled && props.okxUserData
-            ? OkxAccount.getAllAssets(props.okxUserData).map(IntegrationAsset)
+            ? OkxAccount.getAllAssets(props.okxUserData).map((asset, index) => (
+                <React.Fragment key={`okx-${asset.currency}-${index}`}>
+                    {IntegrationAsset(asset)}
+                </React.Fragment>
+            ))
             : null
     }
 
@@ -78,18 +90,30 @@ export default function AssetsDashboard(props: Props) {
             .reduce((merged, current) => {
                 return merged.concat(current)
             }, [])
-            .map(IntegrationAsset)
+            .map((asset, index) => (
+                <React.Fragment key={`ccxt-${asset.currency}-${index}`}>
+                    {IntegrationAsset(asset)}
+                </React.Fragment>
+            ))
     }
 
     function buildMetaMaskIntegrationAssets() {
         return props.metaMaskSettingsEnabled
-            ? (props.metaMaskAssets || []).map(IntegrationAsset)
+            ? (props.metaMaskAssets || []).map((asset, index) => (
+                <React.Fragment key={`metamask-${asset.currency}-${index}`}>
+                    {IntegrationAsset(asset)}
+                </React.Fragment>
+            ))
             : null
     }
 
     function buildMonobankIntegrationAssets() {
         return props.userData.settings.monobankIntegrationEnabled && props.monobankUserData
-            ? MonobankUserData.getAllAssets(props.monobankUserData).map(IntegrationAsset)
+            ? MonobankUserData.getAllAssets(props.monobankUserData).map((asset, index) => (
+                <React.Fragment key={`monobank-${asset.currency}-${index}`}>
+                    {IntegrationAsset(asset)}
+                </React.Fragment>
+            ))
             : null
     }
 
