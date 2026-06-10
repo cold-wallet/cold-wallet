@@ -112,11 +112,13 @@ const binanceApiClient = {
         } catch (e) {
             console.warn("failed to load flexibleDefiStaking from binance", e)
         }
-        try {
-            accountInfo.liquidityFarming = await binanceApiService.liquidityFarming()
-        } catch (e) {
-            console.warn("failed to load liquidityFarming from binance", e)
-        }
+        // DEPRECATED: liquidityFarming was removed as Binance discontinued bswap endpoints in January 2024
+        // Replacement: Simple Earn products (savingsFixed and savingsFlexible) provide similar functionality
+        // try {
+        //     accountInfo.liquidityFarming = await binanceApiService.liquidityFarming()
+        // } catch (e) {
+        //     console.warn("failed to load liquidityFarming from binance", e)
+        // }
         try {
             accountInfo.savingsFixed = await binanceApiService.savingsFixed()
         } catch (e) {
@@ -156,7 +158,7 @@ export class AccountInfo {
         public lockedStaking?: AssetDTO[],
         public lockedDeFiStaking?: AssetDTO[],
         public flexibleDefiStaking?: AssetDTO[],
-        public liquidityFarming?: AssetDTO[],
+        public liquidityFarming?: AssetDTO[], // DEPRECATED: kept for backwards compatibility but no longer populated
         public savingsFixed?: AssetDTO[],
         public savingsFlexible?: AssetDTO[],
     ) {
@@ -172,7 +174,7 @@ export class AccountInfo {
             || accountInfo.lockedStaking?.length
             || accountInfo.lockedDeFiStaking?.length
             || accountInfo.flexibleDefiStaking?.length
-            || accountInfo.liquidityFarming?.length
+            // || accountInfo.liquidityFarming?.length // DEPRECATED: no longer used
             || accountInfo.savingsFixed?.length
             || accountInfo.savingsFlexible?.length))
     }
@@ -187,7 +189,7 @@ export class AccountInfo {
                 .concat(accountInfo.lockedStaking || [])
                 .concat(accountInfo.lockedDeFiStaking || [])
                 .concat(accountInfo.flexibleDefiStaking || [])
-                .concat(accountInfo.liquidityFarming || [])
+                // .concat(accountInfo.liquidityFarming || []) // DEPRECATED: no longer used
                 .concat(accountInfo.savingsFixed || [])
                 .concat(accountInfo.savingsFlexible || [])
             : []

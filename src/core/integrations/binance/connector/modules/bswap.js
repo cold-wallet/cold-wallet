@@ -1,4 +1,4 @@
-const {validateRequiredParameters} = require('../helpers/validation')
+import {validateRequiredParameters} from '../helpers/validation'
 
 /**
  * API bswap endpoints

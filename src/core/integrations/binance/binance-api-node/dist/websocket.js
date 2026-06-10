@@ -1,21 +1,9 @@
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.userEventHandler = exports.keepStreamAlive = exports.default = void 0;
-
-var _lodash = _interopRequireDefault(require("lodash.zipobject"));
-
-var _jsonBigint = _interopRequireDefault(require("json-bigint"));
-
-var _httpClient = _interopRequireDefault(require("./http-client"));
-
-var _openWebsocket = _interopRequireDefault(require("./open-websocket"));
+import _lodash from "lodash.zipobject";
+import _jsonBigint from "json-bigint";
+import _httpClient from "./http-client";
+import _openWebsocket from "./open-websocket";
 
 var _excluded = ["e"];
-
-function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {default: obj};
-}
 
 function _toConsumableArray(arr) {
     return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
@@ -1041,7 +1029,7 @@ var userEventHandler = function userEventHandler(cb) {
     };
 };
 
-exports.userEventHandler = userEventHandler;
+export {userEventHandler};
 
 var userOpenHandler = function userOpenHandler(cb) {
     var transform = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
@@ -1079,7 +1067,7 @@ var keepStreamAlive = function keepStreamAlive(method, listenKey) {
     });
 };
 
-exports.keepStreamAlive = keepStreamAlive;
+export {keepStreamAlive};
 
 var user = function user(opts, variator) {
     return function (cb, transform) {
@@ -1313,4 +1301,4 @@ var _default = function _default(opts) {
     };
 };
 
-exports.default = _default;
+export default _default;

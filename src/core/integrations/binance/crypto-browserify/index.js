@@ -1,54 +1,63 @@
-exports.randomBytes = exports.rng = exports.pseudoRandomBytes = exports.prng = require('randombytes')
-exports.createHash = exports.Hash = require('create-hash')
-exports.createHmac = exports.Hmac = require('./../create-hmac/browser').default
+import randombytes from 'randombytes'
+import createHashModule from 'create-hash'
+import { default as createHmacModule } from './../create-hmac/browser'
+import algos from 'browserify-sign/algos'
+import * as p from 'pbkdf2'
+import * as aes from 'browserify-cipher'
+import * as dh from 'diffie-hellman'
+import * as sign from 'browserify-sign'
+import createECDHModule from 'create-ecdh'
+import * as publicEncryptModule from 'public-encrypt'
+import * as rf from 'randomfill'
 
-var algos = require('browserify-sign/algos')
-var algoKeys = Object.keys(algos)
-var hashes = ['sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'md5', 'rmd160'].concat(algoKeys)
-exports.getHashes = function () {
+export const randomBytes = randombytes
+export const rng = randombytes
+export const pseudoRandomBytes = randombytes
+export const prng = randombytes
+
+export const createHash = createHashModule
+export const Hash = createHashModule
+
+export const createHmac = createHmacModule
+export const Hmac = createHmacModule
+
+const algoKeys = Object.keys(algos)
+const hashes = ['sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'md5', 'rmd160'].concat(algoKeys)
+export function getHashes() {
     return hashes
 }
 
-var p = require('pbkdf2')
-exports.pbkdf2 = p.pbkdf2
-exports.pbkdf2Sync = p.pbkdf2Sync
+export const pbkdf2 = p.pbkdf2
+export const pbkdf2Sync = p.pbkdf2Sync
 
-var aes = require('browserify-cipher')
+export const Cipher = aes.Cipher
+export const createCipher = aes.createCipher
+export const Cipheriv = aes.Cipheriv
+export const createCipheriv = aes.createCipheriv
+export const Decipher = aes.Decipher
+export const createDecipher = aes.createDecipher
+export const Decipheriv = aes.Decipheriv
+export const createDecipheriv = aes.createDecipheriv
+export const getCiphers = aes.getCiphers
+export const listCiphers = aes.listCiphers
 
-exports.Cipher = aes.Cipher
-exports.createCipher = aes.createCipher
-exports.Cipheriv = aes.Cipheriv
-exports.createCipheriv = aes.createCipheriv
-exports.Decipher = aes.Decipher
-exports.createDecipher = aes.createDecipher
-exports.Decipheriv = aes.Decipheriv
-exports.createDecipheriv = aes.createDecipheriv
-exports.getCiphers = aes.getCiphers
-exports.listCiphers = aes.listCiphers
+export const DiffieHellmanGroup = dh.DiffieHellmanGroup
+export const createDiffieHellmanGroup = dh.createDiffieHellmanGroup
+export const getDiffieHellman = dh.getDiffieHellman
+export const createDiffieHellman = dh.createDiffieHellman
+export const DiffieHellman = dh.DiffieHellman
 
-var dh = require('diffie-hellman')
+export const createSign = sign.createSign
+export const Sign = sign.Sign
+export const createVerify = sign.createVerify
+export const Verify = sign.Verify
 
-exports.DiffieHellmanGroup = dh.DiffieHellmanGroup
-exports.createDiffieHellmanGroup = dh.createDiffieHellmanGroup
-exports.getDiffieHellman = dh.getDiffieHellman
-exports.createDiffieHellman = dh.createDiffieHellman
-exports.DiffieHellman = dh.DiffieHellman
+export const createECDH = createECDHModule
 
-var sign = require('browserify-sign')
-
-exports.createSign = sign.createSign
-exports.Sign = sign.Sign
-exports.createVerify = sign.createVerify
-exports.Verify = sign.Verify
-
-exports.createECDH = require('create-ecdh')
-
-var publicEncrypt = require('public-encrypt')
-
-exports.publicEncrypt = publicEncrypt.publicEncrypt
-exports.privateEncrypt = publicEncrypt.privateEncrypt
-exports.publicDecrypt = publicEncrypt.publicDecrypt
-exports.privateDecrypt = publicEncrypt.privateDecrypt
+export const publicEncrypt = publicEncryptModule.publicEncrypt
+export const privateEncrypt = publicEncryptModule.privateEncrypt
+export const publicDecrypt = publicEncryptModule.publicDecrypt
+export const privateDecrypt = publicEncryptModule.privateDecrypt
 
 // the least I can do is make error messages for the rest of the node.js/crypto api.
 // ;[
@@ -63,12 +72,10 @@ exports.privateDecrypt = publicEncrypt.privateDecrypt
 //   }
 // })
 
-var rf = require('randomfill')
+export const randomFill = rf.randomFill
+export const randomFillSync = rf.randomFillSync
 
-exports.randomFill = rf.randomFill
-exports.randomFillSync = rf.randomFillSync
-
-exports.createCredentials = function () {
+export function createCredentials() {
     throw new Error([
         'sorry, createCredentials is not implemented yet',
         'we accept pull requests',
@@ -76,7 +83,7 @@ exports.createCredentials = function () {
     ].join('\n'))
 }
 
-exports.constants = {
+export const constants = {
     'DH_CHECK_P_NOT_SAFE_PRIME': 2,
     'DH_CHECK_P_NOT_PRIME': 1,
     'DH_UNABLE_TO_CHECK_GENERATOR': 4,
@@ -93,3 +100,22 @@ exports.constants = {
     'POINT_CONVERSION_UNCOMPRESSED': 4,
     'POINT_CONVERSION_HYBRID': 6
 }
+
+// Create default export
+const cryptoModule = {
+    randomBytes, rng, pseudoRandomBytes, prng,
+    createHash, Hash, createHmac, Hmac, getHashes,
+    pbkdf2, pbkdf2Sync,
+    Cipher, createCipher, Cipheriv, createCipheriv,
+    Decipher, createDecipher, Decipheriv, createDecipheriv,
+    getCiphers, listCiphers,
+    DiffieHellmanGroup, createDiffieHellmanGroup,
+    getDiffieHellman, createDiffieHellman, DiffieHellman,
+    createSign, Sign, createVerify, Verify,
+    createECDH,
+    publicEncrypt, privateEncrypt, publicDecrypt, privateDecrypt,
+    randomFill, randomFillSync,
+    createCredentials, constants
+}
+
+export default cryptoModule

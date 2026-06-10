@@ -1,4 +1,4 @@
-const {validateRequiredParameters, hasOneOfParameters} = require('../helpers/validation')
+import {validateRequiredParameters, hasOneOfParameters} from '../helpers/validation'
 
 /**
  * API futures endpoints

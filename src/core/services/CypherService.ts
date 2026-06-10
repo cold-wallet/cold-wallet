@@ -1,4 +1,4 @@
-const CryptoJS = require("crypto-js");
+import CryptoJS from "crypto-js";
 
 const cypherService = {
     encrypt<T>(data: T, secret: string) {

@@ -1,15 +1,5 @@
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = exports.WithdrawStatus = exports.ErrorCodes = exports.DepositStatus = exports.CandleChartInterval = void 0;
-
-var _httpClient = _interopRequireDefault(require("./http-client"));
-
-var _websocket = _interopRequireDefault(require("./websocket"));
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : {default: obj};
-}
+import _httpClient from "./http-client";
+import _websocket from "./websocket";
 
 function ownKeys(object, enumerableOnly) {
   var keys = Object.keys(object);
@@ -54,13 +44,13 @@ function _defineProperty(obj, key, value) {
 
 var _default = function _default() {
   var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  return _objectSpread(_objectSpread({}, (0, _httpClient.default)(opts)), {}, {
-    ws: (0, _websocket.default)(opts)
+  return _objectSpread(_objectSpread({}, _httpClient(opts)), {}, {
+    ws: _websocket(opts)
   });
 };
 
-exports.default = _default;
-var ErrorCodes = {
+export default _default;
+export var ErrorCodes = {
   UNKNOWN: -1000,
   DISCONNECTED: -1001,
   UNAUTHORIZED: -1002,
@@ -104,8 +94,7 @@ var ErrorCodes = {
   BAD_API_KEY_FMT: -2014,
   REJECTED_MBX_KEY: -2015
 };
-exports.ErrorCodes = ErrorCodes;
-var CandleChartInterval = {
+export var CandleChartInterval = {
   ONE_MINUTE: '1m',
   THREE_MINUTES: '3m',
   FIVE_MINUTES: '5m',
@@ -122,13 +111,11 @@ var CandleChartInterval = {
   ONE_WEEK: '1w',
   ONE_MONTH: '1M'
 };
-exports.CandleChartInterval = CandleChartInterval;
-var DepositStatus = {
+export var DepositStatus = {
   PENDING: 0,
   SUCCESS: 1
 };
-exports.DepositStatus = DepositStatus;
-var WithdrawStatus = {
+export var WithdrawStatus = {
   EMAIL_SENT: 0,
   CANCELLED: 1,
   AWAITING_APPROVAL: 2,
@@ -137,4 +124,3 @@ var WithdrawStatus = {
   FAILURE: 5,
   COMPLETED: 6
 };
-exports.WithdrawStatus = WithdrawStatus;

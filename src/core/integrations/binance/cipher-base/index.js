@@ -1,7 +1,7 @@
-var Buffer = require('safe-buffer').Buffer
-var Transform = require('stream-browserify').Transform
-var StringDecoder = require('string_decoder').StringDecoder
-var inherits = require('inherits')
+import { Buffer } from 'safe-buffer'
+import { Transform } from 'stream-browserify'
+import { StringDecoder } from 'string_decoder'
+import inherits from 'inherits'
 
 function CipherBase(hashMode) {
     Transform.call(this)
