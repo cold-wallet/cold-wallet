@@ -1,15 +1,5 @@
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = void 0;
-
-var _isomorphicWs = _interopRequireDefault(require("isomorphic-ws"));
-
-var _reconnectingWebsocket = _interopRequireDefault(require("reconnecting-websocket"));
-
-function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {default: obj};
-}
+import _isomorphicWs from "isomorphic-ws";
+import _reconnectingWebsocket from "reconnecting-websocket";
 
 function ownKeys(object, enumerableOnly) {
     var keys = Object.keys(object);
@@ -78,4 +68,4 @@ var _default = function _default(url, opts) {
     return rws;
 };
 
-exports.default = _default;
+export default _default;

@@ -1,11 +1,11 @@
-var inherits = require('inherits')
-var Legacy = require('./legacy').default
-var Base = require('./../cipher-base').default
-var Buffer = require('safe-buffer').Buffer
-var md5 = require('create-hash/md5')
-var RIPEMD160 = require('ripemd160')
+import inherits from 'inherits'
+import { default as Legacy } from './legacy'
+import { default as Base } from './../cipher-base'
+import { Buffer } from 'safe-buffer'
+import md5 from 'create-hash/md5'
+import RIPEMD160 from 'ripemd160'
 
-var sha = require('sha.js')
+import * as sha from 'sha.js'
 
 var ZEROS = Buffer.alloc(128)
 
@@ -20,7 +20,7 @@ function Hmac(alg, key) {
     this._alg = alg
     this._key = key
     if (key.length > blocksize) {
-        var hash = alg === 'rmd160' ? new RIPEMD160() : sha(alg)
+        var hash = alg === 'rmd160' ? new RIPEMD160() : sha.default(alg)
         key = hash.update(key).digest()
     } else if (key.length < blocksize) {
         key = Buffer.concat([key, ZEROS], blocksize)
@@ -33,7 +33,7 @@ function Hmac(alg, key) {
         ipad[i] = key[i] ^ 0x36
         opad[i] = key[i] ^ 0x5C
     }
-    this._hash = alg === 'rmd160' ? new RIPEMD160() : sha(alg)
+    this._hash = alg === 'rmd160' ? new RIPEMD160() : sha.default(alg)
     this._hash.update(ipad)
 }
 
@@ -45,7 +45,7 @@ Hmac.prototype._update = function (data) {
 
 Hmac.prototype._final = function () {
     var h = this._hash.digest()
-    var hash = this._alg === 'rmd160' ? new RIPEMD160() : sha(this._alg)
+    var hash = this._alg === 'rmd160' ? new RIPEMD160() : sha.default(this._alg)
     return hash.update(this._opad).update(h).digest()
 }
 
