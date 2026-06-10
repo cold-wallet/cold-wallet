@@ -10,6 +10,7 @@ import Props from "../Props";
 
 import EditDialog from "../redesign/EditDialog";
 import ConfirmDelete from "../redesign/ConfirmDelete";
+import LoadingView from "../redesign/LoadingView";
 import DonutChart from "../redesign/DonutChart";
 import TreemapChart from "../redesign/TreemapChart";
 import HoldingRow from "../redesign/HoldingRow";
@@ -89,6 +90,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
 
     return (
         <div className="app">
+            {!props.loaded && <LoadingView props={props} />}
             {/* CRUD dialogs (new look, real mechanics); settings restyled in a later phase */}
             {(props.creatingNewAsset || props.assetToEdit) ? <EditDialog props={props} /> : null}
             {props.assetToDelete ? <ConfirmDelete props={props} /> : null}
