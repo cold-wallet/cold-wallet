@@ -1,9 +1,6 @@
 import './index.css';
 
 import React, { useMemo, useState } from "react";
-import NewAssetWindow from "../NewAssetWindow";
-import AssetDeleteWindow from "./../assets/AssetDeleteWindow";
-import EditAsset from "./../assets/EditAsset";
 import SettingsWindow from "../settings/SettingsWindow";
 import { AccountInfo } from "../../integrations/binance/binanceApiClient";
 import { OkxAccount } from "../../integrations/okx/okxApiClient";
@@ -11,6 +8,8 @@ import MonobankUserData from "../../integrations/monobank/MonobankUserData";
 import AssetDTO from "../../domain/AssetDTO";
 import Props from "../Props";
 
+import EditDialog from "../redesign/EditDialog";
+import ConfirmDelete from "../redesign/ConfirmDelete";
 import DonutChart from "../redesign/DonutChart";
 import TreemapChart from "../redesign/TreemapChart";
 import HoldingRow from "../redesign/HoldingRow";
@@ -90,9 +89,9 @@ export default function AssetsDashboard({ props }: { props: Props }) {
 
     return (
         <div className="app">
-            {/* old modal flows, restyled in later phases */}
-            {props.showCreateNewAssetWindow ? NewAssetWindow(props) : null}
-            {props.assetToDelete ? AssetDeleteWindow(props) : null}
+            {/* CRUD dialogs (new look, real mechanics); settings restyled in a later phase */}
+            {(props.creatingNewAsset || props.assetToEdit) ? <EditDialog props={props} /> : null}
+            {props.assetToDelete ? <ConfirmDelete props={props} /> : null}
             {props.showConfigsWindow ? SettingsWindow(props) : null}
 
             {/* ===== Sidebar ===== */}
@@ -140,16 +139,14 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                 <span className="group__sum num">{fmtUSD(g.sum, { cents: false })}</span>
                             </div>
                             {g.items.map((h) => (
-                                props.assetToEdit && props.assetToEdit.id === h.id
-                                    ? <React.Fragment key={h.id}>{EditAsset(props)}</React.Fragment>
-                                    : <HoldingRow
-                                        key={h.id}
-                                        h={h}
-                                        active={activeId === h.id}
-                                        onSelect={setActiveId}
-                                        onEdit={() => editAsset(h.asset)}
-                                        onDelete={() => deleteAsset(h.asset)}
-                                    />
+                                <HoldingRow
+                                    key={h.id}
+                                    h={h}
+                                    active={activeId === h.id}
+                                    onSelect={setActiveId}
+                                    onEdit={() => editAsset(h.asset)}
+                                    onDelete={() => deleteAsset(h.asset)}
+                                />
                             ))}
                         </div>
                     ))}
