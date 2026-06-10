@@ -2,7 +2,7 @@ import React from "react";
 import './index.css';
 import PositiveButton from "../../buttons/PositiveButton";
 import NeutralButton from "../../buttons/NeutralButton";
-import SettingsIcon from './../../../../resources/images/icons8-settings.svg'
+import SettingsIcon from './../../../../resources/images/icons8-settings.svg.tsx'
 import AssetsTotalAmount from "../AssetsTotalAmount";
 import Props from "../../Props";
 

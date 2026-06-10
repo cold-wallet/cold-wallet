@@ -1,22 +1,9 @@
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.deliveryCandleFields = exports.default = exports.candleFields = void 0;
-
-var _crypto = _interopRequireDefault(require("./../../crypto-browserify"));
-
-var _lodash = _interopRequireDefault(require("lodash.zipobject"));
-
-var _httpsProxyAgent = _interopRequireDefault(require("https-proxy-agent"));
-
-var _jsonBigint = _interopRequireDefault(require("json-bigint"));
-
-require("isomorphic-fetch");
-const {SimpleEarnLockedProductPositionResponse} = require("binance-api-node");
-
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : {default: obj};
-}
+import _crypto from "./../../crypto-browserify";
+import _lodash from "lodash.zipobject";
+import _httpsProxyAgent from "https-proxy-agent";
+import _jsonBigint from "json-bigint";
+import "isomorphic-fetch";
+import {SimpleEarnLockedProductPositionResponse} from "binance-api-node";
 
 function ownKeys(object, enumerableOnly) {
   var keys = Object.keys(object);
@@ -121,7 +108,7 @@ var sendResult = function sendResult(call) {
 
     if (res.ok) {
       return res.text().then(function (text) {
-        return _jsonBigint.default.parse(text);
+        return _jsonBigint.parse(text);
       });
     } // Errors might come from the API itself or the proxy Binance is using.
     // For API errors the response will be valid JSON,but for proxy errors
@@ -132,7 +119,7 @@ var sendResult = function sendResult(call) {
       var error;
 
       try {
-        var json = _jsonBigint.default.parse(text); // The body was JSON parseable, assume it is an API response error
+        var json = _jsonBigint.parse(text); // The body was JSON parseable, assume it is an API response error
 
 
         error = new Error(json.msg || "".concat(res.status, " ").concat(res.statusText));
@@ -190,7 +177,7 @@ var publicCall = function publicCall(_ref) {
       json: true,
       headers: headers
     }, proxy ? {
-      agent: new _httpsProxyAgent.default(proxy)
+      agent: new _httpsProxyAgent(proxy)
     } : {})));
   };
 };
@@ -255,7 +242,7 @@ var privateCall = function privateCall(_ref3) {
         delete data.useServerTime;
       }
 
-      var signature = _crypto.default.createHmac('sha256', apiSecret).update(makeQueryString(_objectSpread(_objectSpread({}, data), {}, {
+      var signature = _crypto.createHmac('sha256', apiSecret).update(makeQueryString(_objectSpread(_objectSpread({}, data), {}, {
         timestamp: timestamp
       })).substr(1)).digest('hex');
 
@@ -271,22 +258,20 @@ var privateCall = function privateCall(_ref3) {
         },
         json: true
       }, proxy ? {
-        agent: new _httpsProxyAgent.default(proxy)
+        agent: new _httpsProxyAgent(proxy)
       } : {}));
       return sendResult(call);
     });
   };
 };
 
-var candleFields = ['openTime', 'open', 'high', 'low', 'close', 'volume', 'closeTime', 'quoteVolume', 'trades', 'baseAssetVolume', 'quoteAssetVolume'];
-exports.candleFields = candleFields;
-var deliveryCandleFields = ['openTime', 'open', 'high', 'low', 'close', 'volume', 'closeTime', 'baseVolume', 'trades', 'quoteAssetVolume', 'baseAssetVolume'];
+export var candleFields = ['openTime', 'open', 'high', 'low', 'close', 'volume', 'closeTime', 'quoteVolume', 'trades', 'baseAssetVolume', 'quoteAssetVolume'];
+export var deliveryCandleFields = ['openTime', 'open', 'high', 'low', 'close', 'volume', 'closeTime', 'baseVolume', 'trades', 'quoteAssetVolume', 'baseAssetVolume'];
 /**
  * Get candles for a specific pair and interval and convert response
  * to a user friendly collection.
  */
 
-exports.deliveryCandleFields = deliveryCandleFields;
 
 var _candles = function candles(pubCall, payload) {
   var endpoint = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '/api/v3/klines';
@@ -900,4 +885,4 @@ var _default = function _default(opts) {
   };
 };
 
-exports.default = _default;
+export default _default;

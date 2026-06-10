@@ -17,10 +17,10 @@ import OldSpot from "./connector/spot";
 import fiatCurrencies from "../../fiatCurrencies";
 // import Spot from './@binance/connector/src/spot'
 
-const proxyUrl = //"https://api.binance.com"
-    "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod/binance"
-
+const proxyUrl = "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod/binance"
+//"https://api.binance.com"
 // 'https://corsproxy.io/?url=' + encodeURIComponent("https://api.binance.com")
+//     "https://proxy.corsfix.com/?https://api.binance.com"
 
 class BinanceApiService {
 
@@ -198,37 +198,35 @@ class BinanceApiService {
         })
     }
 
-    async liquidityFarming(): Promise<AssetDTO[]> {
-        let response: Response<LiquidityFarmingPool[]> = await this.customClient.bswapLiquidity();//
-        return response.data.filter((data) => +data.share.shareAmount)
-            .reduce((arr: LiquidityFarmingPool[], o) => {
-                let keys = Object.keys(o.share.asset);
-                let first = {...o};
-                first.symbol = keys[0]
-                first.description = `${first.symbol} (${o.poolName})`
-                first.amount = o.share.asset[first.symbol]
-                let second = {...o};
-                second.symbol = keys[1]
-                second.description = `${second.symbol} (${o.poolName})`
-                second.amount = o.share.asset[second.symbol]
-                arr.push(first)
-                arr.push(second)
-                return arr;
-            }, [])
-            .map((balance) => {
-                const name = `${balance.description} Liquidity Farming`
-                const id = `binance ${balance.description}`;
-                return new AssetDTO(
-                    id,
-                    balance.symbol,
-                    balance.amount,
-                    name,
-                    (this.binanceCurrencies && this.binanceCurrencies[balance.symbol].precision) || 8,
-                    fiatCurrencies.getByStringCode(balance.symbol) ? fiat : crypto,
-                    true,
-                )
-            })
-    }
+    // DEPRECATED: Binance discontinued bswap/liquid swap endpoints in January 2024
+    // 
+    // ❌ FUNCTIONALITY GAP: Simple Earn does NOT fully replace Liquid Swap
+    // 
+    // Liquid Swap provided:
+    // - Dual-asset liquidity provision (BNB/USDT, BTC/ETH pairs)
+    // - Trading fee rewards from market making
+    // - Impermanent loss exposure with higher potential yields
+    //
+    // Simple Earn provides:
+    // - Single-asset lending/staking only
+    // - Fixed/flexible interest rates
+    // - No dual-asset exposure
+    //
+    // MISSING ALTERNATIVES that could partially replace this functionality:
+    // - BNB Vault (combines multiple BNB earning strategies)
+    // - Auto-Invest (DCA with automatic reinvestment)
+    // - Dual Investment (structured products with dual-asset exposure)
+    // - Launchpool (stake to earn new token rewards)
+    //
+    // TODO: Consider implementing these alternative endpoints:
+    // - /sapi/v1/bnb-vault/* (BNB Vault)  
+    // - /sapi/v1/lending/auto-invest/* (Auto-Invest)
+    // - /sapi/v1/dual-investment/* (Dual Investment)
+    // - /sapi/v1/mining/* (Launchpool)
+    //
+    // async liquidityFarming(): Promise<AssetDTO[]> {
+    //     return []; // Deprecated - no direct replacement
+    // }
 
     async savingsFixed(): Promise<AssetDTO[]> {
         let savingsAccount: SimpleEarnLockedProductPositionResponse =
@@ -290,31 +288,8 @@ interface StakingPosition {
     rewardAsset: string // "USDC"
 }
 
-interface LiquidityFarmingPool extends LiquidityFarmingPosition {
-    symbol: string // "USDT"
-    description: string // "USDT (USDC/USDT)"
-    amount: string //
-}
-
-interface LiquidityFarmingPosition {
-    liquidity: {
-        [key: string]: string
-    }
-    // USDC: "6287542.94500803"
-    // USDT: "26500676.84738401"
-    poolId: number // 5
-    poolName: string // "USDC/USDT"
-    share: {
-        asset: {
-            [key: string]: string
-        }
-        // USDC: "203.70012276"
-        // USDT: "858.55336089"
-        shareAmount: string // "500.58608303"
-        sharePercentage: string // "0.00003239"
-    }
-    updateTime: number // 1655043494000
-}
+// DEPRECATED: Removed LiquidityFarmingPool and LiquidityFarmingPosition interfaces
+// These were used for bswap endpoints that Binance discontinued in January 2024
 
 interface SavingFlexiblePosition {
     canRedeem: true
@@ -373,7 +348,7 @@ interface FuturesAssetCoinM {
 interface SpotClient {
     futuresCoinMBalance: () => Promise<Response<FuturesAssetCoinM[]>>
     stakingProductPosition: (p: string) => Promise<Response<StakingPosition[]>>
-    bswapLiquidity: () => Promise<Response<LiquidityFarmingPool[]>>
+    // bswapLiquidity: () => Promise<Response<LiquidityFarmingPool[]>> // DEPRECATED: Binance discontinued in Jan 2024
     savingsCustomizedPosition: (a: string) => Promise<Response<SavingFixedPosition[]>>
     savingsFlexibleProductPosition: (a: string) => Promise<Response<SavingFlexiblePosition[]>>
 }

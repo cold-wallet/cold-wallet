@@ -1,5 +1,5 @@
 import {buildQueryString, createRequest, defaultLogger, removeEmptyValue} from './helpers/utils'
-import crypto from './../crypto-browserify'
+import * as crypto from './../crypto-browserify'
 
 class APIBase {
   constructor(options) {

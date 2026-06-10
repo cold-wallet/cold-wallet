@@ -1,7 +1,7 @@
-var inherits = require('inherits')
-var Buffer = require('safe-buffer').Buffer
+import inherits from 'inherits'
+import { Buffer } from 'safe-buffer'
 
-var Base = require('cipher-base')
+import Base from 'cipher-base'
 
 var ZEROS = Buffer.alloc(128)
 var blocksize = 64
