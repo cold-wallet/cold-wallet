@@ -1,7 +1,6 @@
 import './index.css';
 
 import React, { useMemo, useState } from "react";
-import SettingsWindow from "../settings/SettingsWindow";
 import { AccountInfo } from "../../integrations/binance/binanceApiClient";
 import { OkxAccount } from "../../integrations/okx/okxApiClient";
 import MonobankUserData from "../../integrations/monobank/MonobankUserData";
@@ -10,6 +9,7 @@ import Props from "../Props";
 
 import EditDialog from "../redesign/EditDialog";
 import ConfirmDelete from "../redesign/ConfirmDelete";
+import SettingsDialog from "../redesign/SettingsDialog";
 import LoadingView from "../redesign/LoadingView";
 import DonutChart from "../redesign/DonutChart";
 import TreemapChart from "../redesign/TreemapChart";
@@ -94,7 +94,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
             {/* CRUD dialogs (new look, real mechanics); settings restyled in a later phase */}
             {(props.creatingNewAsset || props.assetToEdit) ? <EditDialog props={props} /> : null}
             {props.assetToDelete ? <ConfirmDelete props={props} /> : null}
-            {props.showConfigsWindow ? SettingsWindow(props) : null}
+            {props.showConfigsWindow ? <SettingsDialog props={props} /> : null}
 
             {/* ===== Sidebar ===== */}
             <aside className="side">
