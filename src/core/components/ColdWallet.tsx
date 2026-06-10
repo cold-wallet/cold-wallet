@@ -401,12 +401,12 @@ export default function ColdWallet(
         currencyOptions,
     };
     return (
-        <div className={"application layer-0-themed-color"}>
+        <div className={"app-root"}>
             {shouldEnterPinCode ? <PinCodeOnLogin props={{
                 pinCodeEntered, setPinCodeEntered,
                 setPinCode,
             }}/> : loggedIn
-                ? AssetsDashboard(props)
+                ? <AssetsDashboard props={props}/>
                 : NotLoggedIn(props)
             }
         </div>
