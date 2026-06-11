@@ -3,19 +3,20 @@
 import React from 'react';
 import { NumericFormat } from 'react-number-format';
 import noExponents from '../../utils/noExponents';
-import { fmtUSD } from './format';
+import { maskUSD, AMOUNT_MASK } from './format';
 import { shortenAddresses } from './visual';
 import type { Valued } from './portfolio';
 
 interface HoldingRowProps {
   h: Valued;
+  hidden: boolean;
   active: boolean;
   onSelect: (id: string) => void;
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export default function HoldingRow({ h, active, onSelect, onEdit, onDelete }: HoldingRowProps) {
+export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete }: HoldingRowProps) {
   const a = h.asset;
   return (
     <div
@@ -35,15 +36,19 @@ export default function HoldingRow({ h, active, onSelect, onEdit, onDelete }: Ho
         <div className="row__sub">{shortenAddresses(a.normalizedName)}</div>
       </div>
       <div className="row__right">
-        <div className="row__usd num">{fmtUSD(h.usd)}</div>
+        <div className="row__usd num">{maskUSD(h.usd, hidden)}</div>
         <div className="row__amt num">
-          <NumericFormat
-            displayType="text"
-            thousandSeparator
-            valueIsNumericString
-            decimalScale={a.decimalScale || 8}
-            value={noExponents(a.amount)}
-          /> {h.code}
+          {hidden ? `${AMOUNT_MASK} ${h.code}` : (
+            <>
+              <NumericFormat
+                displayType="text"
+                thousandSeparator
+                valueIsNumericString
+                decimalScale={a.decimalScale || 8}
+                value={noExponents(a.amount)}
+              /> {h.code}
+            </>
+          )}
         </div>
       </div>
       <div className="row__actions">

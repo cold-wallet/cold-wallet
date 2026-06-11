@@ -16,7 +16,7 @@ import FitText from "../redesign/FitText";
 import DonutChart from "../redesign/DonutChart";
 import TreemapChart from "../redesign/TreemapChart";
 import HoldingRow from "../redesign/HoldingRow";
-import { fmtUSD, splitCents } from "../redesign/format";
+import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK } from "../redesign/format";
 import {
     assetSlices,
     chartData,
@@ -69,7 +69,8 @@ export default function AssetsDashboard({ props }: { props: Props }) {
 
     const sourceCount = new Set(valued.map((h) => h.source.key)).size;
     const maxLeaf = Math.max(...chart.leafSegs.map((l) => l.usd), 1);
-    const [totalInt, totalCents] = splitCents(fmtUSD(total));
+    const hidden = props.hideAmounts;
+    const [totalInt, totalCents] = hidden ? [AMOUNT_MASK, ''] : splitCents(fmtUSD(total));
 
     function openAdd() {
         props.stateReset();
@@ -102,6 +103,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                 <ChartModal
                     valued={valued}
                     total={total}
+                    hidden={hidden}
                     chart={view}
                     colorMap={Object.fromEntries(slices.map((a) => [a.key, a.color]))}
                     classColor={{ fiat: classes[0].color, crypto: classes[1].color }}
@@ -121,6 +123,14 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             <div className="brand__sub">Portfolio</div>
                         </div>
                         <div className="brand__spacer" />
+                        <button className="iconbtn" title={hidden ? 'Show amounts' : 'Hide amounts'} onClick={props.toggleHideAmounts}>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                {hidden
+                                    ? <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7zM1 1l22 22" />
+                                    : <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />}
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
                         <button className="iconbtn" title="Settings" onClick={openSettings}>
                             <svg viewBox="0 0 24 24" fill="currentColor" fillRule="evenodd" clipRule="evenodd"><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.69-.98l-.38-2.65A.49.49 0 0 0 14.13 2h-4a.49.49 0 0 0-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.66-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.14.24.42.32.61.22l2.49-1c.52.39 1.08.73 1.69.98l.38 2.65c.04.24.25.42.49.42h4c.24 0 .45-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.19.1.47.02.61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z" /></svg>
                         </button>
@@ -151,12 +161,13 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             <div className="group__head">
                                 <span className="group__chip" style={{ background: g.tint }}>{g.mark}</span>
                                 <span className="group__name">{g.label}</span>
-                                <span className="group__sum num">{fmtUSD(g.sum, { cents: false })}</span>
+                                <span className="group__sum num">{maskUSD(g.sum, hidden, { cents: false })}</span>
                             </div>
                             {g.items.map((h) => (
                                 <HoldingRow
                                     key={h.id}
                                     h={h}
+                                    hidden={hidden}
                                     active={activeId === h.id}
                                     onSelect={setActiveId}
                                     onEdit={() => editAsset(h.asset)}
@@ -193,7 +204,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                     {classes.map((c) => (
                         <div className="statcard" key={c.key}>
                             <div className="statcard__label">{c.label}</div>
-                            <FitText className="statcard__val num" max={26} min={13}>{fmtUSD(c.usd)}</FitText>
+                            <FitText className="statcard__val num" max={26} min={13}>{maskUSD(c.usd, hidden)}</FitText>
                             <div className="statcard__row">
                                 <span className="dot" style={{ background: c.color }} />
                                 <span className="num">{c.pct.toFixed(2)}%</span> of portfolio
@@ -228,7 +239,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                     <div className="chartwrap">
                         {view === 'tree'
                             ? <TreemapChart classes={classes} leafSegs={chart.leafSegs} hot={hot} setHot={setHot} />
-                            : <DonutChart typeSegs={chart.typeSegs} curSegs={chart.curSegs} leafSegs={chart.leafSegs} total={total} hot={hot} setHot={setHot} count={chart.leafSegs.length} />}
+                            : <DonutChart typeSegs={chart.typeSegs} curSegs={chart.curSegs} leafSegs={chart.leafSegs} total={total} hot={hot} setHot={setHot} count={chart.leafSegs.length} hidden={hidden} />}
                         <div className="legend legend--holdings">
                             {[...chart.leafSegs].sort((a, b) => b.usd - a.usd).map((l) => (
                                 <div
@@ -240,7 +251,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                     <span className="legend__fill" style={{ width: (l.usd / maxLeaf) * 100 + '%', background: l.color }} />
                                     <span className="legend__chip" style={{ background: l.color + '22', color: l.color, border: '1px solid ' + l.color + '55' }}>{(l.code as string || '').slice(0, 3)}</span>
                                     <span className="legend__name">{l.label} <small>· {l.srcLabel as string}</small></span>
-                                    <span className="legend__usd num">{fmtUSD(l.usd, { cents: false })}</span>
+                                    <span className="legend__usd num">{maskUSD(l.usd, hidden, { cents: false })}</span>
                                     <span className="legend__pct num">{l.pct.toFixed(2)}%</span>
                                 </div>
                             ))}
@@ -260,7 +271,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                 <span className="mini__name" style={{ width: 110 }}>{s.label}</span>
                                 <span className="mini__bar"><i style={{ width: s.pct + '%', background: 'var(--accent)' }} /></span>
                                 <span className="mini__val num">
-                                    <span className="mini__usd">{fmtUSD(s.usd, { cents: false })}</span>
+                                    <span className="mini__usd">{maskUSD(s.usd, hidden, { cents: false })}</span>
                                     <span className="mini__pct">{s.pct.toFixed(1)}%</span>
                                 </span>
                             </div>

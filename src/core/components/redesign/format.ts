@@ -9,6 +9,15 @@ export function fmtUSD(v: number, opts: { cents?: boolean } = {}): string {
   });
 }
 
+/** Fixed mask shown in place of any amount/USD value when the privacy toggle is on.
+ *  Representation only — never persisted, never fed back into data or calculations. */
+export const AMOUNT_MASK = '*****';
+
+/** USD value, or the fixed mask when hidden. Use at render sites only. */
+export function maskUSD(v: number, hidden: boolean, opts: { cents?: boolean } = {}): string {
+  return hidden ? AMOUNT_MASK : fmtUSD(v, opts);
+}
+
 /** Split the trailing ".dd" of a formatted total for the muted-cents style. */
 export function splitCents(str: string): [string, string] {
   const i = str.lastIndexOf('.');

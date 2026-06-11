@@ -4,7 +4,7 @@
 // always present; with a single holding it's simply one full ring. The portfolio total lives in
 // the center (it replaces the old innermost "total" ring).
 import React from 'react';
-import { fmtUSD } from './format';
+import { maskUSD } from './format';
 import { arcPath } from './geometry';
 import type { ArcSeg } from './portfolio';
 
@@ -16,9 +16,10 @@ interface DonutChartProps {
   hot: string | null;
   setHot: (key: string | null) => void;
   count: number;
+  hidden: boolean;
 }
 
-export default function DonutChart({ typeSegs, curSegs, leafSegs, total, hot, setHot, count }: DonutChartProps) {
+export default function DonutChart({ typeSegs, curSegs, leafSegs, total, hot, setHot, count, hidden }: DonutChartProps) {
   const C = 50;
   const sep = 1.0;
   const span = (s: number, e: number) => (e - s >= 359.9 ? s + 359.9 : e);
@@ -76,7 +77,7 @@ export default function DonutChart({ typeSegs, curSegs, leafSegs, total, hot, se
         {hotInfo ? (
           <>
             <div className="donut__c-label">{hotSub}</div>
-            <div className="donut__c-val num">{fmtUSD(hotInfo.usd, { cents: false })}</div>
+            <div className="donut__c-val num">{maskUSD(hotInfo.usd, hidden, { cents: false })}</div>
             <div className="donut__c-sub num" style={{ color: hotInfo.color }}>
               {hotInfo.label} · {hotInfo.pct.toFixed(2)}%
             </div>
@@ -84,7 +85,7 @@ export default function DonutChart({ typeSegs, curSegs, leafSegs, total, hot, se
         ) : (
           <>
             <div className="donut__c-label">Total</div>
-            <div className="donut__c-val num">{fmtUSD(total, { cents: false })}</div>
+            <div className="donut__c-val num">{maskUSD(total, hidden, { cents: false })}</div>
             <div className="donut__c-sub">{count} holding{count === 1 ? '' : 's'}</div>
           </>
         )}
