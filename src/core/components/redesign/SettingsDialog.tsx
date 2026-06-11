@@ -290,6 +290,7 @@ interface FieldBinding {
   id: string;
   label: string;
   secret?: boolean;
+  optional?: boolean;
   defaultValue: string;
   setValue: (v: string) => void;
   invalid: boolean;
@@ -323,7 +324,7 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
       { id: 'key', label: 'OKX API key', defaultValue: s.okxIntegrationApiKey || '', setValue: props.setOkxApiKeyInput, invalid: props.okxApiKeysInputInvalid, setInvalid: props.setOkxApiKeysInputInvalid },
       { id: 'secret', label: 'OKX API secret', secret: true, defaultValue: s.okxIntegrationApiSecret || '', setValue: props.setOkxApiSecretInput, invalid: props.okxApiKeysInputInvalid, setInvalid: props.setOkxApiKeysInputInvalid },
       { id: 'pass', label: 'OKX API pass-phrase', secret: true, defaultValue: s.okxIntegrationPassPhrase || '', setValue: props.setOkxApiPassPhraseInput, invalid: props.okxApiKeysInputInvalid, setInvalid: props.setOkxApiKeysInputInvalid },
-      { id: 'sub', label: 'OKX API sub-account name', defaultValue: s.okxIntegrationSubAccountName || '', setValue: props.setOkxApiSubAccountNameInput, invalid: props.okxApiKeysInputInvalid, setInvalid: props.setOkxApiKeysInputInvalid },
+      { id: 'sub', label: 'OKX API sub-account name', optional: true, defaultValue: s.okxIntegrationSubAccountName || '', setValue: props.setOkxApiSubAccountNameInput, invalid: false, setInvalid: props.setOkxApiKeysInputInvalid },
     ];
   } else if (name === 'monobank') {
     fields = [
@@ -400,7 +401,7 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
           <>
             {fields.map((f) => (
               <div className="field" key={f.id}>
-                <label>{f.label}</label>
+                <label>{f.label}{f.optional && <span style={{ color: 'var(--ink-3)', fontWeight: 400, marginLeft: 6 }}>optional</span>}</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={f.secret && !shown[f.id] ? 'password' : 'text'}
