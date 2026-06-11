@@ -57,9 +57,13 @@ export default function HoldingRow({ h, active, onSelect, onEdit, onDelete }: Ho
             </button>
           </>
         ) : (
-          <span className="act lock" title={'Synced from ' + h.source.label + " — managed automatically"}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
-          </span>
+          <>
+            {/* spacer in the edit slot so the lock lines up with the delete button */}
+            <span className="act" aria-hidden="true" style={{ visibility: 'hidden' }} />
+            <span className="act lock" title={'Synced from ' + h.source.label + " — managed automatically"}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+            </span>
+          </>
         )}
       </div>
     </div>
