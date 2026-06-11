@@ -40,3 +40,8 @@ export function assetColor(code: string): string {
 export function assetSym(code: string): string {
   return code.length <= 4 ? code.toUpperCase() : code.slice(0, 3).toUpperCase();
 }
+
+/** Middle-truncate long 0x… hex addresses inside a label so they don't overflow the row. */
+export function shortenAddresses(text: string): string {
+  return text.replace(/0x[0-9a-fA-F]{12,}/g, (m) => m.slice(0, 8) + '…' + m.slice(-6));
+}
