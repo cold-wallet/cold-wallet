@@ -16,7 +16,9 @@ import FitText from "../redesign/FitText";
 import DonutChart from "../redesign/DonutChart";
 import TreemapChart from "../redesign/TreemapChart";
 import HoldingRow from "../redesign/HoldingRow";
-import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK } from "../redesign/format";
+import { NumericFormat } from "react-number-format";
+import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../redesign/format";
+import { shortenAddresses } from "../redesign/visual";
 import {
     assetSlices,
     chartData,
@@ -243,20 +245,28 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             ? <TreemapChart classes={classes} leafSegs={chart.leafSegs} hot={hot} setHot={setHot} />
                             : <DonutChart typeSegs={chart.typeSegs} curSegs={chart.curSegs} leafSegs={chart.leafSegs} total={total} hot={hot} setHot={setHot} count={chart.leafSegs.length} hidden={hidden} />}
                         <div className="legend legend--holdings">
-                            {[...chart.leafSegs].sort((a, b) => b.usd - a.usd).map((l) => (
-                                <div
-                                    key={l.id as string}
-                                    className={'legend__item' + (hot === l.key ? ' hot' : '')}
-                                    onMouseEnter={() => setHot(l.key)}
-                                    onMouseLeave={() => setHot(null)}
-                                >
-                                    <span className="legend__fill" style={{ width: (l.usd / maxLeaf) * 100 + '%', background: l.color }} />
-                                    <span className="legend__chip" style={{ background: l.color + '22', color: l.color, border: '1px solid ' + l.color + '55' }}>{(l.code as string || '').slice(0, 3)}</span>
-                                    <span className="legend__name">{l.label} <small>· {l.srcLabel as string}</small></span>
-                                    <span className="legend__usd num">{maskUSD(l.usd, hidden, { cents: false })}</span>
-                                    <span className="legend__pct num">{l.pct.toFixed(2)}%</span>
-                                </div>
-                            ))}
+                            {[...chart.leafSegs].sort((a, b) => b.usd - a.usd).map((l) => {
+                                const amt = amountDisplay(l.amount as string, l.scale as number);
+                                return (
+                                    <div
+                                        key={l.id as string}
+                                        className={'legend__item' + (hot === l.key ? ' hot' : '')}
+                                        onMouseEnter={() => setHot(l.key)}
+                                        onMouseLeave={() => setHot(null)}
+                                    >
+                                        <span className="legend__fill" style={{ width: (l.usd / maxLeaf) * 100 + '%', background: l.color }} />
+                                        <span className="legend__chip" style={{ background: l.color + '22', color: l.color, border: '1px solid ' + l.color + '55' }}>{(l.code as string || '').slice(0, 3)}</span>
+                                        <span className="legend__amt num">
+                                            {hidden ? `${AMOUNT_MASK}\u00A0${l.code}` : (
+                                                <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={amt.decimalScale} value={amt.value} />{'\u00A0'}{l.code}</>
+                                            )}
+                                        </span>
+                                        <span className="legend__usd num">{maskUSD(l.usd, hidden, { cents: false })}</span>
+                                        <span className="legend__sub">{shortenAddresses(l.name as string)} <small>· {l.srcLabel as string}</small></span>
+                                        <span className="legend__pct num">{l.pct.toFixed(2)}%</span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
