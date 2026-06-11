@@ -116,6 +116,7 @@ export function chartData(v: Valued[], assets: AssetSlice[], classes: ClassSlice
     return {
       a0, a1, usd: h.usd, pct: total ? (h.usd / total) * 100 : 0, color: curColor[h.code] || '#888',
       label: h.code, key: 'hold:' + h.id, id: h.id, code: h.code, kind: h.kind, srcLabel: h.source.label,
+      amount: h.asset.amount, scale: h.scale, name: h.asset.normalizedName,
     };
   });
 
