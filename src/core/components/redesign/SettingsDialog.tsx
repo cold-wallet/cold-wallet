@@ -9,6 +9,7 @@ import Props from "../Props";
 import { onSaveSetting } from "../settings/IntegrationSettings";
 import { dataImporter } from "../settings/ImportData";
 import ccxtConnector from "../../integrations/ccxt/ccxtConnector";
+import { isConfigured, persistEnabled, setTempEnabled, validateSavedCredentials } from "./integrationActions";
 import PinPad, { PIN_MAX, PIN_MIN } from "./PinPad";
 
 const GearIcon = () => (
@@ -151,6 +152,38 @@ function revertIntegrationTemp(props: Props, name: string): void {
 }
 
 function DefaultView({ props }: { props: Props }) {
+  const [pending, setPending] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Quick toggle from the list. Enabling re-validates the SAVED credentials and persists
+  // only on success (window stays open); on failure the toggle snaps back + shows a note.
+  // Disabling persists immediately. MetaMask is a wallet connect, not inputs.
+  function onListToggle(key: string) {
+    const on = integrationEnabled(props, key);
+    if (key === 'metamask') {
+      if (on) props.setMetaMaskSettingsEnabled(false);
+      else props.metaMaskHandleConnect().then(() => props.setMetaMaskSettingsEnabled(true));
+      return;
+    }
+    setErrors((e) => ({ ...e, [key]: '' }));
+    if (on) {
+      setTempEnabled(props, key, false);
+      persistEnabled(props, key, false);
+      return;
+    }
+    setTempEnabled(props, key, true); // optimistic
+    setPending((p) => ({ ...p, [key]: true }));
+    validateSavedCredentials(props, key).then((ok) => {
+      setPending((p) => ({ ...p, [key]: false }));
+      if (ok) {
+        persistEnabled(props, key, true);
+      } else {
+        setTempEnabled(props, key, false); // revert
+        setErrors((e) => ({ ...e, [key]: 'Could not connect — check the saved keys in this integration.' }));
+      }
+    });
+  }
+
   const ccxtKeys = Array.from(new Set([
     ...Object.keys(props.userData.settings.integrations || {}),
     ...Array.from(props.enabledCcxtIntegrations),
@@ -170,17 +203,29 @@ function DefaultView({ props }: { props: Props }) {
         <div className="intg-grid">
           {rows.map((r) => {
             const on = integrationEnabled(props, r.key);
+            const err = errors[r.key];
+            const busy = pending[r.key];
+            // a quick toggle makes sense once credentials are saved (enable/disable) or
+            // while it's currently on (disable). An unconfigured + off integration shows
+            // no toggle — the row opens the config to set it up first.
+            const showSwitch = isConfigured(props, r.key) || on;
             return (
               <div className={"intg cfg" + (on ? " on" : "")} key={r.key} onClick={() => props.setIntegrationWindowNameSelected(r.key)}>
                 <div className="intg__chip" style={{ background: r.tint }}>{r.mark}</div>
                 <div className="intg__main">
                   <div className="intg__name">{r.name}</div>
-                  <div className={"intg__status" + (on ? " live" : "")}>
-                    {on && <span className="ldot" />}{statusNote(props, r.key, on)}
+                  <div className={"intg__status" + (on && !err ? " live" : "")}>
+                    {err
+                      ? <span style={{ color: 'var(--danger)' }}>{err}</span>
+                      : busy
+                        ? 'Connecting…'
+                        : <>{on && <span className="ldot" />}{statusNote(props, r.key, on)}</>}
                   </div>
                 </div>
-                <button className={"switch" + (on ? " on" : "")} title={on ? 'Disconnect' : 'Connect'}
-                  onClick={(e) => { e.stopPropagation(); toggleIntegration(props, r.key, on); }} />
+                {showSwitch && (
+                  <button className={"switch" + (on ? " on" : "")} title={on ? 'Disconnect' : 'Connect'} disabled={busy}
+                    onClick={(e) => { e.stopPropagation(); onListToggle(r.key); }} />
+                )}
                 <span className="intg__chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg></span>
               </div>
             );
@@ -260,6 +305,12 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
 
   const enabled = integrationEnabled(props, name); // shared temporary (pending) state
   const [shown, setShown] = useState<Record<string, boolean>>({});
+
+  // a failed Save sets the per-integration invalid flag — surface it as a message.
+  const invalid = name === 'binance' ? props.binanceApiKeysInputInvalid
+    : name === 'okx' ? props.okxApiKeysInputInvalid
+      : name === 'monobank' ? props.monobankApiTokenInputInvalid
+        : props.currentSettingInputsInvalid;
 
   let fields: FieldBinding[] = [];
   if (name === 'binance') {
@@ -373,6 +424,12 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
               </div>
             ))}
             {(props.binanceUserDataLoading || props.okxUserDataLoading || props.monobankUserDataLoading || props.loadingUserDataFromResource === name) && <progress style={{ width: '100%' }} />}
+            {invalid && (
+              <div className="import-err" style={{ marginTop: 10 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 8v5M12 16h.01" /></svg>
+                Could not connect — please check the {title} {name === 'monobank' ? 'token' : 'keys'} and try again.
+              </div>
+            )}
             <div className="cfg-note">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
               Use read-only keys. Keys are encrypted and stored locally on this device.
