@@ -73,6 +73,45 @@ function integrationEnabled(props: Props, key: string): boolean {
   }
 }
 
+function statusNote(props: Props, key: string, on: boolean): string {
+  if (!on) return 'Not connected';
+  switch (key) {
+    case 'binance':
+    case 'okx': return 'API key · read-only';
+    case 'monobank': return 'Token';
+    case 'metamask': {
+      const acc = props.userData.settings.metaMask?.accounts;
+      const addr = acc ? Object.keys(acc)[0] : null;
+      return addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : 'Connected';
+    }
+    default: return 'API key';
+  }
+}
+
+/** Quick enable/disable from the list (persists via setUserData; loaders react). */
+function toggleIntegration(props: Props, key: string, on: boolean): void {
+  const next = !on;
+  if (key === 'binance' || key === 'okx' || key === 'monobank') {
+    const nd = { ...props.userData };
+    if (key === 'binance') { nd.settings.binanceIntegrationEnabled = next; props.setBinanceSettingsEnabled(next); }
+    else if (key === 'okx') { nd.settings.okxIntegrationEnabled = next; props.setOkxSettingsEnabled(next); }
+    else { nd.settings.monobankIntegrationEnabled = next; props.setMonobankSettingsEnabled(next); }
+    props.setUserData(nd);
+  } else if (key === 'metamask') {
+    if (next) props.metaMaskHandleConnect().then(() => props.setMetaMaskSettingsEnabled(true));
+    else props.setMetaMaskSettingsEnabled(false);
+  } else {
+    const set = new Set(props.enabledCcxtIntegrations);
+    next ? set.add(key) : set.delete(key);
+    props.setEnabledCcxtIntegrations(set);
+    const nd = { ...props.userData };
+    const integrations = { ...(nd.settings.integrations || {}) };
+    if (integrations[key]) integrations[key] = { ...integrations[key], enabled: next };
+    nd.settings.integrations = integrations;
+    props.setUserData(nd);
+  }
+}
+
 function DefaultView({ props }: { props: Props }) {
   const ccxtKeys = Array.from(new Set([
     ...Object.keys(props.userData.settings.integrations || {}),
@@ -99,9 +138,11 @@ function DefaultView({ props }: { props: Props }) {
                 <div className="intg__main">
                   <div className="intg__name">{r.name}</div>
                   <div className={"intg__status" + (on ? " live" : "")}>
-                    {on && <span className="ldot" />}{on ? 'Connected' : 'Not connected'}
+                    {on && <span className="ldot" />}{statusNote(props, r.key, on)}
                   </div>
                 </div>
+                <button className={"switch" + (on ? " on" : "")} title={on ? 'Disconnect' : 'Connect'}
+                  onClick={(e) => { e.stopPropagation(); toggleIntegration(props, r.key, on); }} />
                 <span className="intg__chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg></span>
               </div>
             );
