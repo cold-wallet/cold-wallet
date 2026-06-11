@@ -5,6 +5,7 @@ import { NumericFormat } from 'react-number-format';
 import noExponents from '../../utils/noExponents';
 import { arcPath, shade, squarify, type SquarifyCell } from './geometry';
 import { maskUSD, AMOUNT_MASK } from './format';
+import { shortenAddresses } from './visual';
 import type { Valued } from './portfolio';
 
 interface ClassColor { fiat: string; crypto: string; }
@@ -190,7 +191,7 @@ export default function ChartModal({ valued, total, colorMap, classColor, chart,
                   <div className="fs-d-row" key={h.id}>
                     <span className="fs-d-ico" style={{ background: ac + '22', color: ac, border: '1px solid ' + ac + '55' }}>{h.sym}</span>
                     <div className="fs-d-main">
-                      <div className="fs-d-asset">{h.asset.normalizedName}</div>
+                      <div className="fs-d-asset">{shortenAddresses(h.asset.normalizedName)}</div>
                       <div className="fs-d-meta num">
                         {hidden ? `${AMOUNT_MASK} ${h.code}` : (
                           <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={h.asset.decimalScale || 8} value={noExponents(h.asset.amount)} /> {h.code}</>
