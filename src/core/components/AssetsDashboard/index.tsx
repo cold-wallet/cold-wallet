@@ -259,7 +259,10 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                 <span className="group__chip" style={{ background: s.tint, marginRight: 2 }}>{s.mark}</span>
                                 <span className="mini__name" style={{ width: 110 }}>{s.label}</span>
                                 <span className="mini__bar"><i style={{ width: s.pct + '%', background: 'var(--accent)' }} /></span>
-                                <span className="mini__val num">{fmtUSD(s.usd, { cents: false })}</span>
+                                <span className="mini__val num">
+                                    <span className="mini__usd">{fmtUSD(s.usd, { cents: false })}</span>
+                                    <span className="mini__pct">{s.pct.toFixed(1)}%</span>
+                                </span>
                             </div>
                         ))}
                     </div>
