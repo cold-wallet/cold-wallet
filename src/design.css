@@ -115,8 +115,10 @@ body {
   .app:not(.m-classic) .row > * { grid-row: 1; }
   .app:not(.m-classic) .coin        { grid-column: 1; }
   .app:not(.m-classic) .row__main   { grid-column: 2; min-width: 0; }
+  /* the row__end flex wrapper vanishes so actions + right are direct subgrid items here */
+  .app:not(.m-classic) .row__end    { display: contents; }
   .app:not(.m-classic) .row__actions {
-    grid-column: 3; position: static; transform: none; margin: 0;
+    display: flex; grid-column: 3; position: static; transform: none; margin: 0;
     opacity: 1; pointer-events: auto;
   }
   .app:not(.m-classic) .row__right  { grid-column: 4; }
@@ -218,7 +220,7 @@ body {
 
 /* ===== Holding row ===== */
 .row {
-  display: grid; grid-template-columns: 40px 1fr auto;
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto;
   align-items: center; gap: 12px;
   padding: var(--row-pad) 12px;
   border-radius: var(--r-md); cursor: pointer;
@@ -246,17 +248,18 @@ body {
   font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
   padding: 2px 6px; border-radius: 5px; color: var(--ink-3); border: 1px solid var(--line-2);
 }
-.row__sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.row__sub { font-size: 12px; color: var(--ink-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Right cluster: the amount stays fixed at the right edge and is never covered, so it
+   stays selectable. Edit/delete reveal on hover to the LEFT of the amount; the name
+   column (1fr) gives up the room and truncates with an ellipsis. */
+.row__end { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .row__right { text-align: right; }
 .row__usd { font-weight: 600; font-size: 14px; }
 .row__amt { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
 
-.row__actions {
-  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  display: flex; gap: 6px; opacity: 0; pointer-events: none; transition: .15s;
-}
-.row:hover .row__actions { opacity: 1; pointer-events: auto; }
-.row:hover .row__right { opacity: 0; }
+/* display:none (not opacity) so a hidden cluster reserves no space — flex gap skips it. */
+.row__actions { display: none; order: -1; gap: 6px; }
+.row:hover .row__actions { display: flex; }
 .act {
   width: 30px; height: 30px; border-radius: 8px; cursor: pointer; display: grid; place-items: center;
   border: 1px solid var(--line-2); background: var(--card-hi); color: var(--ink-2); transition: .12s;
