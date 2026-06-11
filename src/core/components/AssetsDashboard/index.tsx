@@ -70,7 +70,9 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     const sourceCount = new Set(valued.map((h) => h.source.key)).size;
     const maxLeaf = Math.max(...chart.leafSegs.map((l) => l.usd), 1);
     const hidden = props.hideAmounts;
-    const [totalInt, totalCents] = hidden ? [AMOUNT_MASK, ''] : splitCents(fmtUSD(total));
+    const totalStr = hidden ? AMOUNT_MASK : fmtUSD(total);
+    // "<$0.01" (sub-cent dust) has no cents tail to mute — keep it whole.
+    const [totalInt, totalCents] = (hidden || totalStr.startsWith('<')) ? [totalStr, ''] : splitCents(totalStr);
 
     function openAdd() {
         props.stateReset();
