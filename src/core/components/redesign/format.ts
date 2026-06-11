@@ -3,11 +3,18 @@ import noExponents from '../../utils/noExponents';
 
 export function fmtUSD(v: number, opts: { cents?: boolean } = {}): string {
   const n = isFinite(v) ? v : 0;
+  const digits = opts.cents === false ? 0 : 2;
+  // A positive value too small to be worth a cent would format as "$0.00"/"$0" — show the
+  // "<$0.01" floor instead so dust never looks like nothing. (Guard on rounds-to-zero too,
+  // so a whole-dollar "$0" for e.g. $0.40 isn't mislabelled as sub-cent.)
+  if (n > 0 && n < 0.01 && Math.round(n * Math.pow(10, digits)) === 0) {
+    return '<$0.01';
+  }
   return n.toLocaleString('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: opts.cents === false ? 0 : 2,
-    maximumFractionDigits: opts.cents === false ? 0 : 2,
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
   });
 }
 
