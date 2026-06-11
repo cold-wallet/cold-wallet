@@ -2,8 +2,7 @@
 // Manual holdings get edit/delete; integration (synced) holdings get a lock.
 import React from 'react';
 import { NumericFormat } from 'react-number-format';
-import noExponents from '../../utils/noExponents';
-import { maskUSD, AMOUNT_MASK } from './format';
+import { maskUSD, AMOUNT_MASK, amountDisplay } from './format';
 import { shortenAddresses } from './visual';
 import type { Valued } from './portfolio';
 
@@ -18,6 +17,7 @@ interface HoldingRowProps {
 
 export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete }: HoldingRowProps) {
   const a = h.asset;
+  const amt = amountDisplay(a.amount, h.scale);
   return (
     <div
       className={'row' + (active ? ' is-active' : '')}
@@ -45,8 +45,8 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
                 displayType="text"
                 thousandSeparator
                 valueIsNumericString
-                decimalScale={h.scale}
-                value={noExponents(a.amount)}
+                decimalScale={amt.decimalScale}
+                value={amt.value}
               />{'\u00A0'}{h.code}
             </>
           )}

@@ -2,8 +2,7 @@
 import React from 'react';
 import { NumericFormat } from 'react-number-format';
 import Props from '../Props';
-import noExponents from '../../utils/noExponents';
-import { maskUSD, AMOUNT_MASK } from './format';
+import { maskUSD, AMOUNT_MASK, amountDisplay } from './format';
 import { displayScale } from './portfolio';
 import { assetColor, assetSym } from './visual';
 
@@ -11,7 +10,7 @@ export default function ConfirmDelete({ props }: { props: Props }) {
   const a = props.assetToDelete!;
   const color = assetColor(a.currency);
   const usd = props.priceService.transform(a.currency, +a.amount, 'USD');
-  const amtScale = displayScale(a, props.priceService);
+  const amt = amountDisplay(a.amount, displayScale(a, props.priceService));
   const hidden = props.hideAmounts;
 
   function cancel() {
@@ -41,7 +40,7 @@ export default function ConfirmDelete({ props }: { props: Props }) {
           <span style={{ width: 30, height: 30, borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 600, background: color + '22', color, border: '1px solid ' + color + '55' }}>{assetSym(a.currency)}</span>
           <span className="num">
             {hidden ? `${AMOUNT_MASK}\u00A0${a.currency}` : (
-              <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={amtScale} value={noExponents(a.amount)} />{'\u00A0'}{a.currency}</>
+              <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={amt.decimalScale} value={amt.value} />{'\u00A0'}{a.currency}</>
             )}
           </span>
           <span style={{ color: 'var(--ink-3)' }}>·</span>
