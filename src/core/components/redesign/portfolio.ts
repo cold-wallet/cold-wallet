@@ -17,6 +17,7 @@ export interface Valued {
   manual: boolean;
   color: string;
   sym: string;
+  scale: number;
 }
 
 export interface ClassSlice { key: 'fiat' | 'crypto'; label: string; usd: number; pct: number; color: string; }
@@ -34,6 +35,22 @@ function usdOf(ps: PriceService, a: AssetDTO): number {
   return isFinite(v) ? v : 0;
 }
 
+// Per-currency display precision. Show only as many decimals as carry weight: the smallest
+// shown unit must be worth at least SIGNIFICANCE_USD (1¢), so a $1 stablecoin gets 2 decimals,
+// pricier coins more, BTC ~7. Fiat keeps its own scale; unknown-price coins fall back too.
+const SIGNIFICANCE_USD = 0.01;
+const MIN_CRYPTO_SCALE = 2;
+const MAX_CRYPTO_SCALE = 8;
+
+export function displayScale(asset: AssetDTO, ps: PriceService): number {
+  const fallback = asset.decimalScale || (asset.type === AssetType.fiat ? 2 : 8);
+  if (asset.type === AssetType.fiat) return fallback;
+  const unit = ps.transform(asset.currency, 1, 'USD'); // USD per 1 unit
+  if (!isFinite(unit) || unit <= 0) return fallback;
+  const d = Math.floor(Math.log10(unit / SIGNIFICANCE_USD));
+  return Math.min(MAX_CRYPTO_SCALE, Math.max(MIN_CRYPTO_SCALE, d));
+}
+
 /** Attach USD value + source + visual metadata to every asset. */
 export function valueAssets(assets: AssetDTO[], ps: PriceService): Valued[] {
   return assets.map((a) => ({
@@ -46,6 +63,7 @@ export function valueAssets(assets: AssetDTO[], ps: PriceService): Valued[] {
     manual: isManual(a),
     color: assetColor(a.currency),
     sym: assetSym(a.currency),
+    scale: displayScale(a, ps),
   }));
 }
 

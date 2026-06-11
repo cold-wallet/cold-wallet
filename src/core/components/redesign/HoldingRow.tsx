@@ -44,7 +44,7 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
                 displayType="text"
                 thousandSeparator
                 valueIsNumericString
-                decimalScale={a.decimalScale || 8}
+                decimalScale={h.scale}
                 value={noExponents(a.amount)}
               />{'\u00A0'}{h.code}
             </>
