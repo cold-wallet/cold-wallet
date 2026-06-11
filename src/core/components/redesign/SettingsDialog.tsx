@@ -4,7 +4,7 @@
 //   importOrExportSettingRequested → Export / Import (dataImporter)
 //   pinCodeSettingsRequested / deletePinCodeRequested → PinView (PinCodeSetting state machine)
 //   else → default view (Integrations · Data · Security)
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Props from "../Props";
 import { onSaveSetting } from "../settings/IntegrationSettings";
 import { dataImporter } from "../settings/ImportData";
@@ -272,16 +272,25 @@ function DefaultView({ props }: { props: Props }) {
 }
 
 function CcxtAddSelect({ props, taken }: { props: Props; taken: string[] }) {
-  // ccxt exchange list is large; lazy-require to avoid eager work.
-  const [options] = useState<string[]>(() => {
-    try {
-      return (ccxtConnector.getExchanges() as string[]).filter((e) => !taken.includes(e));
-    } catch { return []; }
-  });
+  // The ccxt library is tens of MB; loading it just to list exchange names would block the
+  // app. Defer the load until the user actually opens this dropdown (focus), then populate.
+  const [options, setOptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const requested = useRef(false);
+  const loadList = () => {
+    if (requested.current) return;
+    requested.current = true;
+    setLoading(true);
+    ccxtConnector.getExchangesAsync()
+      .then((list) => setOptions(list))
+      .catch(() => setOptions([]))
+      .finally(() => setLoading(false));
+  };
   return (
-    <select value="" onChange={(e) => e.target.value && props.setIntegrationWindowNameSelected(e.target.value)}>
-      <option value="">+ Add exchange integration…</option>
-      {options.map((e) => <option key={e} value={e}>{e}</option>)}
+    <select value="" onFocus={loadList} onMouseDown={loadList}
+            onChange={(e) => e.target.value && props.setIntegrationWindowNameSelected(e.target.value)}>
+      <option value="">{loading ? 'Loading exchanges…' : '+ Add exchange integration…'}</option>
+      {options.filter((e) => !taken.includes(e)).map((e) => <option key={e} value={e}>{e}</option>)}
     </select>
   );
 }
