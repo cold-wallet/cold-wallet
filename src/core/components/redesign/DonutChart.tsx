@@ -1,4 +1,8 @@
-// redesign/DonutChart.tsx — three-ring donut: Type → Currency → Holding (hand-rolled SVG).
+// redesign/DonutChart.tsx — adaptive concentric donut: Holding → Currency → Type (fiat/crypto).
+// Each ring is shown only when it actually merges something the finer ring outside it doesn't —
+// i.e. it has ≥2 segments AND fewer than the ring just outside it. The leaf (per-holding) ring is
+// always present; with a single holding it's simply one full ring. The portfolio total lives in
+// the center (it replaces the old innermost "total" ring).
 import React from 'react';
 import { fmtUSD } from './format';
 import { arcPath } from './geometry';
@@ -19,11 +23,27 @@ export default function DonutChart({ typeSegs, curSegs, leafSegs, total, hot, se
   const sep = 1.0;
   const span = (s: number, e: number) => (e - s >= 359.9 ? s + 359.9 : e);
 
-  const RINGS = [
-    { segs: typeSegs, rO: 27, rI: 17 },
-    { segs: curSegs, rO: 38, rI: 29 },
-    { segs: leafSegs, rO: 48, rI: 40 },
-  ];
+  // Conditional levels: a ring earns its place only when it groups holdings the ring outside it
+  // keeps separate — ≥2 segments AND fewer than the finer ring. Leaf is always shown.
+  const nLeaf = leafSegs.length;
+  const nCur = curSegs.length;
+  const nType = typeSegs.length;
+  const showCur = nCur >= 2 && nCur < nLeaf;
+  const showType = nType >= 2 && nType < nCur;
+
+  // Visible rings, outer → inner.
+  const visible: ArcSeg[][] = [leafSegs];
+  if (showCur) visible.push(curSegs);
+  if (showType) visible.push(typeSegs);
+
+  // Spread the [rHole .. rOuter] band evenly over however many rings are visible, leaving the
+  // center hole for the total text.
+  const rOuter = 48, rHole = 17, gap = 2;
+  const thickness = (rOuter - rHole - gap * (visible.length - 1)) / visible.length;
+  const RINGS = visible.map((segs, i) => {
+    const rO = rOuter - i * (thickness + gap);
+    return { segs, rO, rI: rO - thickness };
+  });
 
   const allSegs = [...typeSegs, ...curSegs, ...leafSegs];
   const hotInfo = hot ? allSegs.find((s) => s.key === hot) : null;
