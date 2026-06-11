@@ -11,6 +11,7 @@ import EditDialog from "../redesign/EditDialog";
 import ConfirmDelete from "../redesign/ConfirmDelete";
 import SettingsDialog from "../redesign/SettingsDialog";
 import LoadingView from "../redesign/LoadingView";
+import ChartModal from "../redesign/ChartModal";
 import DonutChart from "../redesign/DonutChart";
 import TreemapChart from "../redesign/TreemapChart";
 import HoldingRow from "../redesign/HoldingRow";
@@ -29,6 +30,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     const [q, setQ] = useState("");
     const [hot, setHot] = useState<string | null>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
+    const [breakdownOpen, setBreakdownOpen] = useState(false);
     const view = props.firstPageChartView === 'tree' ? 'tree' : 'donut';
 
     // Aggregate manual + every connected integration into one AssetDTO[] (same as the old stats).
@@ -95,6 +97,16 @@ export default function AssetsDashboard({ props }: { props: Props }) {
             {(props.creatingNewAsset || props.assetToEdit) ? <EditDialog props={props} /> : null}
             {props.assetToDelete ? <ConfirmDelete props={props} /> : null}
             {props.showConfigsWindow ? <SettingsDialog props={props} /> : null}
+            {breakdownOpen ? (
+                <ChartModal
+                    valued={valued}
+                    total={total}
+                    chart={view}
+                    colorMap={Object.fromEntries(slices.map((a) => [a.key, a.color]))}
+                    classColor={{ fiat: classes[0].color, crypto: classes[1].color }}
+                    onClose={() => setBreakdownOpen(false)}
+                />
+            ) : null}
 
             {/* ===== Sidebar ===== */}
             <aside className="side">
@@ -206,6 +218,10 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                     </button>
                                 ))}
                             </div>
+                            <button className="expandbtn" onClick={() => setBreakdownOpen(true)} title="Full breakdown">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+                                Expand
+                            </button>
                         </div>
                     </div>
                     <div className="chartwrap">
