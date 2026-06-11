@@ -12,6 +12,7 @@ import ConfirmDelete from "../redesign/ConfirmDelete";
 import SettingsDialog from "../redesign/SettingsDialog";
 import LoadingView from "../redesign/LoadingView";
 import ChartModal from "../redesign/ChartModal";
+import FitText from "../redesign/FitText";
 import DonutChart from "../redesign/DonutChart";
 import TreemapChart from "../redesign/TreemapChart";
 import HoldingRow from "../redesign/HoldingRow";
@@ -127,7 +128,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                     <div className="total">
                         <div>
                             <div className="total__label">Total balance</div>
-                            <div className="total__val num">{totalInt}<span className="cents">{totalCents}</span></div>
+                            <FitText className="total__val num" max={32} min={16}>{totalInt}<span className="cents">{totalCents}</span></FitText>
                         </div>
                         {!props.loaded && <div className="total__delta num" title="Syncing market data">syncing…</div>}
                     </div>
@@ -192,7 +193,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                     {classes.map((c) => (
                         <div className="statcard" key={c.key}>
                             <div className="statcard__label">{c.label}</div>
-                            <div className="statcard__val num">{fmtUSD(c.usd)}</div>
+                            <FitText className="statcard__val num" max={26} min={13}>{fmtUSD(c.usd)}</FitText>
                             <div className="statcard__row">
                                 <span className="dot" style={{ background: c.color }} />
                                 <span className="num">{c.pct.toFixed(2)}%</span> of portfolio
