@@ -154,7 +154,7 @@ body {
 .total { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .total__label { font-size: 11px; color: var(--ink-3); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 4px; white-space: nowrap; }
 .total__val { font-size: 32px; font-weight: 600; line-height: 1; }
-.total__val .cents { color: var(--ink-3); font-size: 21px; }
+.total__val .cents { color: var(--ink-3); font-size: 0.66em; }
 .total__delta {
   font-size: 12px; font-weight: 600; padding: 5px 9px; border-radius: 999px;
   background: var(--accent-dim); color: var(--accent);
@@ -278,6 +278,7 @@ body {
 .statcard {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg);
   padding: 18px 20px; box-shadow: var(--shadow);
+  min-width: 0; /* let the 1fr columns stay equal even with long amounts (FitText handles shrink) */
 }
 .statcard__label { font-size: 11px; color: var(--ink-3); letter-spacing: 0.14em; text-transform: uppercase; }
 .statcard__val { font-size: 26px; font-weight: 600; margin-top: 8px; }
