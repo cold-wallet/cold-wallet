@@ -457,7 +457,7 @@ body {
 .wterms input:focus-visible + .wterms__box { outline: 2px solid var(--accent-dim); outline-offset: 2px; }
 .wterms a { color: var(--accent); text-decoration: none; font-weight: 500; }
 .wterms a:hover { text-decoration: underline; }
-.dialog { width: 380px; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 24px; box-shadow: 0 30px 80px -20px #000; }
+.dialog { width: 380px; box-sizing: border-box; max-width: calc(100vw - 28px); max-height: calc(100vh - 28px); overflow-y: auto; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 24px; box-shadow: 0 30px 80px -20px #000; }
 .dialog h3 { margin: 0 0 18px; font-size: 17px; font-weight: 600; }
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 11px; color: var(--ink-3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 7px; }
