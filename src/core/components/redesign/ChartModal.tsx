@@ -193,8 +193,8 @@ export default function ChartModal({ valued, total, colorMap, classColor, chart,
                     <div className="fs-d-main">
                       <div className="fs-d-asset">{shortenAddresses(h.asset.normalizedName)}</div>
                       <div className="fs-d-meta num">
-                        {hidden ? `${AMOUNT_MASK} ${h.code}` : (
-                          <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={h.asset.decimalScale || 8} value={noExponents(h.asset.amount)} /> {h.code}</>
+                        {hidden ? `${AMOUNT_MASK}\u00A0${h.code}` : (
+                          <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={h.asset.decimalScale || 8} value={noExponents(h.asset.amount)} />{'\u00A0'}{h.code}</>
                         )} · {h.source.label}{h.manual ? ' · manual' : ''}
                       </div>
                     </div>
