@@ -23,7 +23,7 @@ export default function PinPad({ pinCode, setPinCode, acceptPinCode }: PinPadPro
           <span key={i} className={'pin-dot' + (i < len ? ' full' : i < PIN_MIN ? ' req' : '')} />
         ))}
       </div>
-      <div className="pad">
+      <div className="keypad">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (
           <button key={d} className="key" onClick={() => press(d)}>{d}</button>
         ))}

@@ -703,7 +703,7 @@ body {
 .pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line-2); transition: .15s; }
 .pin-dot.full { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-dim); transform: scale(1.05); }
 .pin-dot.req { border-color: color-mix(in oklab, var(--accent) 45%, var(--line-2)); }
-.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 360px; margin: 0 auto; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 360px; margin: 0 auto; }
 .key {
   height: 64px; border-radius: var(--r-md); cursor: pointer;
   border: 1px solid var(--line); background: var(--card); color: var(--ink);
