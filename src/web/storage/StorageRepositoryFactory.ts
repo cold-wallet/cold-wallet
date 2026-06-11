@@ -16,7 +16,12 @@ export default function StorageRepositoryFactory(storage: Storage):
         const [getter, setter] = useState(initialState);
 
         useEffect(() => {
-            getter && storage.setItem(key, JSON.stringify(getter));
+            // Persist any concrete value — including falsy ones like false / 0 / "".
+            // Only the nullable variant's "absent" state (null/undefined) is skipped: the
+            // initializer supplies defaults, so there's nothing useful to write for it.
+            if (getter != null) {
+                storage.setItem(key, JSON.stringify(getter));
+            }
         }, [getter, key]);
 
         return [getter, setter,]
