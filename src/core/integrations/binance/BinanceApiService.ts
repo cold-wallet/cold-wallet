@@ -22,6 +22,12 @@ const proxyUrl = "https://ntrocp887e.execute-api.eu-central-1.amazonaws.com/prod
 // 'https://corsproxy.io/?url=' + encodeURIComponent("https://api.binance.com")
 //     "https://proxy.corsfix.com/?https://api.binance.com"
 
+// APY/APR rates come back as long floats (e.g. 0.013662290000000001). When we bake them into
+// a human-readable product name, round the percentage to 3 decimals and drop trailing zeros.
+function ratePercent(rate: number | string): string {
+    return String(Number((+rate * 100).toFixed(3)));
+}
+
 class BinanceApiService {
 
     // newClient: Spot
@@ -234,7 +240,7 @@ class BinanceApiService {
 
         return savingsAccount.rows
             .map((balance: SimpleEarnLockedProductPosition) => {
-                let name = `${balance.asset} Earning Fixed ${+balance.apy * 100}%`;
+                let name = `${balance.asset} Earning Fixed ${ratePercent(balance.apy)}%`;
                 const id = `binance ${name}`;
                 return new AssetDTO(
                     id,
@@ -253,7 +259,7 @@ class BinanceApiService {
             await this.client.getSimpleEarnFlexibleProductPosition();
         return savingsAccount.rows
             .map((position: SimpleEarnFlexibleProductPosition) => {
-                const name = `${position.asset} Earning Flexible ${+position.latestAnnualPercentageRate * 100}%`;
+                const name = `${position.asset} Earning Flexible ${ratePercent(position.latestAnnualPercentageRate)}%`;
                 const id = `binance ${name}`;
                 return new AssetDTO(
                     id,
