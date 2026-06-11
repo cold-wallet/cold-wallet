@@ -84,8 +84,10 @@ body {
   /* let the list grow to its full height instead of scrolling in a peephole */
   .app:not(.m-classic) .list { flex: none; height: auto; overflow: visible; padding: 4px 0 28px; }
 
-  /* compact overview: drop the legend (redundant with the list below; use Expand for detail) */
+  /* compact overview: drop the legend (redundant with the list below) and the
+     full-screen Expand breakdown (cramped on a phone; the list below covers detail) */
   .app:not(.m-classic) .legend--holdings { display: none; }
+  .app:not(.m-classic) .expandbtn { display: none; }
   .app:not(.m-classic) .chartwrap { grid-template-columns: 1fr; }
 
   /* keep search + Add reachable once you scroll into the list */
