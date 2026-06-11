@@ -35,6 +35,7 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
         </div>
         <div className="row__sub">{shortenAddresses(a.normalizedName)}</div>
       </div>
+      <div className="row__end">
       <div className="row__right">
         <div className="row__usd num">{maskUSD(h.usd, hidden)}</div>
         <div className="row__amt num">
@@ -70,6 +71,7 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
             </span>
           </>
         )}
+      </div>
       </div>
     </div>
   );
