@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import noExponents from '../../utils/noExponents';
 import { arcPath, shade, squarify, type SquarifyCell } from './geometry';
-import { fmtUSD } from './format';
+import { maskUSD, AMOUNT_MASK } from './format';
 import type { Valued } from './portfolio';
 
 interface ClassColor { fiat: string; crypto: string; }
@@ -14,6 +14,7 @@ interface ChartModalProps {
   colorMap: Record<string, string>;
   classColor: ClassColor;
   chart: 'donut' | 'tree';
+  hidden: boolean;
   onClose: () => void;
 }
 
@@ -31,7 +32,7 @@ interface TreeCell extends TreeChildCell { kind: 'fiat' | 'crypto'; }
 
 const VIEWS = [['sunburst', 'Sunburst'], ['treemap', 'Treemap']] as const;
 
-export default function ChartModal({ valued, total, colorMap, classColor, chart, onClose }: ChartModalProps) {
+export default function ChartModal({ valued, total, colorMap, classColor, chart, hidden, onClose }: ChartModalProps) {
   const [focus, setFocus] = useState<FocusInfo | null>(null);
   const [view, setView] = useState<ViewMode>(chart === 'tree' ? 'treemap' : 'sunburst');
   const pc = (v: number, t: number) => (v / t) * 100 + '%';
@@ -134,7 +135,7 @@ export default function ChartModal({ valued, total, colorMap, classColor, chart,
               </svg>
               <div className="fs-center">
                 <div className="fs-center__l">{focus ? focus.sub || '' : 'TOTAL'}</div>
-                <div className="fs-center__v num">{fmtUSD(info.usd, { cents: false })}</div>
+                <div className="fs-center__v num">{maskUSD(info.usd, hidden, { cents: false })}</div>
                 <div className="fs-center__p num">{total ? (info.usd / total * 100).toFixed(1) : 0}%</div>
               </div>
             </div>
@@ -180,7 +181,7 @@ export default function ChartModal({ valued, total, colorMap, classColor, chart,
           <div className="fs__detail">
             <div className="fs-d-head">
               <div className="fs-d-name">{info.label}</div>
-              <div className="fs-d-val"><span className="num">{fmtUSD(info.usd)}</span> · <span className="num">{total ? (info.usd / total * 100).toFixed(2) : 0}%</span> · {info.items.length} holding{info.items.length === 1 ? '' : 's'}</div>
+              <div className="fs-d-val"><span className="num">{maskUSD(info.usd, hidden)}</span> · <span className="num">{total ? (info.usd / total * 100).toFixed(2) : 0}%</span> · {info.items.length} holding{info.items.length === 1 ? '' : 's'}</div>
             </div>
             <div className="fs-d-list">
               {sortedItems.map((h) => {
@@ -191,11 +192,13 @@ export default function ChartModal({ valued, total, colorMap, classColor, chart,
                     <div className="fs-d-main">
                       <div className="fs-d-asset">{h.asset.normalizedName}</div>
                       <div className="fs-d-meta num">
-                        <NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={h.asset.decimalScale || 8} value={noExponents(h.asset.amount)} /> {h.code} · {h.source.label}{h.manual ? ' · manual' : ''}
+                        {hidden ? `${AMOUNT_MASK} ${h.code}` : (
+                          <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={h.asset.decimalScale || 8} value={noExponents(h.asset.amount)} /> {h.code}</>
+                        )} · {h.source.label}{h.manual ? ' · manual' : ''}
                       </div>
                     </div>
                     <div className="fs-d-usd">
-                      <div className="num">{fmtUSD(h.usd)}</div>
+                      <div className="num">{maskUSD(h.usd, hidden)}</div>
                       <div className="num fs-d-pct">{total ? (h.usd / total * 100).toFixed(2) : 0}%</div>
                     </div>
                   </div>
