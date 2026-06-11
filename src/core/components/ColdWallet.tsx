@@ -212,6 +212,12 @@ export default function ColdWallet(
     const [selectedPageNumber, setSelectedPageNumber] = useState(0);
     const [firstPageChartView, setFirstPageChartView] = useState('pie');
 
+    // Representation-only privacy toggle: when on, all amounts/USD equivalents render as a
+    // fixed mask. Persisted via the same storage abstraction as everything else (swappable
+    // for native on mobile). Default off (amounts shown). Never touches userData/calculations.
+    const [hideAmounts, setHideAmounts] = properties.storageFactory.createStorage<boolean>("hideAmounts", () => false);
+    const toggleHideAmounts = () => setHideAmounts((v) => !v);
+
     const [importOrExportSettingRequested, setImportOrExportSettingRequested] = useState<string | null>(null);
     const [importDataBuffer, setImportDataBuffer] = useState<string | null>(null);
 
@@ -385,6 +391,7 @@ export default function ColdWallet(
 
         selectedPageNumber, setSelectedPageNumber,
         firstPageChartView, setFirstPageChartView,
+        hideAmounts, toggleHideAmounts,
         importOrExportSettingRequested, setImportOrExportSettingRequested,
         importDataBuffer, setImportDataBuffer,
 

@@ -144,6 +144,8 @@ export default interface Props {
     setSelectedPageNumber: Dispatch<SetStateAction<number>>,
     firstPageChartView: string,
     setFirstPageChartView: Dispatch<SetStateAction<string>>,
+    hideAmounts: boolean,
+    toggleHideAmounts: () => void,
     importOrExportSettingRequested: string | null,
     setImportOrExportSettingRequested: Dispatch<SetStateAction<string | null>>,
     importDataBuffer: string | null,
