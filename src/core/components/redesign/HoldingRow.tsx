@@ -38,7 +38,7 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
       <div className="row__right">
         <div className="row__usd num">{maskUSD(h.usd, hidden)}</div>
         <div className="row__amt num">
-          {hidden ? `${AMOUNT_MASK} ${h.code}` : (
+          {hidden ? `${AMOUNT_MASK}\u00A0${h.code}` : (
             <>
               <NumericFormat
                 displayType="text"
@@ -46,7 +46,7 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
                 valueIsNumericString
                 decimalScale={a.decimalScale || 8}
                 value={noExponents(a.amount)}
-              /> {h.code}
+              />{'\u00A0'}{h.code}
             </>
           )}
         </div>

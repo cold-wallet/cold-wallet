@@ -38,8 +38,8 @@ export default function ConfirmDelete({ props }: { props: Props }) {
         <div className="confirm__asset">
           <span style={{ width: 30, height: 30, borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 600, background: color + '22', color, border: '1px solid ' + color + '55' }}>{assetSym(a.currency)}</span>
           <span className="num">
-            {hidden ? `${AMOUNT_MASK} ${a.currency}` : (
-              <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={a.decimalScale || 8} value={noExponents(a.amount)} /> {a.currency}</>
+            {hidden ? `${AMOUNT_MASK}\u00A0${a.currency}` : (
+              <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={a.decimalScale || 8} value={noExponents(a.amount)} />{'\u00A0'}{a.currency}</>
             )}
           </span>
           <span style={{ color: 'var(--ink-3)' }}>·</span>
