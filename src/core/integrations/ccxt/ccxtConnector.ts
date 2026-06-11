@@ -1,16 +1,41 @@
-import ccxt from "ccxt";
 import ApiResponse from "../../domain/ApiResponse";
 import fiatCurrencies from "../../fiatCurrencies";
 import AssetDTO, {AssetType} from "../../domain/AssetDTO";
 
 const proxyUrl = 'https://proxy.corsfix.com/?';
 
+// ccxt bundles ~100 exchange modules (tens of MB unbundled in dev). Importing it at the
+// top of this module used to drag the whole library into the initial render path on every
+// app start (this module is pulled in by CcxtLoader, the settings dialog, etc.). Load it
+// LAZILY instead — only when an exchange list or balance is actually requested.
+let ccxtPromise: Promise<any> | null = null;
+let exchangesCache: string[] = [];
+
+function loadCcxt(): Promise<any> {
+    if (!ccxtPromise) {
+        ccxtPromise = import("ccxt").then((m) => {
+            const lib = (m as any).default || m;
+            exchangesCache = lib.exchanges || [];
+            return lib;
+        });
+    }
+    return ccxtPromise;
+}
+
 const ccxtConnector = {
-    getExchanges() {
-        return ccxt.exchanges
+    /** Cached exchange list (empty until ccxt has finished loading); also kicks off the load. */
+    getExchanges(): string[] {
+        void loadCcxt();
+        return exchangesCache;
+    },
+    /** Awaits ccxt, then returns the full exchange list. */
+    async getExchangesAsync(): Promise<string[]> {
+        await loadCcxt();
+        return exchangesCache;
     },
     async loadUserData(exchange: string, apiKey: string, apiSecret: string | null, password: string | null,
                        additionalSetting: string | null): Promise<ApiResponse<AssetDTO[]>> {
+        const ccxt = await loadCcxt();
         const exchangeClass = (ccxt as any)[exchange];
         if (exchangeClass) {
             try {
