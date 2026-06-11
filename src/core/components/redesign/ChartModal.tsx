@@ -2,9 +2,8 @@
 // (Total→Type→Currency→Holding) + treemap + live detail list, on real Valued data.
 import React, { useMemo, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
-import noExponents from '../../utils/noExponents';
 import { arcPath, shade, squarify, type SquarifyCell } from './geometry';
-import { maskUSD, AMOUNT_MASK } from './format';
+import { maskUSD, AMOUNT_MASK, amountDisplay } from './format';
 import { shortenAddresses } from './visual';
 import type { Valued } from './portfolio';
 
@@ -187,6 +186,7 @@ export default function ChartModal({ valued, total, colorMap, classColor, chart,
             <div className="fs-d-list">
               {sortedItems.map((h) => {
                 const ac = colorMap[h.code] || h.color;
+                const amt = amountDisplay(h.asset.amount, h.scale);
                 return (
                   <div className="fs-d-row" key={h.id}>
                     <span className="fs-d-ico" style={{ background: ac + '22', color: ac, border: '1px solid ' + ac + '55' }}>{h.sym}</span>
@@ -194,7 +194,7 @@ export default function ChartModal({ valued, total, colorMap, classColor, chart,
                       <div className="fs-d-asset">{shortenAddresses(h.asset.normalizedName)}</div>
                       <div className="fs-d-meta num">
                         {hidden ? `${AMOUNT_MASK}\u00A0${h.code}` : (
-                          <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={h.scale} value={noExponents(h.asset.amount)} />{'\u00A0'}{h.code}</>
+                          <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={amt.decimalScale} value={amt.value} />{'\u00A0'}{h.code}</>
                         )} · {h.source.label}{h.manual ? ' · manual' : ''}
                       </div>
                     </div>
