@@ -62,14 +62,15 @@ export default function SettingsDialog({ props }: { props: Props }) {
   );
 }
 
+// The switch reflects the TEMPORARY (pending) state, not what's persisted, so an
+// unsaved toggle shows immediately and is reverted on Cancel/Back/close.
 function integrationEnabled(props: Props, key: string): boolean {
-  const s = props.userData.settings;
   switch (key) {
-    case 'binance': return !!s.binanceIntegrationEnabled;
-    case 'okx': return !!s.okxIntegrationEnabled;
-    case 'monobank': return !!s.monobankIntegrationEnabled;
-    case 'metamask': return !!props.metaMaskSettingsEnabled;
-    default: return props.enabledCcxtIntegrations.has(key) || !!(s.integrations && s.integrations[key] && s.integrations[key].enabled);
+    case 'binance': return props.binanceSettingsEnabled;
+    case 'okx': return props.okxSettingsEnabled;
+    case 'monobank': return props.monobankSettingsEnabled;
+    case 'metamask': return props.metaMaskSettingsEnabled;
+    default: return props.enabledCcxtIntegrations.has(key);
   }
 }
 
@@ -88,27 +89,64 @@ function statusNote(props: Props, key: string, on: boolean): string {
   }
 }
 
-/** Quick enable/disable from the list (persists via setUserData; loaders react). */
+// Enable/disable is a PENDING change — it sets only the temporary state, never
+// userData. It is committed solely by a validated Save (onSaveSetting); Cancel /
+// Back / closing settings reverts it (revertIntegrationTemp / stateReset).
 function toggleIntegration(props: Props, key: string, on: boolean): void {
   const next = !on;
-  if (key === 'binance' || key === 'okx' || key === 'monobank') {
-    const nd = { ...props.userData };
-    if (key === 'binance') { nd.settings.binanceIntegrationEnabled = next; props.setBinanceSettingsEnabled(next); }
-    else if (key === 'okx') { nd.settings.okxIntegrationEnabled = next; props.setOkxSettingsEnabled(next); }
-    else { nd.settings.monobankIntegrationEnabled = next; props.setMonobankSettingsEnabled(next); }
-    props.setUserData(nd);
-  } else if (key === 'metamask') {
-    if (next) props.metaMaskHandleConnect().then(() => props.setMetaMaskSettingsEnabled(true));
-    else props.setMetaMaskSettingsEnabled(false);
-  } else {
-    const set = new Set(props.enabledCcxtIntegrations);
-    next ? set.add(key) : set.delete(key);
-    props.setEnabledCcxtIntegrations(set);
-    const nd = { ...props.userData };
-    const integrations = { ...(nd.settings.integrations || {}) };
-    if (integrations[key]) integrations[key] = { ...integrations[key], enabled: next };
-    nd.settings.integrations = integrations;
-    props.setUserData(nd);
+  switch (key) {
+    case 'binance': props.setBinanceSettingsEnabled(next); break;
+    case 'okx': props.setOkxSettingsEnabled(next); break;
+    case 'monobank': props.setMonobankSettingsEnabled(next); break;
+    case 'metamask':
+      if (next) props.metaMaskHandleConnect().then(() => props.setMetaMaskSettingsEnabled(true));
+      else props.setMetaMaskSettingsEnabled(false);
+      break;
+    default: {
+      const set = new Set(props.enabledCcxtIntegrations);
+      next ? set.add(key) : set.delete(key);
+      props.setEnabledCcxtIntegrations(set);
+    }
+  }
+}
+
+/** Discard this integration's pending inputs + toggle, restoring the persisted values. */
+function revertIntegrationTemp(props: Props, name: string): void {
+  const s = props.userData.settings;
+  switch (name) {
+    case 'binance':
+      props.setBinanceSettingsEnabled(s.binanceIntegrationEnabled);
+      props.setBinanceApiKeyInput(s.binanceIntegrationApiKey);
+      props.setBinanceApiSecretInput(s.binanceIntegrationApiSecret);
+      props.setBinanceApiKeysInputInvalid(false);
+      break;
+    case 'okx':
+      props.setOkxSettingsEnabled(s.okxIntegrationEnabled);
+      props.setOkxApiKeyInput(s.okxIntegrationApiKey);
+      props.setOkxApiSecretInput(s.okxIntegrationApiSecret);
+      props.setOkxApiPassPhraseInput(s.okxIntegrationPassPhrase);
+      props.setOkxApiSubAccountNameInput(s.okxIntegrationSubAccountName);
+      props.setOkxApiKeysInputInvalid(false);
+      break;
+    case 'monobank':
+      props.setMonobankSettingsEnabled(s.monobankIntegrationEnabled);
+      props.setMonobankApiTokenInput(s.monobankIntegrationToken);
+      props.setMonobankApiTokenInputInvalid(false);
+      break;
+    case 'metamask':
+      props.setMetaMaskSettingsEnabled(!!(s.metaMask && s.metaMask.enabled));
+      break;
+    default: {
+      const enabled = !!(s.integrations && s.integrations[name] && s.integrations[name].enabled);
+      const set = new Set(props.enabledCcxtIntegrations);
+      enabled ? set.add(name) : set.delete(name);
+      props.setEnabledCcxtIntegrations(set);
+      props.setCurrentIntegrationApiKey(null);
+      props.setCurrentIntegrationApiSecret(null);
+      props.setCurrentIntegrationApiPassword(null);
+      props.setCurrentIntegrationApiAdditionalSetting(null);
+      props.setCurrentSettingInputsInvalid(false);
+    }
   }
 }
 
@@ -214,32 +252,14 @@ interface FieldBinding {
 }
 
 function IntegrationConfig({ props, name }: { props: Props; name: string }) {
-  const back = () => props.setIntegrationWindowNameSelected(null);
+  // Cancel / Back discard the pending inputs + toggle (revert to persisted) and
+  // return to the list — nothing is saved unless Save passes validation.
+  const cancel = () => { revertIntegrationTemp(props, name); props.setIntegrationWindowNameSelected(null); };
   const s = props.userData.settings;
   const isMM = name === 'metamask';
 
-  // enable state per integration
-  const enabled = integrationEnabled(props, name);
-  const [enabledLocal, setEnabledLocal] = useState(enabled);
+  const enabled = integrationEnabled(props, name); // shared temporary (pending) state
   const [shown, setShown] = useState<Record<string, boolean>>({});
-
-  function setEnable(v: boolean) {
-    setEnabledLocal(v);
-    switch (name) {
-      case 'binance': props.setBinanceSettingsEnabled(v); break;
-      case 'okx': props.setOkxSettingsEnabled(v); break;
-      case 'monobank': props.setMonobankSettingsEnabled(v); break;
-      case 'metamask':
-        if (v) { props.metaMaskHandleConnect().then(() => props.setMetaMaskSettingsEnabled(true)); }
-        else props.setMetaMaskSettingsEnabled(false);
-        break;
-      default: {
-        const set = new Set(props.enabledCcxtIntegrations);
-        v ? set.add(name) : set.delete(name);
-        props.setEnabledCcxtIntegrations(set);
-      }
-    }
-  }
 
   let fields: FieldBinding[] = [];
   if (name === 'binance') {
@@ -276,7 +296,7 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
   return (
     <div className="dlg__body">
       <div className="cfg-head">
-        <Back onClick={back} />
+        <Back onClick={cancel} />
         <div className="cfg-title">
           <span className="intg__chip" style={{ background: tint }}>{mark}</span>
           <b>{title}</b>
@@ -284,14 +304,14 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
       </div>
 
       <div className="enable-row">
-        <button className={"switch" + (enabledLocal ? " on" : "")} onClick={() => setEnable(!enabledLocal)} />
+        <button className={"switch" + (enabled ? " on" : "")} onClick={() => toggleIntegration(props, name, enabled)} />
         <div className="enable-row__txt">
           <b>Enable {title} integration</b>
           <small>Sync balances automatically from {title}</small>
         </div>
       </div>
 
-      <div className={"cfg-fields" + (enabledLocal ? "" : " off")}>
+      <div className={"cfg-fields" + (enabled ? "" : " off")}>
         {isMM ? (
           <>
             {!props.metaMaskHasProvider && (
@@ -333,7 +353,7 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
                 <div style={{ position: 'relative' }}>
                   <input
                     type={f.secret && !shown[f.id] ? 'password' : 'text'}
-                    disabled={!enabledLocal}
+                    disabled={!enabled}
                     defaultValue={f.defaultValue}
                     placeholder={f.label}
                     className={f.invalid ? 'invalid' : ''}
@@ -362,7 +382,7 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
       </div>
 
       <div className="cfg-foot">
-        <button className="btn" onClick={back}>Cancel</button>
+        <button className="btn" onClick={cancel}>Cancel</button>
         <button className="btn btn--p" onClick={() => onSaveSetting(props, () => props.stateReset())}>Save</button>
       </div>
     </div>
