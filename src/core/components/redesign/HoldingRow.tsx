@@ -4,6 +4,7 @@ import React from 'react';
 import { NumericFormat } from 'react-number-format';
 import noExponents from '../../utils/noExponents';
 import { fmtUSD } from './format';
+import { shortenAddresses } from './visual';
 import type { Valued } from './portfolio';
 
 interface HoldingRowProps {
@@ -31,7 +32,7 @@ export default function HoldingRow({ h, active, onSelect, onEdit, onDelete }: Ho
           <span className="row__asset">{h.code}</span>
           <span className="tag">{h.kind}</span>
         </div>
-        <div className="row__sub">{a.normalizedName}</div>
+        <div className="row__sub">{shortenAddresses(a.normalizedName)}</div>
       </div>
       <div className="row__right">
         <div className="row__usd num">{fmtUSD(h.usd)}</div>
