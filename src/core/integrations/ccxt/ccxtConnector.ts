@@ -2,8 +2,6 @@ import ApiResponse from "../../domain/ApiResponse";
 import fiatCurrencies from "../../fiatCurrencies";
 import AssetDTO, {AssetType} from "../../domain/AssetDTO";
 
-const proxyUrl = 'https://proxy.corsfix.com/?';
-
 // ccxt bundles ~100 exchange modules (tens of MB unbundled in dev). Importing it at the
 // top of this module used to drag the whole library into the initial render path on every
 // app start (this module is pulled in by CcxtLoader, the settings dialog, etc.). Load it
@@ -43,7 +41,6 @@ const ccxtConnector = {
                     apiKey: apiKey,
                     secret: apiSecret,
                     password: password,
-                    proxyUrl,
                 });
                 const balances: { [currency: string]: number } = await exchangeInstance.fetchTotalBalance()
                 const nonZeroBalances = {} as { [currency: string]: number }
