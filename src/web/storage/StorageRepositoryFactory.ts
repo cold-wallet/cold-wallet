@@ -20,7 +20,13 @@ export default function StorageRepositoryFactory(storage: Storage):
             // Only the nullable variant's "absent" state (null/undefined) is skipped: the
             // initializer supplies defaults, so there's nothing useful to write for it.
             if (getter != null) {
-                storage.setItem(key, JSON.stringify(getter));
+                try {
+                    storage.setItem(key, JSON.stringify(getter));
+                } catch (e) {
+                    // QuotaExceededError (or storage disabled) must never crash the app — the
+                    // value stays in memory for the session, it just isn't persisted.
+                    console.warn(`storage: could not persist "${key}"`, e);
+                }
             }
         }, [getter, key]);
 
