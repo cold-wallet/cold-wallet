@@ -32,17 +32,6 @@ interface BalanceRequest {
     decimals: number
 }
 
-const IGNORED_ERROR_MESSAGES = [
-    "Internal error",
-    "Missing or invalid parameters",
-    "Failed to fetch",
-    "The contract function",
-    "API key is not allowed to access blockchain",
-    "Invalid chain",
-    "Chain not configured",
-    "Requested resource not found"
-];
-
 const BATCH_SIZE = 10;
 const REQUEST_DELAY_MS = 2000;
 
@@ -293,18 +282,9 @@ export default function MetaMaskLoader(
             const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
             if (!client) return Promise.resolve({index, result: null});
             return client.getBalance({address: req.address})
-                .then(result => {
-                    console.log("received address balance", req.symbol)
-                    return ({index, result})
-                })
-                .catch(e => {
-                    const message = e instanceof Error ? e.message : String(e);
-                    console.log("getBalance failed", req.symbol)
-                    if (IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                        return {index, result: null};
-                    }
-                    throw e;
-                });
+                .then(result => ({index, result}))
+                // chain RPC down / flaky → skip this native balance, never reject the batch
+                .catch(() => ({index, result: null}));
         }).filter(Boolean)) as Promise<{ index: number, result: bigint | null }>[];
 
         const nativeResults = await Promise.all(nativePromises);
@@ -312,8 +292,10 @@ export default function MetaMaskLoader(
 
         tokenResults.forEach((res, idx) => {
             const {req, index} = tokenRequests[idx];
+            // Only successes carry a balance. Anything else (a revert, a chain whose RPC is
+            // down / rate-limited / gated, a timeout, …) just means "no balance for this token
+            // this round" — skip it silently; the next sweep retries when the RPC recovers.
             if (res.status === 'success') {
-                console.log("received token balance", req.symbol)
                 const value = res.result as bigint;
                 results[index] = {
                     chainId: req.chainId,
@@ -323,15 +305,6 @@ export default function MetaMaskLoader(
                     symbol: req.symbol,
                     value: value.toString(),
                 }
-            } else if (res.status === 'failure') {
-                const message = res.error instanceof Error ? res.error.message : String(res.error);
-                console.log("fetch token balance failed", req.symbol)
-                if (!IGNORED_ERROR_MESSAGES.some(m => message.includes(m))) {
-                    console.log("fetch token balance failed unexpectedly", req.symbol)
-                    throw new Error(message);
-                }
-            } else {
-                console.log("empty result for ", req.symbol, req, res)
             }
         });
 
