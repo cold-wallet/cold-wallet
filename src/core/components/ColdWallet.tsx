@@ -174,6 +174,7 @@ export default function ColdWallet(
     const {
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
         metaMaskAssets,
+        refreshMetaMaskAsset,
         metaMaskWallet,
         metaMaskIsError,
         metaMaskErrorMessage,
@@ -382,6 +383,7 @@ export default function ColdWallet(
         metaMaskHasProvider,
         metaMaskIsConnecting,
         metaMaskAssets,
+        refreshMetaMaskAsset,
         metaMaskWallet,
         metaMaskIsError,
         metaMaskErrorMessage,
