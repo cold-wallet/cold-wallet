@@ -186,11 +186,15 @@ export default function MetaMaskLoader(
     ] = storageFactory.createStorage<MetaMaskAccount>("metamaskUserData", () => ({} as MetaMaskAccount));
 
     // Persisted scan progress so we don't re-scan the whole list on every mount.
-    //   sig         — identifies the wallet + token universe; a change forces a fresh sweep
-    //   index       — sweep cursor into `options` (resumes after a reload)
-    //   completedAt — timestamp of the last full pass; within SCAN_INTERVAL_MS we stay idle
-    const [scanState, setScanState] = storageFactory.createStorage<{ sig: string; index: number; completedAt: number }>(
-        "metamaskScan", () => ({sig: '', index: 0, completedAt: 0})
+    //   sig         — identifies the wallet (accounts); a change forces a fresh sweep. NOT tied to
+    //                 the token-universe size: the CoinGecko directory drifts day-to-day, and tying
+    //                 the cursor to its length would silently discard a half-finished sweep on reload.
+    //   index       — sweep cursor into `options`; 0 between sweeps, >0 mid-sweep (resumes on reload)
+    //   completedAt — set ONLY when the cursor reached the end of a full pass; gates the cooldown
+    //   updatedAt   — timestamp of the last tick; a mid-sweep older than the cooldown is too stale to
+    //                 resume (its head data has aged out) so we start over instead
+    const [scanState, setScanState] = storageFactory.createStorage<{ sig: string; index: number; completedAt: number; updatedAt: number }>(
+        "metamaskScan", () => ({sig: '', index: 0, completedAt: 0, updatedAt: 0})
     );
     const scanPauseUntil = useRef(0); // RPC backoff after a whole-batch failure
     const scanning = useRef(false);   // prevent overlapping ticks when a batch runs > REQUEST_DELAY_MS
@@ -399,16 +403,24 @@ export default function MetaMaskLoader(
         if (!wallet?.accounts?.length || !metaMaskSettingsEnabled || !options.length || !loadingUserDataAllowed) return;
         if (Date.now() < scanPauseUntil.current) return;
 
-        const sig = wallet.accounts.join(',') + ':' + options.length;
-        let index = scanState.index;
-        let completedAt = scanState.completedAt;
-        if (scanState.sig !== sig) {
-            // wallet or token universe changed → start a fresh full sweep
-            index = 0;
-            completedAt = 0;
-        } else if (index === 0 && completedAt && Date.now() - completedAt < SCAN_INTERVAL_MS) {
-            // a full sweep finished recently for this wallet → stay idle
-            return;
+        const now = Date.now();
+        const sig = wallet.accounts.join(',');  // the wallet identifies the scan
+        const st = scanState;
+        const sameWallet = st.sig === sig;
+
+        // Cooldown: a *full* pass finished recently for this wallet → stay completely idle.
+        // `completedAt` is only ever stamped when the cursor reached the end (see below), so the
+        // cooldown can never engage on a partial scan.
+        if (sameWallet && st.completedAt && now - st.completedAt < SCAN_INTERVAL_MS) return;
+
+        // Where to start: resume a half-finished sweep ONLY when it's the same wallet, still
+        // mid-list, and recent (last tick < cooldown ago — older means its head data has aged out,
+        // so we start fresh). Anything else (new wallet, completed-but-cooldown-expired, stale
+        // partial, cursor past a now-shorter list) restarts the sweep from the top.
+        let index = 0;
+        if (sameWallet && !st.completedAt && st.index > 0 && st.index < options.length
+            && now - st.updatedAt < SCAN_INTERVAL_MS) {
+            index = st.index;
         }
 
         scanning.current = true;
@@ -425,11 +437,14 @@ export default function MetaMaskLoader(
             if (changed) setMetaMaskUserData(merged);
 
             const nextIndex = index + slice.length;
+            const stamp = Date.now();
             if (nextIndex >= options.length) {
-                setScanState({sig, index: 0, completedAt: Date.now()});
-                console.log(`metamask scan complete: ${options.length} tokens`);
+                // cursor walked the whole list → cooldown starts now
+                setScanState({sig, index: 0, completedAt: stamp, updatedAt: stamp});
+                console.log(`metamask scan complete: ${options.length} tokens — idle for ${SCAN_INTERVAL_MS / 60000}m`);
             } else {
-                setScanState({sig, index: nextIndex, completedAt: 0});
+                if (index === 0) console.log(`metamask scan: sweeping ${options.length} tokens`);
+                setScanState({sig, index: nextIndex, completedAt: 0, updatedAt: stamp});
             }
             if (batchSize < BATCH_SIZE) {
                 setBatchSize(b => Math.min(BATCH_SIZE, b * 2));
