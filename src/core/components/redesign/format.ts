@@ -27,18 +27,33 @@ export function maskUSD(v: number, hidden: boolean, opts: { cents?: boolean } = 
   return hidden ? AMOUNT_MASK : fmtUSD(v, opts);
 }
 
+export interface AmountParts { value: string; decimalScale: number; floor?: boolean; }
+
+// The smallest 2-decimal amount step we'd ever render, weighed against the sub-cent USD floor.
+const AMOUNT_STEP = 0.01;
+const SUBCENT_USD = 0.01;
+
 /** Native-amount display value + decimals to feed NumericFormat.
- *  Normally the amount rounds (half-up) to `scale` decimals. But when that would make a
- *  non-zero amount show as all-zeros (dust, e.g. 0.0011 USDC at 2 decimals), fall back to
- *  ONE significant figure — TRUNCATED, never rounded up (only in this case):
- *    0.0011212 -> 0.001, 0.0000453 -> 0.00004, 0.000479 -> 0.0004. */
-export function amountDisplay(rawAmount: string, scale: number): { value: string; decimalScale: number } {
+ *  Normally the amount rounds (half-up) to `scale` decimals. When that would make a non-zero
+ *  amount show as all-zeros (dust, e.g. 0.0011 USDC at 2 decimals):
+ *   - if the coin is so cheap that 0.01 of it is worth < 1¢ (`unitUsd` known and < $1), the exact
+ *     digits carry no value and only widen the row — collapse to the "<0.01" floor (mirrors the
+ *     "<$0.01" USD floor; `floor:true` tells the caller to render the literal, not via NumericFormat);
+ *   - otherwise fall back to ONE significant figure, TRUNCATED, never rounded up:
+ *     0.0011212 -> 0.001, 0.0000453 -> 0.00004, 0.000479 -> 0.0004.
+ *  Pricier coins never collapse: 0.01 ETH is real money, so its dust keeps real digits. */
+export function amountDisplay(rawAmount: string, scale: number, unitUsd?: number): AmountParts {
   const value = String(noExponents(rawAmount));
   const n = Number(value);
   if (!isFinite(n) || n === 0 || Number(n.toFixed(scale)) !== 0) {
     return { value, decimalScale: scale };
   }
-  // rounds to zero at `scale` → show the first significant figure, truncated
+  // rounds to zero at `scale` → this is dust. Cheap-coin dust collapses to the "<0.01" floor.
+  if (unitUsd !== undefined && isFinite(unitUsd) && unitUsd > 0
+      && AMOUNT_STEP * unitUsd < SUBCENT_USD && Math.abs(n) < AMOUNT_STEP) {
+    return { value: '<0.01', decimalScale: 0, floor: true };
+  }
+  // otherwise show the first significant figure, truncated
   const neg = value.trim().startsWith('-');
   const s = neg ? value.trim().slice(1) : value.trim();
   const frac = s.includes('.') ? s.slice(s.indexOf('.') + 1) : '';

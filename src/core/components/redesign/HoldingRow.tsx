@@ -2,8 +2,8 @@
 // Manual holdings get edit/delete; integration (synced) holdings get a lock, plus a
 // targeted refresh button when the source supports it (MetaMask).
 import React, { useState } from 'react';
-import { NumericFormat } from 'react-number-format';
-import { maskUSD, AMOUNT_MASK, amountDisplay } from './format';
+import { maskUSD, amountDisplay } from './format';
+import AmountText from './AmountText';
 import { shortenAddresses } from './visual';
 import type { Valued } from './portfolio';
 
@@ -19,7 +19,7 @@ interface HoldingRowProps {
 
 export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete, onRefresh }: HoldingRowProps) {
   const a = h.asset;
-  const amt = amountDisplay(a.amount, h.scale);
+  const amt = amountDisplay(a.amount, h.scale, h.unitUsd);
   const [refreshing, setRefreshing] = useState(false);
   const refresh = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -48,17 +48,7 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
       <div className="row__right">
         <div className="row__usd num">{maskUSD(h.usd, hidden)}</div>
         <div className="row__amt num">
-          {hidden ? `${AMOUNT_MASK}\u00A0${h.code}` : (
-            <>
-              <NumericFormat
-                displayType="text"
-                thousandSeparator
-                valueIsNumericString
-                decimalScale={amt.decimalScale}
-                value={amt.value}
-              />{'\u00A0'}{h.code}
-            </>
-          )}
+          <AmountText amt={amt} code={h.code} hidden={hidden} />
         </div>
       </div>
       <div className="row__actions">

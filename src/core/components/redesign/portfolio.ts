@@ -18,6 +18,7 @@ export interface Valued {
   color: string;
   sym: string;
   scale: number;
+  unitUsd: number;
 }
 
 export interface ClassSlice { key: 'fiat' | 'crypto'; label: string; usd: number; pct: number; color: string; }
@@ -51,6 +52,14 @@ export function displayScale(asset: AssetDTO, ps: PriceService): number {
   return Math.min(MAX_CRYPTO_SCALE, Math.max(MIN_CRYPTO_SCALE, d));
 }
 
+/** USD per 1 unit — 0 for fiat or unknown price. Gates the "<0.01 TICKER" dust floor: a token
+ *  whose 0.01-unit step is worth < 1¢ collapses its dust digits, but fiat never does. */
+export function unitUsdOf(asset: AssetDTO, ps: PriceService): number {
+  if (asset.type === AssetType.fiat) return 0;
+  const u = ps.transform(asset.currency, 1, 'USD');
+  return isFinite(u) && u > 0 ? u : 0;
+}
+
 /** Attach USD value + source + visual metadata to every asset. */
 export function valueAssets(assets: AssetDTO[], ps: PriceService): Valued[] {
   return assets.map((a) => ({
@@ -64,6 +73,7 @@ export function valueAssets(assets: AssetDTO[], ps: PriceService): Valued[] {
     color: assetColor(a.currency),
     sym: assetSym(a.currency),
     scale: displayScale(a, ps),
+    unitUsd: unitUsdOf(a, ps),
   }));
 }
 
