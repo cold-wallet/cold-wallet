@@ -24,6 +24,8 @@ interface BalanceRequest {
 
 const BATCH_SIZE = 300;
 const REQUEST_DELAY_MS = 2000;
+const FAILURE_PAUSE_MS = 60_000;       // back off after a whole-batch RPC failure (rate limit etc.)
+const SCAN_INTERVAL_MS = 30 * 60_000;  // re-sweep the full list at most this often (no re-scan per mount)
 
 // Scan only chains we can and should query: configured in wagmi AND live mainnets.
 // (PLATFORM_CHAINID already limits us to EVM mainnets; this also drops anything wagmi no
@@ -176,20 +178,34 @@ export default function MetaMaskLoader(
         return null;
     };
 
-    const [fullResult, setFullResult] = useState<Array<AddressBalanceResult | null>>([])
-    const [isLoaded, setIsLoaded] = useState(false)
     const [batchSize, setBatchSize] = useState(BATCH_SIZE)
-
-    const nonZeroTokens = useMemo(() => {
-        const filtered = fullResult.filter(balance =>
-            balance && Number(balance.value));
-        return filtered as AddressBalanceResult[]
-    }, [fullResult])
 
     const [
         metaMaskUserData,
         setMetaMaskUserData
     ] = storageFactory.createStorage<MetaMaskAccount>("metamaskUserData", () => ({} as MetaMaskAccount));
+
+    // Persisted scan progress so we don't re-scan the whole list on every mount.
+    //   sig         — identifies the wallet + token universe; a change forces a fresh sweep
+    //   index       — sweep cursor into `options` (resumes after a reload)
+    //   completedAt — timestamp of the last full pass; within SCAN_INTERVAL_MS we stay idle
+    const [scanState, setScanState] = storageFactory.createStorage<{ sig: string; index: number; completedAt: number }>(
+        "metamaskScan", () => ({sig: '', index: 0, completedAt: 0})
+    );
+    const scanPauseUntil = useRef(0); // RPC backoff after a whole-batch failure
+    const scanning = useRef(false);   // prevent overlapping ticks when a batch runs > REQUEST_DELAY_MS
+
+    const addBalance = (acc: MetaMaskAccount, b: AddressBalanceResult) => {
+        (acc[b.address] ||= {})[b.symbol] ||= {};
+        acc[b.address][b.symbol][b.chainId] = b;
+    };
+    const removeBalance = (acc: MetaMaskAccount, b: { address: `0x${string}`; symbol: string; chainId: number }): boolean => {
+        if (!acc[b.address]?.[b.symbol]?.[b.chainId]) return false;
+        delete acc[b.address][b.symbol][b.chainId];
+        if (!Object.keys(acc[b.address][b.symbol]).length) delete acc[b.address][b.symbol];
+        if (!Object.keys(acc[b.address]).length) delete acc[b.address];
+        return true;
+    };
 
     const metaMaskAssets = useMemo(() => {
         if (isDemoMode) {
@@ -224,25 +240,6 @@ export default function MetaMaskLoader(
         })
     }, [metaMaskUserData])
 
-    useEffect(() => {
-        if (!(nonZeroTokens?.length)) {
-            return
-        }
-        const newData = isLoaded ? {} as MetaMaskAccount : {...metaMaskUserData}
-        nonZeroTokens.forEach(token => {
-            if (!newData[token.address]) {
-                newData[token.address] = {}
-            }
-            if (!newData[token.address][token.symbol]) {
-                newData[token.address][token.symbol] = {}
-            }
-            if (!newData[token.address][token.symbol][token.chainId]) {
-                newData[token.address][token.symbol][token.chainId] = token
-            }
-        })
-        setMetaMaskUserData(newData)
-    }, [nonZeroTokens, isLoaded]);
-
     const fetchAllBalances = async (requests: BalanceRequest[]) => {
         const tokenRequests = requests
             .map((req, index) => ({req, index}))
@@ -268,7 +265,7 @@ export default function MetaMaskLoader(
             throw new Error(REDUCE_BATCH_SIZE_ERROR);
         }
 
-        // collect non-zero token hits (a revert / down RPC / etc. is just skipped, as before)
+        // non-zero hits (a revert / down RPC / etc. stays null and is skipped, as before)
         const hits = tokenResults
             .map((res, idx) => ({res, ...tokenRequests[idx]}))
             .filter(({res}) => res.status === 'success' && (res.result as bigint) > 0n)
@@ -320,6 +317,19 @@ export default function MetaMaskLoader(
             }
         });
 
+        // confirmed-zero tokens (success but balance 0) → a "0" marker, distinct from null
+        // (errored/skipped). Lets the sweep / refresh DROP a sold-out token without re-fetching
+        // decimals, while never removing a token whose chain just errored.
+        tokenResults.forEach((res, idx) => {
+            const {req, index} = tokenRequests[idx];
+            if (res.status === 'success' && (res.result as bigint) === 0n) {
+                results[index] = {
+                    chainId: req.chainId, address: req.address, symbol: req.symbol,
+                    decimals: 0, formatted: "0", value: "0",
+                }
+            }
+        });
+
         nativeResults.forEach(({index, result}) => {
             const req = requests[index];
             if (result !== null) {
@@ -335,35 +345,6 @@ export default function MetaMaskLoader(
         });
 
         return results;
-    }
-
-    const fetchBatch = async (initData: BalanceRequest[]) => {
-        const fullLength = initData.length;
-        const currentLoaded = fullResult.length;
-        if (currentLoaded === fullLength) {
-            setIsLoaded(true);
-            return;
-        }
-        const slice = initData.slice(currentLoaded, currentLoaded + (batchSize === 2 ? 1 : batchSize));
-        try {
-            const batchResults = await fetchAllBalances(slice);
-            setFullResult([...fullResult, ...batchResults]);
-            const loaded = currentLoaded + batchResults.length;
-            const percentage = Number((loaded * 100 / fullLength).toFixed(2));
-            console.log(`Loaded ${loaded} of ${fullLength}, ${percentage}% of tokens for metamask`);
-            if (loaded === fullLength) {
-                setIsLoaded(true);
-            }
-            if (batchSize < BATCH_SIZE) {
-                setBatchSize(b => Math.min(BATCH_SIZE, b * 2));
-            }
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            setBatchSize(b => Math.max(1, Math.floor(b / 2)));
-            if (message !== REDUCE_BATCH_SIZE_ERROR) {
-                console.log("reducing batch size because of error", message)
-            }
-        }
     }
 
     // Targeted single-token refresh: re-fetch ONE already-known balance (1 RPC call) instead
@@ -384,22 +365,12 @@ export default function MetaMaskLoader(
         const request = requestForBalance(balance);
         if (!request) return false;
         const [result] = await fetchAllBalances([request]);
-        if (!result) return false;
-        const b = balance as AddressBalanceResult;
+        if (!result) return false; // errored — couldn't confirm, leave the row as is
         const newData = {...metaMaskUserData};
         if (Number(result.value)) {
-            (newData[b.address] ||= {})[b.symbol] ||= {};
-            newData[b.address][b.symbol][b.chainId] = result;
+            addBalance(newData, result);             // non-zero → update
         } else {
-            // balance is genuinely zero now — drop the entry, same as the bulk loader's
-            // non-zero filter, so the asset row disappears
-            delete newData[b.address]?.[b.symbol]?.[b.chainId];
-            if (newData[b.address]?.[b.symbol] && !Object.keys(newData[b.address][b.symbol]).length) {
-                delete newData[b.address][b.symbol];
-            }
-            if (newData[b.address] && !Object.keys(newData[b.address]).length) {
-                delete newData[b.address];
-            }
+            removeBalance(newData, result);          // confirmed zero → drop the row
         }
         setMetaMaskUserData(newData);
         return true;
@@ -421,21 +392,64 @@ export default function MetaMaskLoader(
             })
     }, [wallet, coinGeckoCurrencies])
 
-    useEffect(() => {
-        setFullResult([])
-        setIsLoaded(false)
-        setBatchSize(BATCH_SIZE)
-    }, [wallet, metaMaskSettingsEnabled, options, loadingUserDataAllowed])
+    // One sweep slice per tick. Resumes from the persisted cursor, backs off on RPC failure,
+    // and stays idle once a full pass completed recently (no full re-scan on every mount).
+    const scanTick = async () => {
+        if (scanning.current) return;
+        if (!wallet?.accounts?.length || !metaMaskSettingsEnabled || !options.length || !loadingUserDataAllowed) return;
+        if (Date.now() < scanPauseUntil.current) return;
 
-    useInterval(() => {
-        if (!wallet || !wallet.accounts || !wallet.accounts.length
-            || !metaMaskSettingsEnabled || !options.length
-            || !loadingUserDataAllowed
-        ) {
-            return
+        const sig = wallet.accounts.join(',') + ':' + options.length;
+        let index = scanState.index;
+        let completedAt = scanState.completedAt;
+        if (scanState.sig !== sig) {
+            // wallet or token universe changed → start a fresh full sweep
+            index = 0;
+            completedAt = 0;
+        } else if (index === 0 && completedAt && Date.now() - completedAt < SCAN_INTERVAL_MS) {
+            // a full sweep finished recently for this wallet → stay idle
+            return;
         }
-        fetchBatch(options).catch(e => console.warn(e))
-    }, (isLoaded || !loadingUserDataAllowed || !metaMaskSettingsEnabled) ? null : REQUEST_DELAY_MS)
+
+        scanning.current = true;
+        try {
+            const slice = options.slice(index, index + (batchSize === 2 ? 1 : batchSize));
+            const results = await fetchAllBalances(slice);
+            const merged = {...metaMaskUserData};
+            let changed = false;
+            results.forEach(r => {
+                if (!r) return;                                              // errored/skipped → keep
+                if (Number(r.value)) { addBalance(merged, r); changed = true; }   // non-zero → add/update
+                else if (removeBalance(merged, r)) changed = true;          // confirmed zero → drop
+            });
+            if (changed) setMetaMaskUserData(merged);
+
+            const nextIndex = index + slice.length;
+            if (nextIndex >= options.length) {
+                setScanState({sig, index: 0, completedAt: Date.now()});
+                console.log(`metamask scan complete: ${options.length} tokens`);
+            } else {
+                setScanState({sig, index: nextIndex, completedAt: 0});
+            }
+            if (batchSize < BATCH_SIZE) {
+                setBatchSize(b => Math.min(BATCH_SIZE, b * 2));
+            }
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            scanPauseUntil.current = Date.now() + FAILURE_PAUSE_MS;
+            setBatchSize(b => Math.max(1, Math.floor(b / 2)));
+            if (message !== REDUCE_BATCH_SIZE_ERROR) {
+                console.log("metamask: pausing + reducing batch", message)
+            }
+        } finally {
+            scanning.current = false;
+        }
+    };
+
+    useInterval(
+        () => { scanTick().catch(e => console.warn(e)); },
+        (wallet?.accounts?.length && metaMaskSettingsEnabled && loadingUserDataAllowed) ? REQUEST_DELAY_MS : null
+    );
 
     return {
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
