@@ -1,16 +1,16 @@
 // redesign/ConfirmDelete.tsx — delete-confirm modal (new look, old delete mechanics).
 import React from 'react';
-import { NumericFormat } from 'react-number-format';
 import Props from '../Props';
-import { maskUSD, AMOUNT_MASK, amountDisplay } from './format';
-import { displayScale } from './portfolio';
+import { maskUSD, amountDisplay } from './format';
+import AmountText from './AmountText';
+import { displayScale, unitUsdOf } from './portfolio';
 import { assetColor, assetSym } from './visual';
 
 export default function ConfirmDelete({ props }: { props: Props }) {
   const a = props.assetToDelete!;
   const color = assetColor(a.currency);
   const usd = props.priceService.transform(a.currency, +a.amount, 'USD');
-  const amt = amountDisplay(a.amount, displayScale(a, props.priceService));
+  const amt = amountDisplay(a.amount, displayScale(a, props.priceService), unitUsdOf(a, props.priceService));
   const hidden = props.hideAmounts;
 
   function cancel() {
@@ -39,9 +39,7 @@ export default function ConfirmDelete({ props }: { props: Props }) {
         <div className="confirm__asset">
           <span style={{ width: 30, height: 30, borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 600, background: color + '22', color, border: '1px solid ' + color + '55' }}>{assetSym(a.currency)}</span>
           <span className="num">
-            {hidden ? `${AMOUNT_MASK}\u00A0${a.currency}` : (
-              <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={amt.decimalScale} value={amt.value} />{'\u00A0'}{a.currency}</>
-            )}
+            <AmountText amt={amt} code={a.currency} hidden={hidden} />
           </span>
           <span style={{ color: 'var(--ink-3)' }}>·</span>
           <span className="num" style={{ color: 'var(--ink-2)' }}>{maskUSD(usd, hidden)}</span>
