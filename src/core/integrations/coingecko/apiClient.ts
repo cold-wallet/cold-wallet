@@ -7,6 +7,31 @@ const name = "coingecko"
 const apiBaseUrl = "https://api.coingecko.com"
 const apiPrefix = "/api/v3"
 
+// CoinGecko's /coins/list has thousands of symbol collisions (dozens of coins share "ETH",
+// "BTC", …) and is NOT ordered by anything useful, so a positional tiebreak picks a random
+// impostor (e.g. "the-ticker-is-eth" / "osmosis-allbtc"). Pin the canonical CoinGecko id for
+// the symbols that matter; these win over whatever the generic merge picked. Verified against
+// the live /coins/list. Anything not listed falls back to first-occurrence (still arbitrary
+// for the long tail, but deterministic — see fetchCurrencies).
+const CANONICAL_IDS: { [symbol: string]: string } = {
+    BTC: "bitcoin", ETH: "ethereum", USDT: "tether", BNB: "binancecoin", SOL: "solana",
+    USDC: "usd-coin", XRP: "ripple", DOGE: "dogecoin", ADA: "cardano", TRX: "tron",
+    AVAX: "avalanche-2", SHIB: "shiba-inu", LINK: "chainlink", DOT: "polkadot", BCH: "bitcoin-cash",
+    LTC: "litecoin", NEAR: "near", MATIC: "matic-network", POL: "polygon-ecosystem-token", UNI: "uniswap",
+    ICP: "internet-computer", APT: "aptos", XLM: "stellar", ETC: "ethereum-classic", ATOM: "cosmos",
+    FIL: "filecoin", HBAR: "hedera-hashgraph", CRO: "crypto-com-chain", ARB: "arbitrum", OP: "optimism",
+    VET: "vechain", MKR: "maker", INJ: "injective-protocol", AAVE: "aave", GRT: "the-graph",
+    STX: "blockstack", RENDER: "render-token", RNDR: "render-token", IMX: "immutable-x", SUI: "sui",
+    SEI: "sei-network", TIA: "celestia", TON: "the-open-network", WBTC: "wrapped-bitcoin", DAI: "dai",
+    LDO: "lido-dao", FTM: "fantom", ALGO: "algorand", QNT: "quant-network", FLOW: "flow",
+    SAND: "the-sandbox", MANA: "decentraland", AXS: "axie-infinity", XTZ: "tezos", EOS: "eos",
+    RUNE: "thorchain", PEPE: "pepe", WIF: "dogwifcoin", BONK: "bonk", FLOKI: "floki",
+    JUP: "jupiter-exchange-solana", ENA: "ethena", ONDO: "ondo-finance", KAS: "kaspa", TWT: "trust-wallet-token",
+    GALA: "gala", CHZ: "chiliz", SNX: "havven", CRV: "curve-dao-token", FET: "fetch-ai",
+    EGLD: "elrond-erd-2", THETA: "theta-token", KAVA: "kava", BUSD: "binance-usd", TUSD: "true-usd",
+    FDUSD: "first-digital-usd", USDD: "usdd", WETH: "weth", WSTETH: "wrapped-steth", STETH: "staked-ether",
+};
+
 const apiClient = {
     async fetchPrices(
         currencies: { [index: string]: CoinGeckoCurrencyResponse },
@@ -59,11 +84,24 @@ const apiClient = {
             const url = apiBaseUrl + apiPrefix + "/coins/list";
             const response: AxiosResponse<CoinGeckoCurrencyResponse[]> = await axios.get(url);
             if (response.data?.length) {
-                const currencies = response.data
+                const list = response.data;
+                const byId = list.reduce((m: { [id: string]: CoinGeckoCurrencyResponse }, c) => {
+                    m[c.id] = c;
+                    return m;
+                }, {});
+                // keep the FIRST coin seen for each symbol (deterministic; the list order is
+                // not meaningful, so this is just a stable default for the long tail) …
+                const currencies = list
                     .reduce((merged: { [p: string]: CoinGeckoCurrencyResponse }, currency) => {
-                        merged[currency.symbol.toUpperCase()] = currency
+                        const symbol = currency.symbol.toUpperCase();
+                        if (!merged[symbol]) merged[symbol] = currency;
                         return merged
                     }, {});
+                // … then force the canonical coin for well-known symbols, so e.g. ETH is
+                // always Ethereum and BTC always Bitcoin regardless of impostor entries.
+                Object.entries(CANONICAL_IDS).forEach(([symbol, id]) => {
+                    if (byId[id]) currencies[symbol] = byId[id];
+                });
                 return ApiResponse.success(200, currencies,)
             } else {
                 return ApiResponse.fail(
