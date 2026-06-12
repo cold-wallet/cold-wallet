@@ -36,8 +36,12 @@ export default function CoinGeckoLoader(
     ] = storageFactory.createStorage<number>("coinGeckoCurrenciesFetchedAt", () => 0);
 
     let loadCoinGeckoCurrencies = () => {
+        // Sentinel: the corrected symbol→id map always resolves BTC to "bitcoin". A cached map
+        // that doesn't is the old last-wins one (BTC was a random impostor) — refetch to pick up
+        // the canonical mapping even if it's still within the weekly TTL.
+        const corrected = coinGeckoCurrencies && coinGeckoCurrencies["BTC"]?.id === "bitcoin";
         // the 13k-coin directory rarely changes — refetch at most weekly
-        if (coinGeckoCurrencies && Object.keys(coinGeckoCurrencies).length
+        if (corrected && Object.keys(coinGeckoCurrencies!).length
             && (Date.now() - coinGeckoCurrenciesFetchedAt) < CURRENCIES_TTL_MS) {
             return
         }
