@@ -176,6 +176,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                     onSelect={setActiveId}
                                     onEdit={() => editAsset(h.asset)}
                                     onDelete={() => deleteAsset(h.asset)}
+                                    onRefresh={h.asset.isMetaMaskAsset ? () => props.refreshMetaMaskAsset(h.id) : undefined}
                                 />
                             ))}
                         </div>

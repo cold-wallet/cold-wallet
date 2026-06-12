@@ -1,6 +1,7 @@
 // redesign/HoldingRow.tsx — one holding in the sidebar list (new design .row/.coin).
-// Manual holdings get edit/delete; integration (synced) holdings get a lock.
-import React from 'react';
+// Manual holdings get edit/delete; integration (synced) holdings get a lock, plus a
+// targeted refresh button when the source supports it (MetaMask).
+import React, { useState } from 'react';
 import { NumericFormat } from 'react-number-format';
 import { maskUSD, AMOUNT_MASK, amountDisplay } from './format';
 import { shortenAddresses } from './visual';
@@ -13,11 +14,19 @@ interface HoldingRowProps {
   onSelect: (id: string) => void;
   onEdit: () => void;
   onDelete: () => void;
+  onRefresh?: () => Promise<unknown>;
 }
 
-export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete }: HoldingRowProps) {
+export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete, onRefresh }: HoldingRowProps) {
   const a = h.asset;
   const amt = amountDisplay(a.amount, h.scale);
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onRefresh || refreshing) return;
+    setRefreshing(true);
+    onRefresh().catch(() => {}).finally(() => setRefreshing(false));
+  };
   return (
     <div
       className={'row' + (active ? ' is-active' : '')}
@@ -64,8 +73,17 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
           </>
         ) : (
           <>
-            {/* spacer in the edit slot so the lock lines up with the delete button */}
-            <span className="act" aria-hidden="true" style={{ visibility: 'hidden' }} />
+            {onRefresh ? (
+              <button className={'act refresh' + (refreshing ? ' spinning' : '')} title="Refresh balance"
+                      disabled={refreshing} onClick={refresh}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+                </svg>
+              </button>
+            ) : (
+              /* spacer in the edit slot so the lock lines up with the delete button */
+              <span className="act" aria-hidden="true" style={{ visibility: 'hidden' }} />
+            )}
             <span className="act lock" title={'Synced from ' + h.source.label + " — managed automatically"}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
             </span>
