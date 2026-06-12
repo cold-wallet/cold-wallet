@@ -16,6 +16,9 @@ export interface IntegrationSettingsData {
 export interface MetaMaskIntegrationSettingsData {
     enabled: boolean,
     accounts: MetaMaskAccount,
+    // Hide MetaMask holdings worth < $0.01 (dust / price-less scam tokens). Default ON: a missing
+    // field is read as `true` (see `!== false` at the read sites), so existing users get it too.
+    hideSmallAssets?: boolean,
 }
 
 export class UserSettings {
@@ -35,6 +38,7 @@ export class UserSettings {
         public metaMask: MetaMaskIntegrationSettingsData = {
             enabled: false,
             accounts: {} as MetaMaskAccount,
+            hideSmallAssets: true,
         } as MetaMaskIntegrationSettingsData,
     ) {
     }

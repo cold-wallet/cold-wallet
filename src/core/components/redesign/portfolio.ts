@@ -60,9 +60,11 @@ export function unitUsdOf(asset: AssetDTO, ps: PriceService): number {
   return isFinite(u) && u > 0 ? u : 0;
 }
 
-/** Attach USD value + source + visual metadata to every asset. */
-export function valueAssets(assets: AssetDTO[], ps: PriceService): Valued[] {
-  return assets.map((a) => ({
+/** Attach USD value + source + visual metadata to every asset. When `hideMetaMaskDust` is on,
+ *  drop MetaMask holdings worth < $0.01 (dust / price-less scam tokens) — filtering here, the one
+ *  point where USD is known, hides them consistently across totals, charts, legend and by-source. */
+export function valueAssets(assets: AssetDTO[], ps: PriceService, hideMetaMaskDust = false): Valued[] {
+  const valued: Valued[] = assets.map((a) => ({
     asset: a,
     id: a.id,
     code: a.currency,
@@ -75,6 +77,9 @@ export function valueAssets(assets: AssetDTO[], ps: PriceService): Valued[] {
     scale: displayScale(a, ps),
     unitUsd: unitUsdOf(a, ps),
   }));
+  return hideMetaMaskDust
+    ? valued.filter((v) => !(v.asset.isMetaMaskAsset && v.usd < 0.01))
+    : valued;
 }
 
 export function totalUsd(v: Valued[]): number {

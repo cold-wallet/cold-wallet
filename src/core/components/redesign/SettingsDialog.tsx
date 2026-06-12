@@ -313,6 +313,15 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
   const s = props.userData.settings;
   const isMM = name === 'metamask';
 
+  // MetaMask "hide small balances" is a display preference, not a credential — it persists
+  // immediately (controlled by userData), bypassing the pending/Save flow Cancel would revert.
+  const hideMmDust = s.metaMask?.hideSmallAssets !== false;
+  const setHideMmDust = (v: boolean) => {
+    const nd = { ...props.userData };
+    nd.settings.metaMask = { ...nd.settings.metaMask, hideSmallAssets: v };
+    props.setUserData(nd);
+  };
+
   const enabled = integrationEnabled(props, name); // shared temporary (pending) state
   const [shown, setShown] = useState<Record<string, boolean>>({});
 
@@ -404,6 +413,14 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
             <div className="cfg-note">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
               Read-only access. We never request transaction permissions or your seed phrase.
+            </div>
+            <div className="enable-row" style={{ marginTop: 4 }}>
+              <button className={"switch" + (hideMmDust ? " on" : "")} title={hideMmDust ? 'Showing only ≥ $0.01' : 'Showing all'}
+                onClick={() => setHideMmDust(!hideMmDust)} />
+              <div className="enable-row__txt">
+                <b>Hide small balances</b>
+                <small>Don't show MetaMask assets worth less than $0.01</small>
+              </div>
             </div>
           </>
         ) : (
