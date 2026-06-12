@@ -129,6 +129,7 @@ export default interface Props {
     coinGeckoPricesLoaded: boolean,
     coinGeckoCurrencies: { [index: string]: CoinGeckoCurrencyResponse } | null,
     coinGeckoCurrenciesLoaded: boolean,
+    prefetchPrice: (symbol: string) => void,
 
     metaMaskSettingsEnabled: boolean,
     setMetaMaskSettingsEnabled: Dispatch<SetStateAction<boolean>>,

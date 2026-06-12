@@ -32,6 +32,8 @@ export default function EditDialog({ props }: { props: Props }) {
   function pick(code: string) {
     props.setNewAssetCurrency(code);
     props.setShowCreateNewAssetWindow(false);
+    // warm up the price before the asset is even saved, so its USD value is ready
+    props.prefetchPrice(code);
   }
   function back() {
     props.setNewAssetCurrency(null);
