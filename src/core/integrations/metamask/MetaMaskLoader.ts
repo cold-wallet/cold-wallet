@@ -9,7 +9,7 @@ import erc20top100 from "./../../../resources/erc20top100_2023.json"
 import useInterval from "../../utils/useInterval";
 import StorageFactory from "../../domain/StorageFactory";
 import AssetDTO, {crypto} from "../../domain/AssetDTO";
-import {chainIdToName} from "./MetaMaskChains";
+import {chainIdToName, metaMaskChains} from "./MetaMaskChains";
 import BinanceCurrencyResponse from "../binance/BinanceCurrencyResponse";
 import {createDemoMetamaskAssets} from "../../utils/DemoAssetsGenerator";
 import {erc20Abi, formatUnits} from "viem";
@@ -46,6 +46,18 @@ const IGNORED_ERROR_MESSAGES = [
 const BATCH_SIZE = 10;
 const REQUEST_DELAY_MS = 2000;
 
+// Scan only chains we can and should query: configured in wagmi AND live mainnets.
+// The token list still carries entries for testnets and for chains viem no longer knows
+// (Ropsten/Rinkeby) — querying those produced ChainNotConfiguredError plus a cascade of
+// unhandled rejections, and dead-testnet RPC failures kept shrinking the batch size.
+const SCANNABLE_CHAIN_IDS = new Set(
+    metaMaskChains.filter(c => !c.testnet).map(c => c.id)
+);
+// the token list's chain-42 entries are Kovan-era; id 42 belongs to LUKSO now
+SCANNABLE_CHAIN_IDS.delete(42);
+const scannableTokens = ((defaultTokens.tokens || []) as Token[])
+    .filter(t => SCANNABLE_CHAIN_IDS.has(t.chainId));
+
 // The AssetDTO id for a stored balance. Kept in one place so the per-asset refresh can
 // match an asset id back to its balance entry without parsing the name string.
 const balanceAssetId = (b: AddressBalanceResult) =>
@@ -55,7 +67,7 @@ const balanceAssetId = (b: AddressBalanceResult) =>
 // storage, so look it up in the Uniswap default list by symbol+chainId (preferring a matching
 // decimals on collisions). Falls back to the native-ETH request; null if unresolvable.
 function requestForBalance(b: AddressBalanceResult): BalanceRequest | null {
-    const candidates = ((defaultTokens.tokens || []) as Token[])
+    const candidates = scannableTokens
         .filter(t => t.symbol === b.symbol && t.chainId === b.chainId);
     const token = candidates.find(t => t.decimals === b.decimals) || candidates[0];
     if (token) {
@@ -170,7 +182,7 @@ export default function MetaMaskLoader(
             symbol: token.symbol,
             decimals: token.decimals,
         } as BalanceRequest)
-        const tokenOptions = ((defaultTokens.tokens || []) as Token[])
+        const tokenOptions = [...scannableTokens]
             .sort((a, b) => {
                 const numberA = (erc20top100.indexOf(a.symbol) + 1) || 100;
                 const numberB = (erc20top100.indexOf(b.symbol) + 1) || 100;
