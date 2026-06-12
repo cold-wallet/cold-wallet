@@ -1,84 +1,48 @@
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import detectEthereumProvider from "@metamask/detect-provider";
 import UserData from "../../domain/UserData";
 import {AddressBalanceResult, MetaMaskAccount, MetaMaskWallet} from "./MetaMaskWallet";
 import {getPublicClient, readContracts} from "@wagmi/core";
 import {wagmiConfig} from '../../../wagmiConfig';
-import defaultTokens from "@uniswap/default-token-list"
 import erc20top100 from "./../../../resources/erc20top100_2023.json"
 import useInterval from "../../utils/useInterval";
 import StorageFactory from "../../domain/StorageFactory";
 import AssetDTO, {crypto} from "../../domain/AssetDTO";
 import {chainIdToName, metaMaskChains} from "./MetaMaskChains";
 import BinanceCurrencyResponse from "../binance/BinanceCurrencyResponse";
+import CoinGeckoCurrencyResponse from "../coingecko/CoinGeckoCurrencyResponse";
+import PLATFORM_CHAINID from "../coingecko/platforms";
 import {createDemoMetamaskAssets} from "../../utils/DemoAssetsGenerator";
 import {erc20Abi, formatUnits} from "viem";
 
-interface Token {
-    chainId: number
-    address: string
-    name: string
-    symbol: string
-    decimals: number
-    logoURI: string
-    extensions: any
-}
-
 interface BalanceRequest {
-    token?: `0x${string}`
+    token?: `0x${string}` // undefined → native balance
     chainId: number
     symbol: string
-    address: `0x${string}`
-    decimals: number
+    address: `0x${string}` // the WALLET address being scanned
 }
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 300;
 const REQUEST_DELAY_MS = 2000;
 
 // Scan only chains we can and should query: configured in wagmi AND live mainnets.
-// The token list still carries entries for testnets and for chains viem no longer knows
-// (Ropsten/Rinkeby) — querying those produced ChainNotConfiguredError plus a cascade of
-// unhandled rejections, and dead-testnet RPC failures kept shrinking the batch size.
+// (PLATFORM_CHAINID already limits us to EVM mainnets; this also drops anything wagmi no
+// longer knows, which otherwise produced ChainNotConfiguredError.)
 const SCANNABLE_CHAIN_IDS = new Set(
     metaMaskChains.filter(c => !c.testnet).map(c => c.id)
 );
-// the token list's chain-42 entries are Kovan-era; id 42 belongs to LUKSO now
-SCANNABLE_CHAIN_IDS.delete(42);
-const scannableTokens = ((defaultTokens.tokens || []) as Token[])
-    .filter(t => SCANNABLE_CHAIN_IDS.has(t.chainId));
 
 // The AssetDTO id for a stored balance. Kept in one place so the per-asset refresh can
 // match an asset id back to its balance entry without parsing the name string.
 const balanceAssetId = (b: AddressBalanceResult) =>
     `metamask ${b.symbol} ${chainIdToName[b.chainId] || b.chainId} ${b.address}`;
 
-// Rebuild the BalanceRequest for a stored balance. The token CONTRACT address is not kept in
-// storage, so look it up in the Uniswap default list by symbol+chainId (preferring a matching
-// decimals on collisions). Falls back to the native-ETH request; null if unresolvable.
-function requestForBalance(b: AddressBalanceResult): BalanceRequest | null {
-    const candidates = scannableTokens
-        .filter(t => t.symbol === b.symbol && t.chainId === b.chainId);
-    const token = candidates.find(t => t.decimals === b.decimals) || candidates[0];
-    if (token) {
-        return {
-            address: b.address,
-            token: token.address as `0x${string}`,
-            chainId: token.chainId,
-            symbol: token.symbol,
-            decimals: token.decimals,
-        };
-    }
-    if (b.symbol === "ETH" && b.chainId === 1) {
-        return {address: b.address, chainId: 1, symbol: "ETH", decimals: 18};
-    }
-    return null;
-}
-
 const REDUCE_BATCH_SIZE_ERROR = "error, reduce batch size";
 export default function MetaMaskLoader(
     isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     binanceCurrencies: { [symbol: string]: BinanceCurrencyResponse } | null,
+    coinGeckoCurrencies: { [symbol: string]: CoinGeckoCurrencyResponse } | null,
     storageFactory: StorageFactory,
     userData: UserData
 ) {
@@ -163,29 +127,55 @@ export default function MetaMaskLoader(
         setIsConnecting(false)
     }
 
+    // ERC-20 decimals never change for a deployed contract, so resolve them once (lazily, only
+    // for tokens the wallet actually holds) and reuse. Keyed chainId:contract (lowercased).
+    const decimalsCache = useRef<Map<string, number>>(new Map());
+    const decimalsKey = (chainId: number, token: string) => `${chainId}:${token.toLowerCase()}`;
+
+    // Build the scan list from the CoinGecko per-chain contract addresses (covers ~all popular
+    // tokens, e.g. XAUT, that the small Uniswap list omitted). No decimals here — fetched lazily.
     const getAllOptions = (address: string): BalanceRequest[] => {
-        const tokenToOption = (token: Token) => ({
-            address,
-            token: token.address,
-            chainId: token.chainId,
-            symbol: token.symbol,
-            decimals: token.decimals,
-        } as BalanceRequest)
-        const tokenOptions = [...scannableTokens]
-            .sort((a, b) => {
-                const numberA = (erc20top100.indexOf(a.symbol) + 1) || 100;
-                const numberB = (erc20top100.indexOf(b.symbol) + 1) || 100;
-                return (numberA - numberB) || -1
-            })
-            .map(tokenToOption)
-        const optionEth = {
-            address,
-            chainId: 1,
-            symbol: "ETH",
-            decimals: 18,
-        } as BalanceRequest;
-        return [optionEth, ...tokenOptions]
+        const optionEth = {address: address as `0x${string}`, chainId: 1, symbol: "ETH"} as BalanceRequest;
+        if (!coinGeckoCurrencies) {
+            return [optionEth];
+        }
+        const tokenOptions: BalanceRequest[] = [];
+        Object.values(coinGeckoCurrencies).forEach(coin => {
+            if (!coin.platforms) return;
+            Object.entries(coin.platforms).forEach(([platform, rawAddr]) => {
+                const chainId = PLATFORM_CHAINID[platform];
+                if (!chainId || !SCANNABLE_CHAIN_IDS.has(chainId) || !rawAddr) return;
+                const token = rawAddr.toLowerCase();
+                if (!/^0x[0-9a-f]{40}$/.test(token)) return;
+                tokenOptions.push({
+                    address: address as `0x${string}`,
+                    token: token as `0x${string}`,
+                    chainId,
+                    symbol: coin.symbol.toUpperCase(),
+                });
+            });
+        });
+        return [optionEth, ...tokenOptions];
     }
+
+    // Rebuild the BalanceRequest for a stored balance (used by the single-token refresh). The
+    // contract address isn't stored, so look it up in the CoinGecko map by symbol → platform.
+    const requestForBalance = (b: AddressBalanceResult): BalanceRequest | null => {
+        const coin = coinGeckoCurrencies?.[b.symbol];
+        if (coin?.platforms) {
+            const entry = Object.entries(coin.platforms)
+                .find(([p, addr]) => PLATFORM_CHAINID[p] === b.chainId && addr);
+            if (entry) {
+                return {address: b.address, token: entry[1].toLowerCase() as `0x${string}`,
+                    chainId: b.chainId, symbol: b.symbol};
+            }
+        }
+        if (b.symbol === "ETH" && b.chainId === 1) {
+            return {address: b.address, chainId: 1, symbol: "ETH"};
+        }
+        return null;
+    };
+
     const [fullResult, setFullResult] = useState<Array<AddressBalanceResult | null>>([])
     const [isLoaded, setIsLoaded] = useState(false)
     const [batchSize, setBatchSize] = useState(BATCH_SIZE)
@@ -258,6 +248,7 @@ export default function MetaMaskLoader(
             .map((req, index) => ({req, index}))
             .filter(({req}) => !!req.token);
 
+        // Phase A — balanceOf (raw bigint; detecting non-zero needs no decimals)
         const contracts = tokenRequests.map(({req}) => ({
             address: req.token!,
             abi: erc20Abi,
@@ -277,6 +268,32 @@ export default function MetaMaskLoader(
             throw new Error(REDUCE_BATCH_SIZE_ERROR);
         }
 
+        // collect non-zero token hits (a revert / down RPC / etc. is just skipped, as before)
+        const hits = tokenResults
+            .map((res, idx) => ({res, ...tokenRequests[idx]}))
+            .filter(({res}) => res.status === 'success' && (res.result as bigint) > 0n)
+            .map(({req, index, res}) => ({req, index, value: res.result as bigint}));
+
+        // Phase B — resolve decimals ONLY for the non-zero hits we haven't seen before
+        const needDecimals = hits.filter(h => !decimalsCache.current.has(decimalsKey(h.req.chainId, h.req.token!)));
+        if (needDecimals.length) {
+            let decResults: any[] = [];
+            try {
+                decResults = await readContracts(wagmiConfig, {
+                    contracts: needDecimals.map(h => ({
+                        address: h.req.token!, abi: erc20Abi, functionName: 'decimals', chainId: h.req.chainId,
+                    })),
+                    allowFailure: true,
+                });
+            } catch { /* whole decimals call failed — those tokens just resolve next round */ }
+            decResults.forEach((res, i) => {
+                if (res && res.status === 'success') {
+                    const h = needDecimals[i];
+                    decimalsCache.current.set(decimalsKey(h.req.chainId, h.req.token!), Number(res.result));
+                }
+            });
+        }
+
         const nativePromises = (requests.map((req, index) => {
             if (req.token) return null;
             const client = getPublicClient(wagmiConfig, {chainId: req.chainId});
@@ -290,21 +307,16 @@ export default function MetaMaskLoader(
         const nativeResults = await Promise.all(nativePromises);
         const results: Array<AddressBalanceResult | null> = new Array(requests.length).fill(null);
 
-        tokenResults.forEach((res, idx) => {
-            const {req, index} = tokenRequests[idx];
-            // Only successes carry a balance. Anything else (a revert, a chain whose RPC is
-            // down / rate-limited / gated, a timeout, …) just means "no balance for this token
-            // this round" — skip it silently; the next sweep retries when the RPC recovers.
-            if (res.status === 'success') {
-                const value = res.result as bigint;
-                results[index] = {
-                    chainId: req.chainId,
-                    address: req.address,
-                    decimals: req.decimals,
-                    formatted: formatUnits(value, req.decimals),
-                    symbol: req.symbol,
-                    value: value.toString(),
-                }
+        hits.forEach(({req, index, value}) => {
+            const decimals = decimalsCache.current.get(decimalsKey(req.chainId, req.token!));
+            if (decimals === undefined) return; // decimals unresolved (rare) → skip; retried next round
+            results[index] = {
+                chainId: req.chainId,
+                address: req.address,
+                decimals,
+                formatted: formatUnits(value, decimals),
+                symbol: req.symbol,
+                value: value.toString(),
             }
         });
 
@@ -314,8 +326,8 @@ export default function MetaMaskLoader(
                 results[index] = {
                     chainId: req.chainId,
                     address: req.address,
-                    decimals: req.decimals,
-                    formatted: formatUnits(result, req.decimals),
+                    decimals: 18,
+                    formatted: formatUnits(result, 18),
                     symbol: req.symbol,
                     value: result.toString(),
                 }
@@ -394,7 +406,8 @@ export default function MetaMaskLoader(
     };
 
     const options = useMemo<BalanceRequest[]>(() => {
-        if (!wallet || !wallet.accounts?.length) {
+        // wait for the CoinGecko token directory — it supplies the contract addresses to scan
+        if (!wallet || !wallet.accounts?.length || !coinGeckoCurrencies) {
             return []
         }
         return wallet.accounts.map(account => getAllOptions(account))
@@ -406,7 +419,7 @@ export default function MetaMaskLoader(
                 const numberB = (erc20top100.indexOf(b.symbol) + 1) || 100;
                 return (numberA - numberB) || -1
             })
-    }, [wallet])
+    }, [wallet, coinGeckoCurrencies])
 
     useEffect(() => {
         setFullResult([])
