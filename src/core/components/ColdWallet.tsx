@@ -185,7 +185,7 @@ export default function ColdWallet(
         metaMaskHasProvider,
         metaMaskIsConnecting,
         metaMaskHandleConnect,
-    } = MetaMaskLoader(isDemoMode, loadingUserDataAllowed, binanceCurrencies, properties.storageFactory, userData)
+    } = MetaMaskLoader(isDemoMode, loadingUserDataAllowed, binanceCurrencies, coinGeckoCurrencies, properties.storageFactory, userData)
 
     // Collect the symbols of every held asset (manual + all integrations) for the CoinGecko
     // needed-first price fetch. Updates only when the set actually changes.

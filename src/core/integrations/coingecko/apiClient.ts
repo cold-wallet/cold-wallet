@@ -2,6 +2,7 @@ import ApiResponse from "../../domain/ApiResponse";
 import axios, {AxiosResponse} from "axios";
 import CoinGeckoCurrencyResponse from "./CoinGeckoCurrencyResponse";
 import CoinGeckoPriceResponse from "./CoinGeckoPriceResponse";
+import PLATFORM_CHAINID from "./platforms";
 
 const name = "coingecko"
 const apiBaseUrl = "https://api.coingecko.com"
@@ -81,26 +82,41 @@ const apiClient = {
     },
     async fetchCurrencies(): Promise<ApiResponse<{ [index: string]: CoinGeckoCurrencyResponse } | any>> {
         try {
+            // include_platform gives per-chain contract addresses, used to drive the MetaMask
+            // token scan (covers tokens the small Uniswap list omits, e.g. XAUT/Tether Gold).
             const url = apiBaseUrl + apiPrefix + "/coins/list";
-            const response: AxiosResponse<CoinGeckoCurrencyResponse[]> = await axios.get(url);
+            const response: AxiosResponse<CoinGeckoCurrencyResponse[]> = await axios.get(url, {
+                params: {include_platform: true},
+            });
             if (response.data?.length) {
                 const list = response.data;
                 const byId = list.reduce((m: { [id: string]: CoinGeckoCurrencyResponse }, c) => {
                     m[c.id] = c;
                     return m;
                 }, {});
+                // Keep only scannable-EVM platform addresses (drop Solana/Tron/TON/… and testnets)
+                // so the persisted map stays ~1.6MB instead of ~2.1MB, and copy to a fresh object
+                // so we never mutate the raw response.
+                const trim = (c: CoinGeckoCurrencyResponse): CoinGeckoCurrencyResponse => {
+                    const platforms: { [p: string]: string } = {};
+                    if (c.platforms) Object.entries(c.platforms).forEach(([p, addr]) => {
+                        if (PLATFORM_CHAINID[p] && addr) platforms[p] = addr;
+                    });
+                    return {id: c.id, symbol: c.symbol, name: c.name,
+                        ...(Object.keys(platforms).length ? {platforms} : {})};
+                };
                 // keep the FIRST coin seen for each symbol (deterministic; the list order is
                 // not meaningful, so this is just a stable default for the long tail) …
                 const currencies = list
                     .reduce((merged: { [p: string]: CoinGeckoCurrencyResponse }, currency) => {
                         const symbol = currency.symbol.toUpperCase();
-                        if (!merged[symbol]) merged[symbol] = currency;
+                        if (!merged[symbol]) merged[symbol] = trim(currency);
                         return merged
                     }, {});
                 // … then force the canonical coin for well-known symbols, so e.g. ETH is
                 // always Ethereum and BTC always Bitcoin regardless of impostor entries.
                 Object.entries(CANONICAL_IDS).forEach(([symbol, id]) => {
-                    if (byId[id]) currencies[symbol] = byId[id];
+                    if (byId[id]) currencies[symbol] = trim(byId[id]);
                 });
                 return ApiResponse.success(200, currencies,)
             } else {
