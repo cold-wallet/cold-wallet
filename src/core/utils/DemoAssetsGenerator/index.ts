@@ -159,10 +159,12 @@ function getRandomFiatCurrency(): string {
 }
 
 function getRandomAmount(currency: string, type: AssetType = AssetType.crypto): number {
-    return Math.random() * (currency === "BTC" ? Math.random()// * Math.random() * 10
+    const amount = Math.random() * (currency === "BTC" ? Math.random()// * Math.random() * 10
             : currency === "ETH" || currency === "BNB" ? 10
                 : (type === AssetType.fiat ? 10000 : currency.startsWith("USD") ? 1000 : 100)
     );
+    // Fiat currencies can't have more than 2 decimal places.
+    return type === AssetType.fiat ? Number(amount.toFixed(2)) : amount;
 }
 
 export function createDemoUserSettings() {
