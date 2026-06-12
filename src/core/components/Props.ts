@@ -133,6 +133,7 @@ export default interface Props {
     metaMaskSettingsEnabled: boolean,
     setMetaMaskSettingsEnabled: Dispatch<SetStateAction<boolean>>,
     metaMaskAssets: AssetDTO[],
+    refreshMetaMaskAsset: (assetId: string) => Promise<boolean>,
     metaMaskWallet: MetaMaskWallet,
     metaMaskHasProvider: boolean,
     metaMaskIsConnecting: boolean,

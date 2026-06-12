@@ -46,6 +46,33 @@ const IGNORED_ERROR_MESSAGES = [
 const BATCH_SIZE = 10;
 const REQUEST_DELAY_MS = 2000;
 
+// The AssetDTO id for a stored balance. Kept in one place so the per-asset refresh can
+// match an asset id back to its balance entry without parsing the name string.
+const balanceAssetId = (b: AddressBalanceResult) =>
+    `metamask ${b.symbol} ${chainIdToName[b.chainId] || b.chainId} ${b.address}`;
+
+// Rebuild the BalanceRequest for a stored balance. The token CONTRACT address is not kept in
+// storage, so look it up in the Uniswap default list by symbol+chainId (preferring a matching
+// decimals on collisions). Falls back to the native-ETH request; null if unresolvable.
+function requestForBalance(b: AddressBalanceResult): BalanceRequest | null {
+    const candidates = ((defaultTokens.tokens || []) as Token[])
+        .filter(t => t.symbol === b.symbol && t.chainId === b.chainId);
+    const token = candidates.find(t => t.decimals === b.decimals) || candidates[0];
+    if (token) {
+        return {
+            address: b.address,
+            token: token.address as `0x${string}`,
+            chainId: token.chainId,
+            symbol: token.symbol,
+            decimals: token.decimals,
+        };
+    }
+    if (b.symbol === "ETH" && b.chainId === 1) {
+        return {address: b.address, chainId: 1, symbol: "ETH", decimals: 18};
+    }
+    return null;
+}
+
 const REDUCE_BATCH_SIZE_ERROR = "error, reduce batch size";
 export default function MetaMaskLoader(
     isDemoMode: boolean,
@@ -186,9 +213,8 @@ export default function MetaMaskLoader(
             .map(e => Object.values(e))
             .reduce((a, b) => a.concat(b), []);
         return balances.map(balance => {
-            const chainName = chainIdToName[balance.chainId] || balance.chainId
-            const name = `${balance.symbol} ${chainName} ${balance.address}`
-            const id = `metamask ${name}`;
+            const id = balanceAssetId(balance);
+            const name = id.replace(/^metamask /, "");
             const decimalScale = binanceCurrencies[balance.symbol]?.precision || 8;
             return new AssetDTO(
                 id,
@@ -343,6 +369,45 @@ export default function MetaMaskLoader(
         }
     }
 
+    // Targeted single-token refresh: re-fetch ONE already-known balance (1 RPC call) instead
+    // of rescanning the whole token list. Returns false when nothing was updated.
+    const refreshMetaMaskAsset = async (assetId: string): Promise<boolean> => {
+        if (isDemoMode) {
+            // no real wallet behind demo data — just let the UI show its spinner briefly
+            await new Promise(r => setTimeout(r, 800));
+            return true;
+        }
+        let balance: AddressBalanceResult | null = null;
+        Object.values(metaMaskUserData).forEach(bySymbol =>
+            Object.values(bySymbol).forEach(byChain =>
+                Object.values(byChain).forEach(b => {
+                    if (balanceAssetId(b) === assetId) balance = b;
+                })));
+        if (!balance) return false;
+        const request = requestForBalance(balance);
+        if (!request) return false;
+        const [result] = await fetchAllBalances([request]);
+        if (!result) return false;
+        const b = balance as AddressBalanceResult;
+        const newData = {...metaMaskUserData};
+        if (Number(result.value)) {
+            (newData[b.address] ||= {})[b.symbol] ||= {};
+            newData[b.address][b.symbol][b.chainId] = result;
+        } else {
+            // balance is genuinely zero now — drop the entry, same as the bulk loader's
+            // non-zero filter, so the asset row disappears
+            delete newData[b.address]?.[b.symbol]?.[b.chainId];
+            if (newData[b.address]?.[b.symbol] && !Object.keys(newData[b.address][b.symbol]).length) {
+                delete newData[b.address][b.symbol];
+            }
+            if (newData[b.address] && !Object.keys(newData[b.address]).length) {
+                delete newData[b.address];
+            }
+        }
+        setMetaMaskUserData(newData);
+        return true;
+    };
+
     const options = useMemo<BalanceRequest[]>(() => {
         if (!wallet || !wallet.accounts?.length) {
             return []
@@ -377,6 +442,7 @@ export default function MetaMaskLoader(
     return {
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
         metaMaskAssets,
+        refreshMetaMaskAsset,
         metaMaskWallet: wallet,
         metaMaskIsError: error,
         metaMaskHandleConnect: handleConnect,
