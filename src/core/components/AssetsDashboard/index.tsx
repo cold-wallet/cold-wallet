@@ -61,7 +61,9 @@ export default function AssetsDashboard({ props }: { props: Props }) {
         props.ccxtUserData,
     ]);
 
-    const valued = useMemo(() => valueAssets(allAssets, props.priceService), [allAssets, props.priceService]);
+    // Hide sub-cent MetaMask dust unless the user turned it off in MetaMask settings (default ON).
+    const hideMmDust = props.userData.settings.metaMask?.hideSmallAssets !== false;
+    const valued = useMemo(() => valueAssets(allAssets, props.priceService, hideMmDust), [allAssets, props.priceService, hideMmDust]);
     const total = useMemo(() => totalUsd(valued), [valued]);
     const classes = useMemo(() => classSlices(valued, total), [valued, total]);
     const slices = useMemo(() => assetSlices(valued, total), [valued, total]);
