@@ -1,10 +1,14 @@
-import {useEffect, useState} from "react";
-import binanceApiClient, {AccountInfo, SpotAccount} from "../../../core/integrations/binance/binanceApiClient";
+import {useEffect, useRef, useState} from "react";
+import binanceApiClient, {AccountInfo, BinanceSection, CORE_SECTIONS, HEAVY_SECTIONS, SpotAccount} from "../../../core/integrations/binance/binanceApiClient";
 import useInterval from "../../../core/utils/useInterval";
 import ApiResponse from "../../../core/domain/ApiResponse";
 import StorageFactory from "../../domain/StorageFactory";
 import BinanceCurrencyResponse from "./BinanceCurrencyResponse";
 import {createDemoBinanceAssets} from "../../utils/DemoAssetsGenerator";
+
+// Heavy (staking / simple-earn) sections change slowly and 429 the most — refresh them at most
+// this often, while core balances refresh every 60s tick. Cuts heavy-endpoint proxy load ~5x.
+const HEAVY_INTERVAL_MS = 5 * 60_000;
 
 const BinanceLoader = (
     isDemoMode: boolean,
@@ -57,6 +61,8 @@ const BinanceLoader = (
         setBinanceUserData
     ] = storageFactory.createStorageNullable<AccountInfo>("binanceUserData");
 
+    const loadingRef = useRef(false); // skip a tick while the previous cycle is still running
+    const lastHeavyAt = useRef(0);    // last time heavy (staking/simple-earn) sections were refreshed
     let loadBinanceUserData = () => {
         if (isDemoMode) {
             setBinanceUserData(new AccountInfo({
@@ -70,14 +76,24 @@ const BinanceLoader = (
             || !binanceIntegrationApiSecret
             || !binanceCurrencies
             || !loadingUserDataAllowed
+            || loadingRef.current
         ) {
             return
         }
+        // Core balances every tick; heavy sections only once per HEAVY_INTERVAL_MS (and on the
+        // first load, when lastHeavyAt is 0, so the initial view is complete).
+        const due = new Set<BinanceSection>(CORE_SECTIONS);
+        if (Date.now() - lastHeavyAt.current >= HEAVY_INTERVAL_MS) {
+            HEAVY_SECTIONS.forEach(s => due.add(s));
+            lastHeavyAt.current = Date.now();
+        }
+        loadingRef.current = true;
         binanceApiClient.getUserInfoAsync(
             binanceIntegrationApiKey,
             binanceIntegrationApiSecret,
             binanceCurrencies,
-            binanceUserData
+            binanceUserData,
+            due,
         )
             .then((accountInfo: AccountInfo) => {
                 if (accountInfo.account?.balances) {
@@ -85,7 +101,9 @@ const BinanceLoader = (
                 } else {
                     console.warn('Error fetching account data from binance:', accountInfo);
                 }
-            });
+            })
+            .catch((e) => console.warn('Error fetching account data from binance:', e))
+            .finally(() => { loadingRef.current = false; });
     };
     useEffect(loadBinanceUserData, []);
     useInterval(loadBinanceUserData, 60_000);
