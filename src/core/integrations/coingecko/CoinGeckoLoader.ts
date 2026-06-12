@@ -13,8 +13,8 @@ const subCurrencies = ["btc", "eur", "uah", "usd", "xag", "xau", "xdr"]
 // responses carry no CORS headers (browsers report them as CORS errors). So instead of
 // sweeping all ~13k coins in 500-id batches every 5s, send ONE request per tick:
 // the prices we actually display (held assets + picker favourites — always fresh) plus a
-// slice of the full list, so the long tail still gets pre-warmed into the persisted cache
-// and a newly added coin almost always has a price instantly.
+// slice of the full list, so the long tail gets pre-warmed in memory for the session.
+// Only the held/needed prices are persisted (the full map is ~2MB → localStorage quota).
 const POPULAR_SYMBOLS = ["USDT", "BTC", "ETH"];
 const TICK_MS = 30_000;
 const SWEEP_BATCH = 500;
@@ -60,12 +60,17 @@ export default function CoinGeckoLoader(
     };
     useEffect(loadCoinGeckoCurrencies, []);
 
+    // Persist ONLY the held/needed prices (small). The full sweep is ~2MB and blew the
+    // localStorage quota, yet PriceService only ever looks up held-asset + cross-rate symbols.
     const [
-        coinGeckoPrices,
-        setCoinGeckoPrices
+        persistedPrices,
+        setPersistedPrices
     ] = storageFactory.createStorage<CoinGeckoPriceResponse>("coinGeckoPrices", () => {
         return {} as CoinGeckoPriceResponse
     });
+    // The full price map lives in memory for the session (so the picker / charts see swept
+    // long-tail prices too); held prices are seeded from the small persisted cache on reload.
+    const [coinGeckoPrices, setCoinGeckoPrices] = useState<CoinGeckoPriceResponse>(() => persistedPrices);
     const [coinGeckoPricesLoaded, setCoinGeckoPricesLoaded] = useState(false);
 
     const [sweepIndex, setSweepIndex] = useState(0);
@@ -77,6 +82,17 @@ export default function CoinGeckoLoader(
         neededSymbols.forEach(s => set.add(s.toUpperCase()));
         return set;
     }, [neededSymbols.join(',')]);
+
+    // The subset of prices worth persisting — held assets + cross-rate favourites. Prices are
+    // keyed by lowercase symbol; neededSet is uppercase.
+    const pickNeeded = (full: CoinGeckoPriceResponse): CoinGeckoPriceResponse => {
+        const subset = {} as CoinGeckoPriceResponse;
+        neededSet.forEach(sym => {
+            const k = sym.toLowerCase();
+            if (full[k]) subset[k] = full[k];
+        });
+        return subset;
+    };
 
     // One request: prices for `symbols`, optionally advancing the background sweep cursor.
     const fetchPrices = (symbols: Set<string>, advanceSweep: boolean) => {
@@ -108,10 +124,9 @@ export default function CoinGeckoLoader(
         apiClient.fetchPrices(toLoad, subCurrencies)
             .then((response: ApiResponse<CoinGeckoPriceResponse | any>) => {
                 if (response.success) {
-                    setCoinGeckoPrices({
-                        ...coinGeckoPrices,
-                        ...(response.result),
-                    })
+                    const merged = {...coinGeckoPrices, ...(response.result)};
+                    setCoinGeckoPrices(merged)             // full map, in memory only
+                    setPersistedPrices(pickNeeded(merged)) // small held subset, persisted
                     setCoinGeckoPricesLoaded(true)
                     if (advanceSweep) {
                         setSweepIndex(nextIndex)
