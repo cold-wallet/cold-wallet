@@ -14,8 +14,12 @@ const urlMonobankRates = monobankBaseUrl + '/bank/currency';
 const urlMonobankClientInfo = monobankBaseUrl + '/personal/client-info';
 
 
+// Monobank reports `balance` as the available amount, which INCLUDES the credit line. The user's
+// own money is balance − creditLimit; spending into the credit line makes it negative (valid).
+const ownBalance = (account: MonobankAccountResponse) => account.balance - (account.creditLimit || 0);
+
 function extractAssetsFromMonobankAccounts(accounts: MonobankAccountResponse[]) {
-    return accounts.filter(account => +account.balance)
+    return accounts.filter(account => ownBalance(account) !== 0) // keep negative; drop effective-zero (all-credit) cards
         .map(account => {
             let fiatCurrency = fiatCurrencies.getByNumCode(account.currencyCode);
             if (!fiatCurrency) {
@@ -34,7 +38,7 @@ function extractAssetsFromMonobankAccounts(accounts: MonobankAccountResponse[]) 
             return new AssetDTO(
                 "monobank_" + account.id,
                 fiatCurrency.code,
-                String(account.balance / 100),
+                String(ownBalance(account) / 100),
                 name,
                 fiatCurrency.afterDecimalPoint,
                 fiat,

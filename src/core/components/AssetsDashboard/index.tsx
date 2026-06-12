@@ -64,12 +64,17 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     // Hide sub-cent MetaMask dust unless the user turned it off in MetaMask settings (default ON).
     const hideMmDust = props.userData.settings.metaMask?.hideSmallAssets !== false;
     const valued = useMemo(() => valueAssets(allAssets, props.priceService, hideMmDust), [allAssets, props.priceService, hideMmDust]);
-    const total = useMemo(() => totalUsd(valued), [valued]);
-    const classes = useMemo(() => classSlices(valued, total), [valued, total]);
-    const slices = useMemo(() => assetSlices(valued, total), [valued, total]);
-    const chart = useMemo(() => chartData(valued, slices, classes, total), [valued, slices, classes, total]);
+    const total = useMemo(() => totalUsd(valued), [valued]); // true net incl. negatives — headline Total only
+    // Proportion visuals (donut/treemap/legend, Fiat/Crypto cards, By source) can't draw a negative
+    // slice, so they run on positives only; percentages are taken against the positive sum (0–100%).
+    // The negative asset still shows in the sidebar list and counts toward the headline Total above.
+    const chartValued = useMemo(() => valued.filter((h) => h.usd > 0), [valued]);
+    const chartTotal = useMemo(() => totalUsd(chartValued), [chartValued]);
+    const classes = useMemo(() => classSlices(chartValued, chartTotal), [chartValued, chartTotal]);
+    const slices = useMemo(() => assetSlices(chartValued, chartTotal), [chartValued, chartTotal]);
+    const chart = useMemo(() => chartData(chartValued, slices, classes, chartTotal), [chartValued, slices, classes, chartTotal]);
     const groups = useMemo(() => sidebarGroups(valued, q), [valued, q]);
-    const sources = useMemo(() => sourceBreakdown(valued, total), [valued, total]);
+    const sources = useMemo(() => sourceBreakdown(chartValued, chartTotal), [chartValued, chartTotal]);
 
     const sourceCount = new Set(valued.map((h) => h.source.key)).size;
     const maxLeaf = Math.max(...chart.leafSegs.map((l) => l.usd), 1);
@@ -107,8 +112,8 @@ export default function AssetsDashboard({ props }: { props: Props }) {
             {props.showConfigsWindow ? <SettingsDialog props={props} /> : null}
             {breakdownOpen ? (
                 <ChartModal
-                    valued={valued}
-                    total={total}
+                    valued={chartValued}
+                    total={chartTotal}
                     hidden={hidden}
                     chart={view}
                     colorMap={Object.fromEntries(slices.map((a) => [a.key, a.color]))}
@@ -246,7 +251,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                     <div className="chartwrap">
                         {view === 'tree'
                             ? <TreemapChart classes={classes} leafSegs={chart.leafSegs} hot={hot} setHot={setHot} />
-                            : <DonutChart typeSegs={chart.typeSegs} curSegs={chart.curSegs} leafSegs={chart.leafSegs} total={total} hot={hot} setHot={setHot} count={chart.leafSegs.length} hidden={hidden} />}
+                            : <DonutChart typeSegs={chart.typeSegs} curSegs={chart.curSegs} leafSegs={chart.leafSegs} total={chartTotal} hot={hot} setHot={setHot} count={chart.leafSegs.length} hidden={hidden} />}
                         <div className="legend legend--holdings">
                             {[...chart.leafSegs].sort((a, b) => b.usd - a.usd).map((l) => {
                                 const amt = amountDisplay(l.amount as string, l.scale as number);
