@@ -36,10 +36,13 @@ export default function CoinGeckoLoader(
     ] = storageFactory.createStorage<number>("coinGeckoCurrenciesFetchedAt", () => 0);
 
     let loadCoinGeckoCurrencies = () => {
-        // Sentinel: the corrected symbol→id map always resolves BTC to "bitcoin". A cached map
-        // that doesn't is the old last-wins one (BTC was a random impostor) — refetch to pick up
-        // the canonical mapping even if it's still within the weekly TTL.
-        const corrected = coinGeckoCurrencies && coinGeckoCurrencies["BTC"]?.id === "bitcoin";
+        // Sentinel: the corrected map resolves BTC to "bitcoin", and now carries per-chain
+        // `platforms` (added for the MetaMask token scan). Check platforms on USDT, not BTC —
+        // Bitcoin has no EVM contract so its `platforms` is legitimately absent. A cached map
+        // missing either marker is an older schema → refetch even within the weekly TTL.
+        const corrected = coinGeckoCurrencies
+            && coinGeckoCurrencies["BTC"]?.id === "bitcoin"
+            && !!coinGeckoCurrencies["USDT"]?.platforms;
         // the 13k-coin directory rarely changes — refetch at most weekly
         if (corrected && Object.keys(coinGeckoCurrencies!).length
             && (Date.now() - coinGeckoCurrenciesFetchedAt) < CURRENCIES_TTL_MS) {
