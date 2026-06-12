@@ -15,7 +15,12 @@ export default function UserDataStorageRepositoryFactory(storage: Storage):
 
         useEffect(() => {
             if (getter && !getter.demo) {
-                storage.setItem(key, JSON.stringify(getter));
+                try {
+                    storage.setItem(key, JSON.stringify(getter));
+                } catch (e) {
+                    // never let a storage write (e.g. QuotaExceededError) crash the app
+                    console.warn(`storage: could not persist "${key}"`, e);
+                }
             }
         }, [getter, key]);
 
