@@ -50,10 +50,14 @@ export default function ColdWallet(
         pinCode,
     });
 
+    // Crypto symbols whose prices the UI actually needs (held assets across all sources);
+    // collected by an effect below, AFTER every integration loader has produced its data.
+    const [neededPriceSymbols, setNeededPriceSymbols] = useState<string[]>([]);
     const {
         coinGeckoPrices, coinGeckoPricesLoaded,
         coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
-    } = CoinGeckoLoader(properties.storageFactory)
+        prefetchCoinGeckoPrice,
+    } = CoinGeckoLoader(properties.storageFactory, neededPriceSymbols)
 
     const loadingUserDataAllowed = !isDemoMode && !shouldEnterPinCode;
     const {
@@ -182,6 +186,28 @@ export default function ColdWallet(
         metaMaskIsConnecting,
         metaMaskHandleConnect,
     } = MetaMaskLoader(isDemoMode, loadingUserDataAllowed, binanceCurrencies, properties.storageFactory, userData)
+
+    // Collect the symbols of every held asset (manual + all integrations) for the CoinGecko
+    // needed-first price fetch. Updates only when the set actually changes.
+    useEffect(() => {
+        const symbols = new Set<string>();
+        userData.assets.forEach(a => symbols.add(a.currency.toUpperCase()));
+        if (binanceUserData) {
+            AccountInfo.getAllAssets(binanceUserData).forEach(a => symbols.add(a.currency.toUpperCase()));
+        }
+        if (okxUserData) {
+            OkxAccount.getAllAssets(okxUserData).forEach(a => symbols.add(a.currency.toUpperCase()));
+        }
+        if (monobankUserData) {
+            MonobankUserData.getAllAssets(monobankUserData).forEach(a => symbols.add(a.currency.toUpperCase()));
+        }
+        (metaMaskAssets || []).forEach(a => symbols.add(a.currency.toUpperCase()));
+        Object.values(ccxtUserData).forEach(assets => assets.forEach(a => symbols.add(a.currency.toUpperCase())));
+        const next = Array.from(symbols).sort();
+        if (next.join(',') !== neededPriceSymbols.join(',')) {
+            setNeededPriceSymbols(next);
+        }
+    }, [userData, binanceUserData, okxUserData, monobankUserData, metaMaskAssets, ccxtUserData, neededPriceSymbols]);
 
     function getAnyAssetExist(
         userData: UserData,
@@ -378,6 +404,7 @@ export default function ColdWallet(
 
         coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
         coinGeckoPrices, coinGeckoPricesLoaded,
+        prefetchPrice: prefetchCoinGeckoPrice,
 
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
         metaMaskHasProvider,
