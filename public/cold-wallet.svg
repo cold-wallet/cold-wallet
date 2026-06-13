@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="cwBg" x1="0" y1="0" x2="0" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10211b"></stop>
+      <stop offset="0.55" stop-color="#0a110e"></stop>
+      <stop offset="1" stop-color="#060a09"></stop>
+    </linearGradient>
+    <radialGradient id="cwGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(396 40) rotate(118) scale(440)">
+      <stop offset="0" stop-color="#34d39a" stop-opacity="0.34"></stop>
+      <stop offset="0.45" stop-color="#34d39a" stop-opacity="0.07"></stop>
+      <stop offset="0.75" stop-color="#34d39a" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="cwShield" x1="150" y1="116" x2="372" y2="396" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#52e7b2"></stop>
+      <stop offset="0.52" stop-color="#34d39a"></stop>
+      <stop offset="1" stop-color="#1d9d6c"></stop>
+    </linearGradient>
+    <linearGradient id="cwShieldHi" x1="256" y1="116" x2="256" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"></stop>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"></stop>
+    </linearGradient>
+    <clipPath id="cwShieldClip">
+      <path d="M256 116 L368 172 V256 C368 326 319 375.5 256 396 C193 375.5 144 326 144 256 V172 Z"></path>
+    </clipPath>
+  </defs>
+
+  <rect x="0" y="0" width="512" height="512" rx="114" fill="url(#cwBg)"></rect>
+  <rect x="0" y="0" width="512" height="512" rx="114" fill="url(#cwGlow)"></rect>
+
+  <path d="M256 124 L372 182 V258 C372 330 321 381 256 402 C191 381 140 330 140 258 V182 Z" fill="#000000" opacity="0.22" transform="translate(0 9)"></path>
+
+  <path d="M256 116 L368 172 V256 C368 326 319 375.5 256 396 C193 375.5 144 326 144 256 V172 Z" fill="url(#cwShield)"></path>
+  <g clip-path="url(#cwShieldClip)">
+    <path d="M256 116 L368 172 V256 C368 326 319 375.5 256 396 C193 375.5 144 326 144 256 V172 Z" fill="url(#cwShieldHi)"></path>
+  </g>
+  <path d="M256 116 L368 172 V256 C368 326 319 375.5 256 396 C193 375.5 144 326 144 256 V172 Z" fill="none" stroke="#0c4a33" stroke-opacity="0.45" stroke-width="3"></path>
+
+  <g transform="translate(256 244)" stroke="#08130d" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <g>
+      <path d="M0 0 V-92" stroke-width="24"></path>
+      <path d="M0 -50 L23 -73 M0 -50 L-23 -73 M0 -74 L14 -89 M0 -74 L-14 -89" stroke-width="13"></path>
+    </g>
+    <g transform="rotate(60)">
+      <path d="M0 0 V-92" stroke-width="24"></path>
+      <path d="M0 -50 L23 -73 M0 -50 L-23 -73 M0 -74 L14 -89 M0 -74 L-14 -89" stroke-width="13"></path>
+    </g>
+    <g transform="rotate(120)">
+      <path d="M0 0 V-92" stroke-width="24"></path>
+      <path d="M0 -50 L23 -73 M0 -50 L-23 -73 M0 -74 L14 -89 M0 -74 L-14 -89" stroke-width="13"></path>
+    </g>
+    <g transform="rotate(180)">
+      <path d="M0 0 V-92" stroke-width="24"></path>
+      <path d="M0 -50 L23 -73 M0 -50 L-23 -73 M0 -74 L14 -89 M0 -74 L-14 -89" stroke-width="13"></path>
+    </g>
+    <g transform="rotate(240)">
+      <path d="M0 0 V-92" stroke-width="24"></path>
+      <path d="M0 -50 L23 -73 M0 -50 L-23 -73 M0 -74 L14 -89 M0 -74 L-14 -89" stroke-width="13"></path>
+    </g>
+    <g transform="rotate(300)">
+      <path d="M0 0 V-92" stroke-width="24"></path>
+      <path d="M0 -50 L23 -73 M0 -50 L-23 -73 M0 -74 L14 -89 M0 -74 L-14 -89" stroke-width="13"></path>
+    </g>
+  </g>
+</svg>
