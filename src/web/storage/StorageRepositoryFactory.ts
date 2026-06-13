@@ -1,4 +1,5 @@
 import {Dispatch, SetStateAction, useEffect, useState} from "react";
+import readStoredValue from "./readStoredValue";
 
 export interface StorageRepository {
     <T>(key: string, initializer: () => T): [T, Dispatch<SetStateAction<T>>]
@@ -11,9 +12,7 @@ export interface NullableStorageRepository {
 export default function StorageRepositoryFactory(storage: Storage):
     [StorageRepository, NullableStorageRepository] {
     function StorageRepository<T>(key: string, initializer: () => T): [T, Dispatch<SetStateAction<T>>] {
-        const storedData = storage.getItem(key);
-        const initialState: T = storedData ? JSON.parse(storedData) : initializer();
-        const [getter, setter] = useState(initialState);
+        const [getter, setter] = useState<T>(() => readStoredValue(storage, key, initializer));
 
         useEffect(() => {
             // Persist any concrete value — including falsy ones like false / 0 / "".

@@ -1,5 +1,6 @@
 import {Dispatch, SetStateAction, useEffect, useState} from "react";
 import UserDataHolder from "../../core/domain/UserDataHolder";
+import readStoredValue from "./readStoredValue";
 
 export interface StorageRepository {
     (key: string, initializer: () => UserDataHolder): [UserDataHolder, Dispatch<SetStateAction<UserDataHolder>>]
@@ -9,9 +10,7 @@ export default function UserDataStorageRepositoryFactory(storage: Storage):
     [StorageRepository] {
     function StorageRepository(key: string, initializer: () => UserDataHolder):
         [UserDataHolder, Dispatch<SetStateAction<UserDataHolder>>] {
-        const storedData = storage.getItem(key);
-        const initialState: UserDataHolder = storedData ? JSON.parse(storedData) : initializer();
-        const [getter, setter] = useState(initialState);
+        const [getter, setter] = useState<UserDataHolder>(() => readStoredValue(storage, key, initializer));
 
         useEffect(() => {
             if (getter && !getter.demo) {
