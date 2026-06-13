@@ -10,6 +10,9 @@ const OkxLoader = (
     isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
+    // Store for okxUserData — in-memory during a demo session so injected demo assets never
+    // persist. Prices/currencies stay on the (always-localStorage) storageFactory.
+    userDataStorageFactory: StorageFactory,
     okxIntegrationEnabled: boolean,
     okxIntegrationApiKey: string | null,
     okxIntegrationApiSecret: string | null,
@@ -57,7 +60,7 @@ const OkxLoader = (
     const [
         okxUserData,
         setOkxUserData
-    ] = storageFactory.createStorageNullable<OkxAccount>("okxUserData");
+    ] = userDataStorageFactory.createStorageNullable<OkxAccount>("okxUserData");
 
     let loadOkxUserData = () => {
         if (isDemoMode) {

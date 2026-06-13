@@ -131,9 +131,18 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                         </div>
                         <div>
                             <div className="brand__name">Cold Wallet</div>
-                            <div className="brand__sub">Portfolio</div>
+                            <div className="brand__sub">{props.isDemoMode ? 'Demo mode' : 'Portfolio'}</div>
                         </div>
                         <div className="brand__spacer" />
+                        {props.isDemoMode && (
+                            <button className="iconbtn" title="Exit demo" onClick={() => window.location.assign('/')}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                    <path d="M16 17l5-5-5-5" />
+                                    <path d="M21 12H9" />
+                                </svg>
+                            </button>
+                        )}
                         <button className="iconbtn" title={hidden ? 'Show amounts' : 'Hide amounts'} onClick={props.toggleHideAmounts}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 {hidden
