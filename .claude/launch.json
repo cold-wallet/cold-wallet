@@ -12,12 +12,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview", "--", "--port", "4173"],
       "port": 4173
-    },
-    {
-      "name": "handoff2",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "handoff 2/app", "run", "dev", "--", "--port", "5180", "--strictPort"],
-      "port": 5180
     }
   ]
 }
