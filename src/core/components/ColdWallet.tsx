@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import BinanceLoader from "./../integrations/binance/BinanceLoader";
 import MonobankLoader from "./../integrations/monobank/MonobankLoader";
 import NotLoggedIn from "./unauthorized/NotLoggedIn";
@@ -22,14 +22,20 @@ import Option from "./integrations/SelectIntegration/Option";
 import PriceService from "../services/PriceService";
 import MetaMaskLoader from "../integrations/metamask/MetaMaskLoader";
 import UserDataStorageFactory from "../domain/UserDataStorageFactory";
+import {buildDemoUserDataHolder} from "../utils/DemoAssetsGenerator";
 
 export default function ColdWallet(
-    {properties}: {
+    {properties, startInDemoMode = false}: {
         properties: {
             storageFactory: StorageFactory,
             sessionStorageFactory: StorageFactory,
             userDataStorageFactory: UserDataStorageFactory,
+            // Store for integration *UserData (binance/okx/monobank). In-memory during a demo
+            // session so injected demo assets never persist; the plain localStorage factory
+            // otherwise.
+            integrationUserDataStorageFactory: StorageFactory,
         },
+        startInDemoMode?: boolean,
     }
 ) {
     const [termsAndPolicyAgreed, setTermsAndPolicyAgreed] = useState<boolean>(false);
@@ -50,6 +56,18 @@ export default function ColdWallet(
         pinCode,
     });
 
+    // `/demo` route: drop straight into demo mode, bypassing the startup login screen.
+    // Runs once on mount. Skips only if an active demo session is already logged in — the
+    // default holder carries demo=true but isn't logged in (no user id), so we still need to
+    // build a real demo UserData to land on the dashboard.
+    const demoModeStarted = useRef(false);
+    useEffect(() => {
+        if (startInDemoMode && !demoModeStarted.current && !(loggedIn && isDemoMode)) {
+            demoModeStarted.current = true;
+            setUserDataHolder(buildDemoUserDataHolder());
+        }
+    }, [startInDemoMode, loggedIn, isDemoMode, setUserDataHolder]);
+
     // Crypto symbols whose prices the UI actually needs (held assets across all sources);
     // collected by an effect below, AFTER every integration loader has produced its data.
     const [neededPriceSymbols, setNeededPriceSymbols] = useState<string[]>([]);
@@ -69,6 +87,7 @@ export default function ColdWallet(
         isDemoMode,
         loadingUserDataAllowed,
         properties.storageFactory,
+        properties.integrationUserDataStorageFactory,
         userData.settings.binanceIntegrationEnabled,
         userData.settings.binanceIntegrationApiKey,
         userData.settings.binanceIntegrationApiSecret,
@@ -82,6 +101,7 @@ export default function ColdWallet(
         isDemoMode,
         loadingUserDataAllowed,
         properties.storageFactory,
+        properties.integrationUserDataStorageFactory,
         userData.settings.okxIntegrationEnabled,
         userData.settings.okxIntegrationApiKey,
         userData.settings.okxIntegrationApiSecret,
@@ -98,6 +118,7 @@ export default function ColdWallet(
         isDemoMode,
         loadingUserDataAllowed,
         properties.storageFactory,
+        properties.integrationUserDataStorageFactory,
         userData.settings.monobankIntegrationEnabled,
         userData.settings.monobankIntegrationToken
     );
@@ -353,6 +374,7 @@ export default function ColdWallet(
         creatingNewAsset, setCreatingNewAsset,
         userData, setUserData,
         userDataHolder, setUserDataHolder,
+        isDemoMode,
         newAssetAmount, setNewAssetAmount,
         newAssetCurrency, setNewAssetCurrency,
         newAssetName, setNewAssetName,

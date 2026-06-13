@@ -14,6 +14,9 @@ const MonobankLoader = (
     isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
+    // Store for monobankUserData — in-memory during a demo session so injected demo assets
+    // never persist. Rates/currencies stay on the (always-localStorage) storageFactory.
+    userDataStorageFactory: StorageFactory,
     monobankIntegrationEnabled: boolean,
     monobankIntegrationToken: string | null
 ) => {
@@ -46,7 +49,7 @@ const MonobankLoader = (
     const [
         monobankUserData,
         setMonobankUserData
-    ] = MonobankUserDataStorage(storageFactory)
+    ] = MonobankUserDataStorage(userDataStorageFactory)
 
     const loadMonobankUserData = () => {
         if (isDemoMode) {

@@ -4,7 +4,6 @@ import React, { useState, type ReactNode } from "react";
 import UserData from "../../../domain/UserData";
 import uuidGenerator from "../../../utils/uuidGenerator";
 import { initUserDataHolder } from "../../../services/UserDataService";
-import { createDemoAssets, createDemoUserSettings } from "../../../utils/DemoAssetsGenerator";
 import { dataImporter } from "../../settings/ImportData";
 import Props from "../../Props";
 
@@ -27,8 +26,10 @@ export default function NotLoggedIn(props: Props) {
         }
     }
     function enableDemo() {
-        const userData = new UserData(uuidGenerator.generateUUID(), createDemoUserSettings(), createDemoAssets());
-        props.setUserDataHolder(initUserDataHolder(userData, true));
+        // Full navigation to /demo so the app remounts with the demo's in-memory storage
+        // factories — the demo session reads/writes nothing in localStorage. The demo holder
+        // itself is built by the /demo effect in ColdWallet.
+        window.location.assign('/demo');
     }
     function startImport() {
         if (accepted) props.setImportOrExportSettingRequested('import');

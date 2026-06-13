@@ -14,6 +14,9 @@ const BinanceLoader = (
     isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
+    // Store for binanceUserData — in-memory during a demo session so injected demo assets
+    // never persist. Prices/currencies stay on the (always-localStorage) storageFactory.
+    userDataStorageFactory: StorageFactory,
     binanceIntegrationEnabled: boolean,
     binanceIntegrationApiKey: string | null,
     binanceIntegrationApiSecret: string | null,
@@ -59,7 +62,7 @@ const BinanceLoader = (
     const [
         binanceUserData,
         setBinanceUserData
-    ] = storageFactory.createStorageNullable<AccountInfo>("binanceUserData");
+    ] = userDataStorageFactory.createStorageNullable<AccountInfo>("binanceUserData");
 
     const loadingRef = useRef(false); // skip a tick while the previous cycle is still running
     const lastHeavyAt = useRef(0);    // last time heavy (staking/simple-earn) sections were refreshed

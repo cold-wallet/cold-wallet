@@ -27,6 +27,7 @@ export default interface Props {
     setUserData: Dispatch<SetStateAction<UserData>>,
     userDataHolder: UserDataHolder,
     setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>,
+    isDemoMode: boolean,
     getAnyAssetExist: (
         userData: UserData,
         binanceUserData: AccountInfo | null,

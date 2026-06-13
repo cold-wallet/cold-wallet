@@ -34,6 +34,11 @@ const router = createBrowserRouter([
         path: "/landing",
         element: <Landing/>,
     },
+    {
+        path: "/demo",
+        element: <App startInDemoMode/>,
+        errorElement: <ErrorPage/>
+    },
 ]);
 
 const root = ReactDOM.createRoot(

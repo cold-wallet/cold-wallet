@@ -1,7 +1,18 @@
 import AssetDTO, {AssetType} from "../../domain/AssetDTO";
 import uuidGenerator from "../uuidGenerator";
-import {MetaMaskIntegrationSettingsData, UserSettings} from "../../domain/UserData";
+import UserData, {MetaMaskIntegrationSettingsData, UserSettings} from "../../domain/UserData";
 import {AddressBalanceResult, MetaMaskAccount} from "../../integrations/metamask/MetaMaskWallet";
+import {initUserDataHolder} from "../../services/UserDataService";
+
+/** Builds a fresh demo UserDataHolder (random demo assets + demo settings), already in demo mode. */
+export function buildDemoUserDataHolder() {
+    const userData = new UserData(
+        uuidGenerator.generateUUID(),
+        createDemoUserSettings(),
+        createDemoAssets(),
+    );
+    return initUserDataHolder(userData, true);
+}
 
 export function createDemoBinanceAssets() {
     const length = 1 + Math.random() * 5;
