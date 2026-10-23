@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import './App.css';
 import ColdWallet from "./core/components/ColdWallet";
 import storageFactory from './impl/Storage';
@@ -8,15 +8,8 @@ import inMemoryStorageFactory from './web/storage/InMemoryStorageFactory';
 import inMemoryUserDataStorageFactory from './web/storage/InMemoryUserDataStorageFactory';
 import { WagmiProvider } from 'wagmi';
 import { wagmiConfig } from './wagmiConfig';
-import TagManager from 'react-gtm-module';
 
 function App({ startInDemoMode = false }: { startInDemoMode?: boolean } = {}) {
-
-    useEffect(() => {
-        TagManager.initialize({
-            gtmId: 'G-2CWGTRX202'
-        });
-    }, []);
 
     // In a demo session, user-scoped stores are ephemeral: the wallet and the injected demo
     // integration assets live only in memory, so nothing demo touches (reads or writes)
