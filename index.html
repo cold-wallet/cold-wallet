@@ -2,6 +2,16 @@
 <html class="border-themed-color" lang="en" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8"/>
+    <!-- Google tag (gtag.js) — GA4. Lives here, not in a React component, so every route
+         (app, /landing, /demo, /terms, /privacy-policy) is tracked. SPA route changes are
+         picked up by GA4 Enhanced Measurement (browser history events). -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2CWGTRX202"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-2CWGTRX202');
+    </script>
     <title>Cold Wallet</title>
     <meta content="Cold Wallet" name="name">
     <meta content="Cold Wallet - secure and anonymous personal finances dashboard with charts"

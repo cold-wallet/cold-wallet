@@ -7,11 +7,6 @@ import '@testing-library/jest-dom';
 // Mock third-party modules that rely on browser or Node features
 // not available in the test environment. These mocks keep the
 // tests lightweight and focused on our own code.
-vi.mock('react-gtm-module', () => ({
-  __esModule: true,
-  default: { initialize: vi.fn() },
-}));
-
 // The wagmi provider requires ESM and a number of browser APIs which
 // the test environment doesn't provide. We replace it with a minimal stub
 // that simply renders its children.
