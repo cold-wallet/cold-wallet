@@ -1,5 +1,4 @@
-import { createConfig, fallback, http } from 'wagmi';
-import { injected } from 'wagmi/connectors';
+import { createConfig, fallback, http, injected } from '@wagmi/core';
 import { metaMaskChains } from './core/integrations/metamask/MetaMaskChains';
 
 // Browser-friendly RPC endpoints for the chains that carry ~99% of the Uniswap default

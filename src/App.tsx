@@ -6,8 +6,6 @@ import sessionStorageFactory from './impl/SessionStorage';
 import userDataStorageFactory from './impl/UserDataStorage';
 import inMemoryStorageFactory from './web/storage/InMemoryStorageFactory';
 import inMemoryUserDataStorageFactory from './web/storage/InMemoryUserDataStorageFactory';
-import { WagmiProvider } from 'wagmi';
-import { wagmiConfig } from './wagmiConfig';
 
 function App({ startInDemoMode = false }: { startInDemoMode?: boolean } = {}) {
 
@@ -23,12 +21,10 @@ function App({ startInDemoMode = false }: { startInDemoMode?: boolean } = {}) {
     };
 
     return (
-        <WagmiProvider config={wagmiConfig}>
-            <ColdWallet
-                properties={properties}
-                startInDemoMode={startInDemoMode}
-            />
-        </WagmiProvider>
+        <ColdWallet
+            properties={properties}
+            startInDemoMode={startInDemoMode}
+        />
     );
 }
 

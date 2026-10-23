@@ -1,13 +1,13 @@
-import * as wagmiChains from 'wagmi/chains';
-import type { Chain } from 'wagmi/chains';
+import * as viemChains from 'viem/chains';
+import type { Chain } from 'viem/chains';
 
-// Gather all chain objects exported from wagmi
-const allChains = Object.values(wagmiChains).filter(
+// Gather all chain objects exported from viem
+const allChains = Object.values(viemChains).filter(
   (chain) => typeof chain === 'object' && chain !== null && 'id' in (chain as any)
 ) as Chain[];
 
 if (allChains.length === 0) {
-  throw new Error('No chains found in wagmi');
+  throw new Error('No chains found in viem');
 }
 
 export const metaMaskChains = allChains as unknown as [Chain, ...Chain[]];
