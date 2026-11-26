@@ -30,6 +30,12 @@ describe('validateAmount', () => {
     expect(normalizeAmount('123456789012345.123456789', 9)).toBe('123456789012345.123456789');
   });
 
+  it('accepts meme-coin sized holdings (trillions and beyond) exactly', () => {
+    expect(normalizeAmount('4200000000000000000', 8)).toBe('4200000000000000000'); // BabyDoge-scale supply
+    expect(normalizeAmount('123456789012345678901234567.5', 8)).toBe('123456789012345678901234567.5');
+    expect(normalizeAmount('999999999999999999999999999999', 0)).toBe('999999999999999999999999999999'); // 30 digits
+  });
+
   it('rejects empty, junk, zero, negative and too-large values with a reason', () => {
     expect(validateAmount('', 2)).toEqual({ ok: false, error: 'empty' });
     expect(validateAmount(null, 2)).toEqual({ ok: false, error: 'empty' });
@@ -40,16 +46,16 @@ describe('validateAmount', () => {
     expect(validateAmount('.', 2)).toEqual({ ok: false, error: 'invalid' });
     expect(validateAmount('0', 2)).toEqual({ ok: false, error: 'zero' });
     expect(validateAmount('0.004', 2)).toEqual({ ok: false, error: 'zero' }); // rounds to 0
-    expect(validateAmount('1000000000000000', 2)).toEqual({ ok: false, error: 'too-large' });
-    expect(validateAmount('999999999999999.999', 2)).toEqual({ ok: false, error: 'too-large' }); // rounds up past the cap
-    expect(validateAmount('999999999999999', 2)).toEqual({ ok: true, value: '999999999999999' });
+    expect(validateAmount('1' + '0'.repeat(30), 2)).toEqual({ ok: false, error: 'too-large' }); // 31 digits
+    expect(validateAmount('9'.repeat(30) + '.999', 2)).toEqual({ ok: false, error: 'too-large' }); // rounds up past the cap
+    expect(validateAmount('9'.repeat(200), 2)).toEqual({ ok: false, error: 'too-large' }); // pasted junk
   });
 });
 
 describe('isAmountInputAllowed', () => {
   it('caps the integer part while typing, ignoring leading zeros', () => {
-    expect(isAmountInputAllowed('123456789012345')).toBe(true);
-    expect(isAmountInputAllowed('1234567890123456')).toBe(false);
+    expect(isAmountInputAllowed('9'.repeat(30))).toBe(true);
+    expect(isAmountInputAllowed('9'.repeat(31))).toBe(false);
     expect(isAmountInputAllowed('000123.45')).toBe(true);
     expect(isAmountInputAllowed('')).toBe(true);
   });
@@ -80,5 +86,16 @@ describe('validateAssetName', () => {
   it('counts characters, not UTF-16 units', () => {
     expect(validateAssetName('🙂'.repeat(MAX_ASSET_NAME_LENGTH)).ok).toBe(true);
     expect(validateAssetName('🙂'.repeat(MAX_ASSET_NAME_LENGTH + 1))).toEqual({ ok: false, error: 'too-long' });
+  });
+});
+
+describe('defaultAssetName', () => {
+  it('uses "<TICKER> amount" when it fits and the ticker alone (cut) when it does not', async () => {
+    const { defaultAssetName } = await import('./amount');
+    expect(defaultAssetName('EUR')).toBe('EUR amount');
+    const long = 'HIXOKDKEKJCJDKSICNDNAIAIHSBZNNXNXNDUJE'; // a real 38-char CoinGecko ticker
+    expect(defaultAssetName(long)).toBe(long);
+    expect(validateAssetName(defaultAssetName(long)).ok).toBe(true);
+    expect(Array.from(defaultAssetName('X'.repeat(60))).length).toBe(MAX_ASSET_NAME_LENGTH);
   });
 });

@@ -5,8 +5,13 @@
 import fiatCurrencies from '../fiatCurrencies';
 import noExponents from './noExponents';
 
-/** Largest integer part we accept (10^15 − 1): beyond it Number() can't represent cents exactly. */
-export const MAX_INTEGER_DIGITS = 15;
+/**
+ * Largest integer part we accept: 30 digits (< 10^30). Cheap meme / spam tokens are held in
+ * trillions and beyond (BabyDoge's supply is ~4.2·10^17), so a 15-digit cap was too tight. The
+ * amount itself is stored as an exact string; only the USD value goes through Number(), where 30
+ * digits cost a relative error of ~1e-16 — invisible. The cap only stops pasted junk.
+ */
+export const MAX_INTEGER_DIGITS = 30;
 /** Upper bound for decimals (ERC-20 tokens go up to 18). */
 export const MAX_SCALE = 18;
 export const MAX_ASSET_NAME_LENGTH = 40;
@@ -77,6 +82,14 @@ export function validateAssetName(raw: string | null | undefined): NameResult {
   if (!value) return { ok: false, error: 'empty' };
   if (Array.from(value).length > MAX_ASSET_NAME_LENGTH) return { ok: false, error: 'too-long' };
   return { ok: true, value };
+}
+
+/** Default label for a new holding: "<TICKER> amount", or just the ticker (cut to the name limit)
+ *  when that would be too long — CoinGecko has 38-character tickers. */
+export function defaultAssetName(currency: string): string {
+  const full = `${currency} amount`;
+  if (Array.from(full).length <= MAX_ASSET_NAME_LENGTH) return full;
+  return Array.from(currency).slice(0, MAX_ASSET_NAME_LENGTH).join('');
 }
 
 export const AMOUNT_ERROR_TEXT: Record<AmountError, string> = {

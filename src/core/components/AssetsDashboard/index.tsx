@@ -18,7 +18,7 @@ import TreemapChart from "../dashboard/TreemapChart";
 import HoldingRow from "../dashboard/HoldingRow";
 import { NumericFormat } from "react-number-format";
 import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../../ui/format";
-import { shortenAddresses } from "../../ui/visual";
+import { assetSym, shortenAddresses } from "../../ui/visual";
 import { CoinChip, SourceMark } from "../dashboard/AssetIcon";
 import { amountScale, normalizeAmount } from "../../utils/amount";
 import {
@@ -277,7 +277,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                         onMouseLeave={() => setHot(null)}
                                     >
                                         <span className="legend__fill" style={{ width: (l.usd / maxLeaf) * 100 + '%', background: l.color }} />
-                                        <CoinChip className="legend__chip" code={l.code as string || ''} kind={l.kind as 'fiat' | 'crypto'} color={l.color} text={(l.code as string || '').slice(0, 3)} />
+                                        <CoinChip className="legend__chip" code={l.code as string || ''} kind={l.kind as 'fiat' | 'crypto'} color={l.color} text={Array.from(assetSym(l.code as string || '')).slice(0, 3).join('')} />
                                         <span className="legend__amt num">
                                             {hidden ? `${AMOUNT_MASK}\u00A0${l.code}` : (
                                                 <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={amt.decimalScale} value={amt.value} />{'\u00A0'}{l.code}</>

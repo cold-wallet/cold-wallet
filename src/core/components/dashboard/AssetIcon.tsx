@@ -3,7 +3,13 @@
 // to load — keeps the original coloured ticker chip / tinted letter.
 import React, { useEffect, useState } from 'react';
 import { cryptoIconUrl, isRoundCryptoIcon } from '../../ui/assetIcons';
-import { assetSym } from '../../ui/visual';
+import { assetSym, glyphWidth } from '../../ui/visual';
+
+/** Font-size step for a chip label by its visual width (see .coin-text[data-len] in design.css). */
+function lenStep(label: string): number {
+  const w = glyphWidth(label);
+  return w <= 1 ? 1 : w <= 2.2 ? 2 : w <= 3.2 ? 3 : w <= 4.2 ? 4 : 5;
+}
 import { fiatSymbol, fiatTint } from '../../ui/fiatGlyph';
 import fiatCurrencies from '../../fiatCurrencies';
 
@@ -56,14 +62,14 @@ export function CoinChip({ code, kind, color, className, text, style, children }
       </span>
     );
   }
-  // Text fallback: the ticker shrinks with its length (data-len, see .coin-text in design.css) so
-  // 3–4 letter tickers (WETH, USDC) stay whole inside every chip size instead of overflowing.
+  // Text fallback: the ticker shrinks with its visual width (data-len, see .coin-text in design.css)
+  // so 3–4 letter tickers (WETH, USDC) and wide CJK / emoji labels stay inside every chip size.
   const label = text ?? assetSym(code);
-  const len = Array.from(label).length;
   return (
     <span
       className={className + ' coin-text'}
-      data-len={len > 4 ? 4 : len}
+      data-len={lenStep(label)}
+      title={code}
       style={{ background: color + '22', color, border: '1px solid ' + color + '55', ...style }}
     >
       <span className="coin-text__sym">{label}</span>

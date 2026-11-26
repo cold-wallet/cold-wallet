@@ -39,9 +39,27 @@ export function assetColor(code: string): string {
   return `hsl(${hue}deg ${sat}% 62%)`;
 }
 
-/** Short glyph shown inside the coin chip (currency ticker, trimmed). */
+/** Short glyph shown inside the coin chip (currency ticker, trimmed). Built from the ticker's
+ *  letters and digits when it has any, so "1-COIN-CAN-…" → "1CO" and "DOG•GO•…" → "DOG" rather
+ *  than punctuation or stray combining marks ("( ͡° ͜ʖ ͡°)"). Counts characters, not UTF-16
+ *  units, so emoji / astral tickers are never cut in half. */
 export function assetSym(code: string): string {
-  return code.length <= 4 ? code.toUpperCase() : code.slice(0, 3).toUpperCase();
+  const all = Array.from(code.toUpperCase());
+  const alnum = all.filter((c) => /[\p{L}\p{N}]/u.test(c));
+  const chars = alnum.length ? alnum : all.filter((c) => !/[\p{M}\s]/u.test(c));
+  return chars.length <= 4 ? chars.join('') : chars.slice(0, 3).join('');
+}
+
+// Wide glyphs (CJK, Hangul, full-width forms, emoji) take ~1.6× a Latin capital's width;
+// combining marks (the ͡ in "( ͡° ͜ʖ ͡°)") take none.
+const WIDE = /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹏＀-｠￠-￦]|\p{Extended_Pictographic}/u;
+const COMBINING = /\p{M}/u;
+
+/** Visual width of a chip label in "Latin capital" units, for picking its font-size step. */
+export function glyphWidth(label: string): number {
+  let w = 0;
+  for (const ch of Array.from(label)) w += COMBINING.test(ch) ? 0 : WIDE.test(ch) ? 1.6 : 1;
+  return w;
 }
 
 /** Middle-truncate long 0x… hex addresses inside a label so they don't overflow the row. */

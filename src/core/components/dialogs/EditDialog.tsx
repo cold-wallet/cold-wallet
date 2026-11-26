@@ -9,7 +9,7 @@ import fiatCurrencies from '../../fiatCurrencies';
 import uuidGenerator from '../../utils/uuidGenerator';
 import {
   AMOUNT_ERROR_TEXT, MAX_ASSET_NAME_LENGTH, NAME_ERROR_TEXT, amountScale, isAmountInputAllowed,
-  validateAmount, validateAssetName, type AmountError, type NameError,
+  defaultAssetName, validateAmount, validateAssetName, type AmountError, type NameError,
 } from '../../utils/amount';
 import { assetColor } from '../../ui/visual';
 import { CoinChip } from '../dashboard/AssetIcon';
@@ -32,7 +32,7 @@ export default function EditDialog({ props }: { props: Props }) {
   // default the name when first entering the details stage for a brand-new asset
   useEffect(() => {
     if (!editing && currency && props.newAssetName == null) {
-      props.setNewAssetName(currency + ' amount');
+      props.setNewAssetName(defaultAssetName(currency));
     }
     // eslint-disable-next-line
   }, [editing, currency]);
@@ -106,7 +106,7 @@ export default function EditDialog({ props }: { props: Props }) {
                     <div className="asset-li" key={o.value} onClick={() => pick(o.value)}>
                       <CoinChip className="asset-li__ico" code={o.value} color={c} />
                       <div className="asset-li__main">
-                        <div className="asset-li__code">{o.value}</div>
+                        <div className="asset-li__code" title={o.value}>{o.value}</div>
                         <div className="asset-li__name">{o.label}</div>
                       </div>
                       <span className="asset-li__kind">{fiatCurrencies.getByStringCode(o.value) ? 'Fiat' : 'Crypto'}</span>
@@ -149,8 +149,8 @@ export default function EditDialog({ props }: { props: Props }) {
             <div className="sel-chip">
               <CoinChip className="sel-chip__ico" code={cur} kind={isFiat ? 'fiat' : 'crypto'} color={color} />
               <div className="sel-chip__main">
-                <div className="sel-chip__code">{cur} <span style={{ color: 'var(--ink-3)', fontWeight: 400, fontSize: 12 }}>· {isFiat ? 'fiat' : 'crypto'}</span></div>
-                <div className="sel-chip__name">{props.newAssetName || cur + ' amount'}</div>
+                <div className="sel-chip__code" title={cur}>{cur} <span style={{ color: 'var(--ink-3)', fontWeight: 400, fontSize: 12 }}>· {isFiat ? 'fiat' : 'crypto'}</span></div>
+                <div className="sel-chip__name">{props.newAssetName || defaultAssetName(cur)}</div>
               </div>
               {!editing && <button className="sel-chip__change" onClick={back}>Change</button>}
             </div>
@@ -182,7 +182,7 @@ export default function EditDialog({ props }: { props: Props }) {
                 className={props.isNewAssetNameInvalid ? 'invalid' : ''}
                 aria-invalid={!!nameError}
                 onChange={(e) => { props.setIsNewAssetNameInvalid(false); setNameError(null); props.setNewAssetName(e.target.value); }}
-                placeholder={cur + ' amount'}
+                placeholder={defaultAssetName(cur)}
               />
               {nameError
                 ? <small className="hint hint--error" role="alert">{NAME_ERROR_TEXT[nameError]}</small>
