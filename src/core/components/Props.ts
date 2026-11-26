@@ -164,14 +164,6 @@ export default interface Props {
     setPinCode: Dispatch<SetStateAction<string | null>>,
     pinCodeEntered: string | null,
     setPinCodeEntered: Dispatch<SetStateAction<string | null>>,
-    pinCodeEnteringFinished: boolean,
-    setPinCodeEnteringFinished: Dispatch<SetStateAction<boolean>>,
-    pinCodeRepeatEntered: string | null,
-    setPinCodeRepeatEntered: Dispatch<SetStateAction<string | null>>,
-    invalidPinCode: boolean,
-    setInvalidPinCode: Dispatch<SetStateAction<boolean>>,
-    currentPinCodeConfirmed: boolean,
-    setCurrentPinCodeConfirmed: Dispatch<SetStateAction<boolean>>,
     /** Create a new empty wallet locked with `pin` (replaces whatever is stored on this device). */
     createWallet: (pin: string) => void,
 

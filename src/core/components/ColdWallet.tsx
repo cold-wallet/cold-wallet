@@ -273,10 +273,6 @@ export default function ColdWallet(
     const [importDataBuffer, setImportDataBuffer] = useState<string | null>(null);
 
     const [pinCodeSettingsRequested, setPinCodeSettingsRequested] = useState(false);
-    const [pinCodeEnteringFinished, setPinCodeEnteringFinished] = useState(false);
-    const [currentPinCodeConfirmed, setCurrentPinCodeConfirmed] = useState(false);
-    const [pinCodeRepeatEntered, setPinCodeRepeatEntered] = useState<string | null>(null);
-    const [invalidPinCode, setInvalidPinCode] = useState(false);
 
     // A new wallet is always created with a PIN: the data is encrypted with it from the first save,
     // and the PIN goes to the session too so the lock screen doesn't ask for it right away. Cached
@@ -343,10 +339,6 @@ export default function ColdWallet(
 
         setPinCodeSettingsRequested(false);
         setPinCodeEntered(null);
-        setPinCodeEnteringFinished(false);
-        setCurrentPinCodeConfirmed(false);
-        setPinCodeRepeatEntered(null);
-        setInvalidPinCode(false);
 
         setEnabledCcxtIntegrations(getEnabledCcxtIntegrations())
         setLoadingUserDataFromResource(null)
@@ -473,10 +465,6 @@ export default function ColdWallet(
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
         setPinCode,
         pinCodeEntered, setPinCodeEntered,
-        pinCodeEnteringFinished, setPinCodeEnteringFinished,
-        pinCodeRepeatEntered, setPinCodeRepeatEntered,
-        invalidPinCode, setInvalidPinCode,
-        currentPinCodeConfirmed, setCurrentPinCodeConfirmed,
         createWallet,
         currencyService,
         priceService,

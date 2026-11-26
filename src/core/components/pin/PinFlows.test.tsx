@@ -3,6 +3,7 @@ import { render, fireEvent, screen } from '@testing-library/react';
 import PinSetup from './PinSetup';
 import PinCodeOnLogin from '../unauthorized/PinCodeOnLogin';
 import NotLoggedIn from '../unauthorized/NotLoggedIn';
+import ChangePin from './ChangePin';
 import type Props from '../Props';
 
 function typePin(pin: string) {
@@ -138,5 +139,42 @@ describe('lock screen: forgot PIN', () => {
     fireEvent.click(screen.getByText('Back'));
     expect(screen.getByText('Enter PIN-code')).toBeTruthy();
     expect(p.createWallet).not.toHaveBeenCalled();
+  });
+});
+
+describe('Settings: change PIN', () => {
+  function open(pinCode: string | null = '2580') {
+    const props = {
+      userData: { id: 'u', assets: [], settings: { pinCode } },
+      setUserData: vi.fn(),
+      setPinCode: vi.fn(),
+      setPinCodeSettingsRequested: vi.fn(),
+    } as unknown as Props;
+    render(<ChangePin props={props} />);
+    return props;
+  }
+
+  it('asks for the current PIN, then the new one twice, and only then saves', () => {
+    const props = open();
+    expect(screen.getByText('Step 1 of 3')).toBeTruthy();
+    typePin('1111');
+    expect(status()).toMatch(/Wrong PIN/);
+    typePin('2580');
+    expect(screen.getByText('Step 2 of 3')).toBeTruthy();
+    typePin('4444');
+    expect(screen.getByText('Step 3 of 3')).toBeTruthy();
+    expect(props.setUserData).not.toHaveBeenCalled();
+    typePin('4444');
+    expect(props.setUserData).toHaveBeenCalledWith(expect.objectContaining({ settings: { pinCode: '4444' } }));
+    expect(props.setPinCode).toHaveBeenCalledWith('4444');
+    expect(props.setPinCodeSettingsRequested).toHaveBeenCalledWith(false);
+  });
+
+  it('goes back to Settings without saving', () => {
+    const props = open();
+    typePin('2580');
+    fireEvent.click(screen.getByText('Back'));
+    expect(props.setPinCodeSettingsRequested).toHaveBeenCalledWith(false);
+    expect(props.setUserData).not.toHaveBeenCalled();
   });
 });

@@ -2,7 +2,7 @@
 // Routes the same Props sub-state the legacy SettingsWindow used:
 //   integrationWindowNameSelected → IntegrationConfig (real *Settings field bindings + validation)
 //   importOrExportSettingRequested → Export / Import (dataImporter)
-//   pinCodeSettingsRequested → PinView (change / add PIN; there is no "remove": a PIN is required)
+//   pinCodeSettingsRequested → ChangePin (own compact dialog; there is no "remove": a PIN is required)
 //   else → default view (Integrations · Data · Security)
 import React, { useRef, useState } from "react";
 import Props from "../Props";
@@ -12,7 +12,7 @@ import { useBackupImport } from "../settings/ImportData/useBackupImport";
 import BackupImportFields from "../settings/ImportData/BackupImportFields";
 import ccxtConnector from "../../integrations/ccxt/ccxtConnector";
 import { isConfigured, persistEnabled, setTempEnabled, validateSavedCredentials } from "./integrationActions";
-import PinPad, { PIN_MAX, PIN_MIN } from "../pin/PinPad";
+import ChangePin from "../pin/ChangePin";
 import { SourceMark } from "../dashboard/AssetIcon";
 import { sourceIconUrl } from "../../ui/assetIcons";
 
@@ -43,11 +43,13 @@ export default function SettingsDialog({ props }: { props: Props }) {
     body = <ExportView props={props} />;
   } else if (props.importOrExportSettingRequested === 'import') {
     body = <ImportView props={props} />;
-  } else if (props.pinCodeSettingsRequested) {
-    body = <PinView props={props} />;
   } else {
     body = <DefaultView props={props} />;
   }
+
+  // Change PIN replaces the Settings window with the compact PIN dialog every PIN screen uses;
+  // its Back returns here.
+  if (props.pinCodeSettingsRequested) return <ChangePin props={props} />;
 
   return (
     <div className="scrim" onClick={close}>
@@ -527,77 +529,6 @@ function ImportView({ props }: { props: Props }) {
         <button className="btn" onClick={() => props.setImportOrExportSettingRequested(null)}>Cancel</button>
         <button className="btn btn--p" disabled={!state.canSubmit} onClick={state.submit}>Restore</button>
       </div>
-    </div>
-  );
-}
-
-function PinView({ props }: { props: Props }) {
-  const entering = props.pinCodeEnteringFinished;
-  const pinCode = entering ? props.pinCodeRepeatEntered : props.pinCodeEntered;
-  const setPinCode = entering ? props.setPinCodeRepeatEntered : props.setPinCodeEntered;
-  const needCurrent = !!props.userData.settings.pinCode && !props.currentPinCodeConfirmed;
-
-  function acceptPinCode() {
-    if (!(pinCode && pinCode.length >= PIN_MIN && pinCode.length <= PIN_MAX)) return;
-    if (props.pinCodeEnteringFinished) {
-      if (props.pinCodeRepeatEntered === props.pinCodeEntered) {
-        const newUserData = { ...props.userData };
-        newUserData.settings.pinCode = pinCode;
-        props.setUserData(newUserData);
-        props.setPinCode(pinCode);
-        props.setPinCodeEntered(null);
-        props.setPinCodeRepeatEntered(null);
-        props.setPinCodeEnteringFinished(false);
-        props.setPinCodeSettingsRequested(false);
-        props.setCurrentPinCodeConfirmed(false);
-      } else {
-        props.setInvalidPinCode(true);
-        props.setPinCodeEntered(null);
-        props.setPinCodeRepeatEntered(null);
-        props.setPinCodeEnteringFinished(false);
-      }
-    } else if (needCurrent) {
-      if (pinCode === props.userData.settings.pinCode) {
-        props.setCurrentPinCodeConfirmed(true);
-        props.setPinCodeEntered(null);
-        props.setInvalidPinCode(false);
-      } else {
-        props.setInvalidPinCode(true);
-        props.setPinCodeEntered(null);
-      }
-    } else {
-      props.setInvalidPinCode(false);
-      props.setPinCodeEnteringFinished(true);
-    }
-  }
-
-  const back = () => {
-    props.setPinCodeEntered(null);
-    props.setInvalidPinCode(false);
-    props.setPinCodeRepeatEntered(null);
-    props.setPinCodeEnteringFinished(false);
-    props.setPinCodeSettingsRequested(false);
-    props.setCurrentPinCodeConfirmed(false);
-  };
-
-  const prompt = props.pinCodeEnteringFinished ? 'Repeat new'
-    : needCurrent ? 'Enter current' : 'Enter 4–8 digit new';
-
-  return (
-    <div className="dlg__body">
-      <div className="cfg-head">
-        <Back onClick={back} />
-        <div className="cfg-title">
-          <span className="intg__chip" style={{ background: 'var(--accent)', width: 32, height: 32, borderRadius: 9, color: 'var(--accent-ink)' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
-          </span>
-          <b>{props.userData.settings.pinCode ? 'Change' : 'Set'} PIN-code</b>
-        </div>
-      </div>
-      <p className="data-desc" style={{ textAlign: 'center', color: props.invalidPinCode ? 'var(--danger)' : undefined }}>
-        {props.invalidPinCode ? 'PIN-code does not match. ' : ''}{prompt} PIN-code.
-      </p>
-      <PinPad pinCode={pinCode} setPinCode={setPinCode} acceptPinCode={acceptPinCode} />
     </div>
   );
 }
