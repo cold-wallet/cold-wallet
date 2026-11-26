@@ -73,31 +73,47 @@ export function isAmountInputAllowed(value: string): boolean {
   return intPart.length <= MAX_INTEGER_DIGITS;
 }
 
+export type AmountInputNotice = 'comma' | 'two-dots' | 'no-decimals' | 'too-many-decimals' | 'too-large';
+export type AmountInputResult = { value: string | null; notice: AmountInputNotice | null };
+
 /**
- * Turn whatever was typed or pasted into the amount field into a numeric string with "." as the
- * decimal point, limited to `scale` decimals — or `null` to reject the change (too many digits).
- * Works on the input value itself, not on key events, so it also covers paste and phone keyboards
- * (Android often reports key "Unidentified"). Separator rules:
- *   - one comma and no dot → decimal comma ("1,5" → "1.5"), the UA/EU way of typing it;
- *   - comma(s) and a dot → commas group thousands ("1,234.56" → "1234.56");
- *   - several commas, no dot → they group thousands ("1,234,567" → "1234567");
- *   - spaces / apostrophes are grouping and are dropped ("1 234,5" → "1234.5").
+ * Parse what was typed or pasted into the amount field. Only "." separates the fraction; this
+ * works on the input value itself (not key events), so paste and phone keyboards behave the same.
+ *   - commas are never decimals: they are dropped and reported ('comma'), so "1,234.56" pastes as
+ *     1234.56 and a typed "1,5" visibly becomes 15 with a hint to use a dot;
+ *   - spaces / apostrophes are grouping and are dropped; any other non-digit is ignored;
+ *   - a change that would make an invalid number is REJECTED (`value: null`) instead of being
+ *     "repaired", so the field never silently changes what is already there: a second dot
+ *     ("12.34" → "1.2.34" would otherwise move the point), more decimals than `scale`
+ *     ("1.23" → "1.923" would otherwise drop a digit), any decimals when `scale` is 0, or more
+ *     than MAX_INTEGER_DIGITS before the point.
  */
-export function sanitizeAmountInput(raw: string, scale: number): string | null {
+export function sanitizeAmountInput(raw: string, scale: number): AmountInputResult {
   let s = (raw || '').replace(/[\s'\u2019\u00A0\u202F]/g, '');
-  const commas = (s.match(/,/g) || []).length;
-  const hasDot = s.includes('.');
-  s = (commas === 1 && !hasDot) ? s.replace(',', '.') : s.replace(/,/g, '');
+  const hadComma = s.includes(',');
   s = s.replace(/[^\d.]/g, '');
+  const dots = (s.match(/\./g) || []).length;
+  if (dots > 1) return { value: null, notice: 'two-dots' };
+  const sc = clampScale(scale);
   const dot = s.indexOf('.');
   let intPart = dot < 0 ? s : s.slice(0, dot);
-  let frac = dot < 0 ? null : s.slice(dot + 1).replace(/\./g, '');
+  const frac = dot < 0 ? null : s.slice(dot + 1);
+  if (frac !== null && sc === 0) return { value: null, notice: 'no-decimals' };
+  if (frac !== null && frac.length > sc) return { value: null, notice: 'too-many-decimals' };
   intPart = intPart.replace(/^0+(?=\d)/, '');
   if (frac !== null && !intPart) intPart = '0';
-  const sc = clampScale(scale);
-  if (frac !== null) frac = sc ? frac.slice(0, sc) : null;
-  if (!isAmountInputAllowed(intPart)) return null;
-  return frac === null ? intPart : `${intPart}.${frac}`;
+  if (!isAmountInputAllowed(intPart)) return { value: null, notice: 'too-large' };
+  return { value: frac === null ? intPart : `${intPart}.${frac}`, notice: hadComma ? 'comma' : null };
+}
+
+export function amountInputNoticeText(notice: AmountInputNotice, currency: string, scale: number): string {
+  switch (notice) {
+    case 'comma': return 'Commas are ignored here: use a dot (.) for decimals.';
+    case 'two-dots': return 'An amount has only one decimal point.';
+    case 'no-decimals': return `${currency} has no decimals.`;
+    case 'too-many-decimals': return `${currency} allows up to ${scale} decimal${scale === 1 ? '' : 's'}.`;
+    case 'too-large': return `At most ${MAX_INTEGER_DIGITS} digits before the point.`;
+  }
 }
 
 export type NameError = 'empty' | 'too-long';

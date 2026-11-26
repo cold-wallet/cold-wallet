@@ -850,3 +850,4 @@ body {
 .sel-chip__change:hover { background: var(--accent-dim); }
 .field small.hint { display: block; font-size: 11px; color: var(--ink-3); letter-spacing: 0; text-transform: none; margin-top: 6px; font-weight: 400; }
 .field small.hint--error { color: var(--danger); }
+.field small.hint--notice { color: var(--accent); }

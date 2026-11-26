@@ -101,35 +101,48 @@ describe('defaultAssetName', () => {
 });
 
 describe('sanitizeAmountInput', () => {
-  it('reads a single comma as the decimal separator (UA/EU typing)', async () => {
-    const { sanitizeAmountInput } = await import('./amount');
-    expect(sanitizeAmountInput('1,5', 8)).toBe('1.5');
-    expect(sanitizeAmountInput('0,25', 2)).toBe('0.25');
-    expect(sanitizeAmountInput(',5', 2)).toBe('0.5');
-    expect(sanitizeAmountInput('1,', 2)).toBe('1.');
+  const run = async (raw: string, scale: number) => (await import('./amount')).sanitizeAmountInput(raw, scale);
+
+  it('accepts plain typing with a dot', async () => {
+    expect(await run('1.5', 8)).toEqual({ value: '1.5', notice: null });
+    expect(await run('12.', 2)).toEqual({ value: '12.', notice: null });   // trailing dot while typing
+    expect(await run('.', 2)).toEqual({ value: '0.', notice: null });      // dot first
+    expect(await run('.5', 2)).toEqual({ value: '0.5', notice: null });
+    expect(await run('007', 2)).toEqual({ value: '7', notice: null });
+    expect(await run('', 2)).toEqual({ value: '', notice: null });
   });
-  it('treats commas as thousands when a dot is present or there are several', async () => {
-    const { sanitizeAmountInput } = await import('./amount');
-    expect(sanitizeAmountInput('1,234.56', 2)).toBe('1234.56');
-    expect(sanitizeAmountInput('1,234,567', 2)).toBe('1234567');
+
+  it('never treats a comma as a decimal: drops it and says so', async () => {
+    expect(await run('1,5', 8)).toEqual({ value: '15', notice: 'comma' });
+    expect(await run('1,234.56', 2)).toEqual({ value: '1234.56', notice: 'comma' }); // US paste
+    expect(await run('1,000', 8)).toEqual({ value: '1000', notice: 'comma' });
   });
-  it('drops spaces / apostrophes used for grouping', async () => {
-    const { sanitizeAmountInput } = await import('./amount');
-    expect(sanitizeAmountInput('1 234,5', 2)).toBe('1234.5');
-    expect(sanitizeAmountInput("1'234.5", 2)).toBe('1234.5');
-    expect(sanitizeAmountInput('1 234', 2)).toBe('1234');
+
+  it('rejects a second dot wherever it is typed, so the point never moves', async () => {
+    expect(await run('1.2.34', 2)).toEqual({ value: null, notice: 'two-dots' });   // 12.34, dot between 1 and 2
+    expect(await run('12.3.4', 2)).toEqual({ value: null, notice: 'two-dots' });   // 12.34, dot between 3 and 4
+    expect(await run('.12.34', 2)).toEqual({ value: null, notice: 'two-dots' });   // dot at the very start
+    expect(await run('12.34.', 2)).toEqual({ value: null, notice: 'two-dots' });   // dot at the end
+    expect(await run('1..', 2)).toEqual({ value: null, notice: 'two-dots' });      // two in a row
+    expect(await run('1.234.567', 2)).toEqual({ value: null, notice: 'two-dots' }); // EU thousands paste
   });
-  it('cuts decimals to the scale, drops junk, leading zeros and extra dots', async () => {
-    const { sanitizeAmountInput } = await import('./amount');
-    expect(sanitizeAmountInput('1.23456', 2)).toBe('1.23');
-    expect(sanitizeAmountInput('1500.75', 0)).toBe('1500'); // JPY
-    expect(sanitizeAmountInput('abc12x.3.4', 8)).toBe('12.34');
-    expect(sanitizeAmountInput('007', 2)).toBe('7');
-    expect(sanitizeAmountInput('', 2)).toBe('');
+
+  it('rejects more decimals than the currency has instead of dropping digits', async () => {
+    expect(await run('1.923', 2)).toEqual({ value: null, notice: 'too-many-decimals' }); // 1.23, 9 after the dot
+    expect(await run('1.234', 2)).toEqual({ value: null, notice: 'too-many-decimals' });
+    expect(await run('12.', 0)).toEqual({ value: null, notice: 'no-decimals' });          // JPY
+    expect(await run('1.12345678', 8)).toEqual({ value: '1.12345678', notice: null });
   });
+
+  it('drops grouping spaces / apostrophes and junk silently', async () => {
+    expect(await run('1 234.5', 2)).toEqual({ value: '1234.5', notice: null });
+    expect(await run("1'234", 2)).toEqual({ value: '1234', notice: null });
+    expect(await run('1\u00A0234', 2)).toEqual({ value: '1234', notice: null });
+    expect(await run('abc12x.3', 8)).toEqual({ value: '12.3', notice: null });
+  });
+
   it('rejects a change that would exceed the digit cap', async () => {
-    const { sanitizeAmountInput } = await import('./amount');
-    expect(sanitizeAmountInput('9'.repeat(30), 2)).toBe('9'.repeat(30));
-    expect(sanitizeAmountInput('9'.repeat(31), 2)).toBeNull();
+    expect(await run('9'.repeat(30), 2)).toEqual({ value: '9'.repeat(30), notice: null });
+    expect(await run('9'.repeat(31), 2)).toEqual({ value: null, notice: 'too-large' });
   });
 });

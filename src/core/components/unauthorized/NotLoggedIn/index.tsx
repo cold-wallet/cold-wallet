@@ -1,6 +1,6 @@
 // NotLoggedIn — first-run gate, reskinned to the new WelcomeView design.
 // Same mechanics: create wallet / demo mode / import-from-token + terms checkbox.
-import React, { useState, type ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import UserData from "../../../domain/UserData";
 import uuidGenerator from "../../../utils/uuidGenerator";
 import { initUserDataHolder } from "../../../services/UserDataService";
