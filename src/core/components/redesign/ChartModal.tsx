@@ -5,6 +5,7 @@ import { arcPath, shade, squarify, type SquarifyCell } from './geometry';
 import { maskUSD, amountDisplay } from './format';
 import AmountText from './AmountText';
 import { shortenAddresses } from './visual';
+import { CoinChip } from './AssetIcon';
 import type { Valued } from './portfolio';
 
 interface ClassColor { fiat: string; crypto: string; }
@@ -189,7 +190,7 @@ export default function ChartModal({ valued, total, colorMap, classColor, chart,
                 const amt = amountDisplay(h.asset.amount, h.scale, h.unitUsd);
                 return (
                   <div className="fs-d-row" key={h.id}>
-                    <span className="fs-d-ico" style={{ background: ac + '22', color: ac, border: '1px solid ' + ac + '55' }}>{h.sym}</span>
+                    <CoinChip className="fs-d-ico" code={h.code} kind={h.kind} color={ac} text={h.sym} />
                     <div className="fs-d-main">
                       <div className="fs-d-asset">{shortenAddresses(h.asset.normalizedName)}</div>
                       <div className="fs-d-meta num">

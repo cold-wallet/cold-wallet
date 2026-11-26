@@ -19,6 +19,7 @@ import HoldingRow from "../redesign/HoldingRow";
 import { NumericFormat } from "react-number-format";
 import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../redesign/format";
 import { shortenAddresses } from "../redesign/visual";
+import { CoinChip, SourceMark } from "../redesign/AssetIcon";
 import {
     assetSlices,
     chartData,
@@ -179,7 +180,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                     {groups.map((g) => (
                         <div className="group" key={g.k}>
                             <div className="group__head">
-                                <span className="group__chip" style={{ background: g.tint }}>{g.mark}</span>
+                                <SourceMark className="group__chip" icon={g.icon} mark={g.mark} tint={g.tint} />
                                 <span className="group__name">{g.label}</span>
                                 <span className="group__sum num">{maskUSD(g.sum, hidden, { cents: false })}</span>
                             </div>
@@ -272,7 +273,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                         onMouseLeave={() => setHot(null)}
                                     >
                                         <span className="legend__fill" style={{ width: (l.usd / maxLeaf) * 100 + '%', background: l.color }} />
-                                        <span className="legend__chip" style={{ background: l.color + '22', color: l.color, border: '1px solid ' + l.color + '55' }}>{(l.code as string || '').slice(0, 3)}</span>
+                                        <CoinChip className="legend__chip" code={l.code as string || ''} kind={l.kind as 'fiat' | 'crypto'} color={l.color} text={(l.code as string || '').slice(0, 3)} />
                                         <span className="legend__amt num">
                                             {hidden ? `${AMOUNT_MASK}\u00A0${l.code}` : (
                                                 <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={amt.decimalScale} value={amt.value} />{'\u00A0'}{l.code}</>
@@ -296,7 +297,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                         </div>
                         {sources.map((s) => (
                             <div className="mini" key={s.key}>
-                                <span className="group__chip" style={{ background: s.tint, marginRight: 2 }}>{s.mark}</span>
+                                <SourceMark className="group__chip" icon={s.icon} mark={s.mark} tint={s.tint} style={{ marginRight: 2 }} />
                                 <span className="mini__name" style={{ width: 110 }}>{s.label}</span>
                                 <span className="mini__bar"><i style={{ width: s.pct + '%', background: 'var(--accent)' }} /></span>
                                 <span className="mini__val num">
