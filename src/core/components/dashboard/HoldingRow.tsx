@@ -46,10 +46,13 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
       </div>
       <div className="row__end">
       <div className="row__right">
-        <div className="row__usd num">{maskUSD(h.usd, hidden)}</div>
-        <div className="row__amt num">
+        {/* The holding in its own currency comes first, its USD equivalent under it. The classes
+            stay by position (row__usd = the bold top line, row__amt = the muted second line) so
+            each line keeps its look; only the content swapped. */}
+        <div className="row__usd num">
           <AmountText amt={amt} code={h.code} hidden={hidden} />
         </div>
+        <div className="row__amt num">{maskUSD(h.usd, hidden)}</div>
       </div>
       <div className="row__actions">
         {h.manual ? (
