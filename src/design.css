@@ -762,7 +762,6 @@ body {
 .import-area:focus { border-color: var(--accent); }
 .import-area.bad { border-color: var(--danger); }
 .import-error { margin: 8px 0 0; font-size: 12px; color: var(--danger); }
-.import-pin { margin-top: 14px; }
 .data-actbar { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
 .data-actbar .meta { margin-left: auto; font-size: 11.5px; color: var(--ink-3); }
 .ghostbtn {
@@ -790,14 +789,41 @@ body {
   display: grid; place-items: center; user-select: none;
 }
 .key:hover { background: var(--card-hi); border-color: var(--line-2); }
-.key:active { transform: scale(.96); background: var(--accent-dim); }
+.key:active, .key.is-pressed { transform: scale(.96); background: var(--accent-dim); }
 .key svg { width: 24px; height: 24px; }
 .key--ok { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .key--ok:hover { filter: brightness(1.08); background: var(--accent); }
+.key--ok.is-pressed { background: var(--accent); filter: brightness(1.12); }
 .key--ok:disabled { opacity: .4; cursor: not-allowed; filter: none; }
 .key--muted { color: var(--ink-2); }
 .pin-msg { text-align: center; font-size: 12.5px; margin-top: 18px; min-height: 16px; color: var(--ink-3); }
 .pin-msg.ok { color: var(--accent); }
+
+/* PIN dialog — one look for every PIN screen (new wallet, no-PIN wallet, unlock, change PIN) */
+.pin-dialog { width: 380px; max-width: calc(100vw - 32px); }
+.pin-dialog:focus { outline: none; }
+.pin-dialog__head { display: flex; align-items: center; justify-content: space-between; min-height: 36px; margin-bottom: 10px; }
+.pin-dialog__step { margin-left: auto; font-size: 12px; color: var(--ink-3); }
+.pin-dialog__title { display: flex; align-items: center; justify-content: center; gap: 11px; margin-bottom: 6px; }
+.pin-dialog__title b { font-size: 16px; font-weight: 600; }
+.pin-dialog__chip {
+  width: 32px; height: 32px; border-radius: 9px; flex: none; display: grid; place-items: center;
+  background: var(--accent); color: var(--accent-ink);
+}
+.pin-dialog__chip svg { width: 16px; height: 16px; }
+.pin-dialog__intro, .pin-dialog__status { font-size: 13px; line-height: 1.55; color: var(--ink-2); text-align: center; margin: 0 0 6px; }
+.pin-dialog__status.is-error { color: var(--danger); }
+.pin-dialog__warn {
+  display: flex; gap: 9px; align-items: flex-start; margin: 4px 0 0; padding: 11px 13px;
+  font-size: 12.5px; line-height: 1.5; color: var(--ink-2);
+  background: color-mix(in oklab, var(--danger) 9%, transparent);
+  border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent); border-radius: var(--r-sm);
+}
+.pin-dialog__warn svg { width: 15px; height: 15px; flex: none; margin-top: 2px; color: var(--danger); }
+.pin-reset { display: block; margin: 6px auto 0; background: none; border: 0; cursor: pointer; font-family: var(--ui); font-size: 12.5px; color: var(--ink-3); text-decoration: underline; text-underline-offset: 3px; }
+.pin-reset:hover { color: var(--ink); }
+.pin-reset-confirm { text-align: center; }
+.pin-reset-confirm .dialog__actions { justify-content: center; }
 
 /* Add-asset dialog */
 .asset-search { position: relative; margin-bottom: 16px; }

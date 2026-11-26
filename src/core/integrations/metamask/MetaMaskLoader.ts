@@ -468,7 +468,14 @@ export default function MetaMaskLoader(
         (wallet?.accounts?.length && metaMaskSettingsEnabled && loadingUserDataAllowed) ? REQUEST_DELAY_MS : null
     );
 
+    // Forget the cached balances and scan progress (a new wallet replaced the old one).
+    const clearMetaMaskData = () => {
+        setMetaMaskUserData({} as MetaMaskAccount);
+        setScanState({sig: '', index: 0, completedAt: 0, updatedAt: 0});
+    };
+
     return {
+        clearMetaMaskData,
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
         metaMaskAssets,
         refreshMetaMaskAsset,

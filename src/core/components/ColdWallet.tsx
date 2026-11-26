@@ -9,7 +9,7 @@ import MonobankUserData from "../integrations/monobank/MonobankUserData";
 import PinCodeOnLogin from "./unauthorized/PinCodeOnLogin";
 import OkxLoader from "../integrations/okx/OkxLoader";
 import {OkxAccount} from "../integrations/okx/okxApiClient";
-import UserDataService from "../services/UserDataService";
+import UserDataService, {initUserDataHolder} from "../services/UserDataService";
 import UserData from "../domain/UserData";
 import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 import AssetDTO from "../domain/AssetDTO";
@@ -23,6 +23,8 @@ import PriceService from "../services/PriceService";
 import MetaMaskLoader from "../integrations/metamask/MetaMaskLoader";
 import UserDataStorageFactory from "../domain/UserDataStorageFactory";
 import {buildDemoUserDataHolder} from "../utils/DemoAssetsGenerator";
+import uuidGenerator from "../utils/uuidGenerator";
+import PinSetup from "./pin/PinSetup";
 
 export default function ColdWallet(
     {properties, startInDemoMode = false}: {
@@ -46,7 +48,7 @@ export default function ColdWallet(
     ] = properties.sessionStorageFactory.createStorageNullable<string>("pinCode");
     const [pinCodeEntered, setPinCodeEntered] = useState<string | null>(null);
     const {
-        userData, setUserData,
+        userData, setUserData, setUserDataPin,
         userDataHolder, setUserDataHolder,
         shouldEnterPinCode,
         isDemoMode,
@@ -197,6 +199,7 @@ export default function ColdWallet(
     const [currentIntegrationApiAdditionalSetting, setCurrentIntegrationApiAdditionalSetting] = useState<string | null>(null);
 
     const {
+        clearMetaMaskData,
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
         metaMaskAssets,
         refreshMetaMaskAsset,
@@ -270,12 +273,30 @@ export default function ColdWallet(
     const [importDataBuffer, setImportDataBuffer] = useState<string | null>(null);
 
     const [pinCodeSettingsRequested, setPinCodeSettingsRequested] = useState(false);
-    const [pinCodeEnteringFinished, setPinCodeEnteringFinished] = useState(false);
-    const [currentPinCodeConfirmed, setCurrentPinCodeConfirmed] = useState(false);
-    const [pinCodeRepeatEntered, setPinCodeRepeatEntered] = useState<string | null>(null);
-    const [invalidPinCode, setInvalidPinCode] = useState(false);
 
-    const [deletePinCodeRequested, setDeletePinCodeRequested] = useState(false);
+    // A new wallet is always created with a PIN: the data is encrypted with it from the first save,
+    // and the PIN goes to the session too so the lock screen doesn't ask for it right away. Cached
+    // integration balances of a wallet this one replaces (lock screen → "start a new empty
+    // wallet") are dropped so none of them leak into the new one.
+    function createWallet(pin: string) {
+        const newUserData = new UserData(uuidGenerator.generateUUID());
+        setBinanceUserData(null);
+        setOkxUserData(null);
+        setMonobankUserData(null);
+        setCcxtUserData({} as CcxtAccountsData);
+        clearMetaMaskData();
+        setPinCode(pin);
+        setUserDataHolder(initUserDataHolder(newUserData, false, pin));
+    }
+
+    // Every real wallet must have a PIN: an older wallet created without one, or one restored from
+    // a backup that had none, has to set it before the dashboard opens. The demo never needs one.
+    const pinSetupRequired = loggedIn && !isDemoMode && !userDataHolder.pinCodeEncrypted;
+    // Set or change the wallet's PIN: re-encrypt with it and keep the session unlocked with it.
+    function setWalletPin(pin: string) {
+        setUserDataPin(pin);
+        setPinCode(pin);
+    }
 
     function stateReset() {
         setShowCreateNewAssetWindow(!getAnyAssetExist(
@@ -318,11 +339,6 @@ export default function ColdWallet(
 
         setPinCodeSettingsRequested(false);
         setPinCodeEntered(null);
-        setPinCodeEnteringFinished(false);
-        setCurrentPinCodeConfirmed(false);
-        setPinCodeRepeatEntered(null);
-        setInvalidPinCode(false);
-        setDeletePinCodeRequested(false);
 
         setEnabledCcxtIntegrations(getEnabledCcxtIntegrations())
         setLoadingUserDataFromResource(null)
@@ -447,13 +463,9 @@ export default function ColdWallet(
         importDataBuffer, setImportDataBuffer,
 
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
-        setPinCode,
+        pinCode, setPinCode, setWalletPin,
         pinCodeEntered, setPinCodeEntered,
-        pinCodeEnteringFinished, setPinCodeEnteringFinished,
-        pinCodeRepeatEntered, setPinCodeRepeatEntered,
-        invalidPinCode, setInvalidPinCode,
-        currentPinCodeConfirmed, setCurrentPinCodeConfirmed,
-        deletePinCodeRequested, setDeletePinCodeRequested,
+        createWallet,
         currencyService,
         priceService,
         currencyOptions,
@@ -463,9 +475,14 @@ export default function ColdWallet(
             {shouldEnterPinCode ? <PinCodeOnLogin props={{
                 pinCodeEntered, setPinCodeEntered,
                 setPinCode,
-            }}/> : loggedIn
-                ? <AssetsDashboard props={props}/>
-                : NotLoggedIn(props)
+                createWallet,
+            }}/> : pinSetupRequired
+                ? <PinSetup title="Set a PIN-code"
+                            intro="This wallet has no PIN yet. Set one to lock it on this device."
+                            onDone={setWalletPin}/>
+                : loggedIn
+                    ? <AssetsDashboard props={props}/>
+                    : <NotLoggedIn props={props}/>
             }
         </div>
     );

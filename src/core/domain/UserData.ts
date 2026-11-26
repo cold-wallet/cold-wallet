@@ -33,7 +33,6 @@ export class UserSettings {
         public okxIntegrationApiSecret: string | null = null,
         public okxIntegrationPassPhrase: string | null = null,
         public okxIntegrationSubAccountName: string | null = null,
-        public pinCode: string | null = null,
         public integrations: Integrations = {},
         public metaMask: MetaMaskIntegrationSettingsData = {
             enabled: false,

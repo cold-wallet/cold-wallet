@@ -190,7 +190,6 @@ export function createDemoUserSettings() {
         null,
         null,
         null,
-        null,
         {},
         {
             enabled: true,

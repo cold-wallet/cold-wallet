@@ -1,9 +1,8 @@
 // NotLoggedIn — first-run gate, reskinned to the new WelcomeView design.
-// Same mechanics: create wallet / demo mode / import-from-token + terms checkbox.
-import React, { type ReactNode } from "react";
-import UserData from "../../../domain/UserData";
-import uuidGenerator from "../../../utils/uuidGenerator";
-import { initUserDataHolder } from "../../../services/UserDataService";
+// Create wallet (PIN first: nothing is stored until the PIN is chosen and confirmed) / demo mode /
+// import-from-token + terms checkbox.
+import React, { useState, type ReactNode } from "react";
+import PinSetup from "../../pin/PinSetup";
 import { useBackupImport } from "../../settings/ImportData/useBackupImport";
 import BackupImportFields from "../../settings/ImportData/BackupImportFields";
 import Props from "../../Props";
@@ -18,13 +17,12 @@ interface Option {
     icon: ReactNode;
 }
 
-export default function NotLoggedIn(props: Props) {
+export default function NotLoggedIn({ props }: { props: Props }) {
     const accepted = props.termsAndPolicyAgreed;
+    const [choosingPin, setChoosingPin] = useState(false);
 
     function createWallet() {
-        if (accepted) {
-            props.setUserDataHolder(initUserDataHolder(new UserData(uuidGenerator.generateUUID())));
-        }
+        if (accepted) setChoosingPin(true);
     }
     function enableDemo() {
         // Full navigation to /demo so the app remounts with the demo's in-memory storage
@@ -38,6 +36,12 @@ export default function NotLoggedIn(props: Props) {
 
     if (props.importOrExportSettingRequested === 'import') {
         return <WelcomeImport props={props} />;
+    }
+    if (choosingPin) {
+        return <PinSetup title="Create new wallet"
+                         intro="First, choose a PIN-code. It locks your wallet on this device."
+                         onBack={() => setChoosingPin(false)}
+                         onDone={props.createWallet} />;
     }
 
     const OPTIONS: Option[] = [

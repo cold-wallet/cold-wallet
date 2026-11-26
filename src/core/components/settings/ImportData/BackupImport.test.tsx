@@ -22,6 +22,7 @@ function makeProps() {
   return {
     setImportDataBuffer: vi.fn(),
     setUserDataHolder: vi.fn(),
+    setPinCode: vi.fn(),
     loadBinanceUserData: vi.fn(),
     loadMonobankUserData: vi.fn(),
     loadOkxUserData: vi.fn(),
@@ -29,58 +30,83 @@ function makeProps() {
 }
 
 function pinToken(pin: string) {
-  const settings = new UserSettings();
-  settings.pinCode = pin;
-  const holder = initUserDataHolder(new UserData('u1', settings, [new AssetDTO('a', 'EUR', '100', 'Savings', 2, AssetType.fiat)]));
+  const holder = initUserDataHolder(new UserData('u1', new UserSettings(), [new AssetDTO('a', 'EUR', '100', 'Savings', 2, AssetType.fiat)]), false, pin);
   return dataImporter.generateExportData(holder);
 }
 
 const textarea = () => screen.getByPlaceholderText(/Paste your backup token/) as HTMLTextAreaElement;
 const restore = () => screen.getByText('Restore') as HTMLButtonElement;
-const pinField = () => screen.queryByLabelText('Backup PIN') as HTMLInputElement | null;
+const pinDialog = () => screen.queryByRole('dialog', { name: 'Enter backup PIN' });
+const typePin = (pin: string) => pin.split('').forEach((d) => fireEvent.click(screen.getByRole('button', { name: d })));
+const confirmPin = () => fireEvent.click(screen.getByTitle('Confirm'));
+const status = () => screen.getByRole('status').textContent;
 
 describe('backup import with a PIN', () => {
-  it('asks for the PIN, refuses a wrong one, and imports only with the right one', () => {
+  it('asks for the PIN in the keypad dialog, refuses a wrong one, and imports only with the right one', () => {
     const props = makeProps();
     const onImported = vi.fn();
     render(<Harness props={props} onImported={onImported} />);
 
     fireEvent.change(textarea(), { target: { value: pinToken('4321') } });
-    expect(pinField()).toBeNull();
+    expect(pinDialog()).toBeNull();
     fireEvent.click(restore());
 
-    // PIN prompt appears; nothing replaced yet; Restore disabled until 4 digits
-    expect(pinField()).not.toBeNull();
-    expect(screen.getByText(/protected with a PIN/)).toBeTruthy();
+    // PIN dialog opens; nothing replaced yet; confirm disabled until 4 digits
+    expect(pinDialog()).not.toBeNull();
+    expect(status()).toMatch(/Enter the backup's PIN/);
     expect(props.setUserDataHolder).not.toHaveBeenCalled();
-    expect(restore().disabled).toBe(true);
-    fireEvent.change(pinField()!, { target: { value: '12a' } });
-    expect(pinField()!.value).toBe('12'); // digits only
-    expect(restore().disabled).toBe(true);
+    typePin('12');
+    expect((screen.getByTitle('Confirm') as HTMLButtonElement).disabled).toBe(true);
 
-    // wrong PIN: error, nothing replaced
-    fireEvent.change(pinField()!, { target: { value: '1111' } });
-    fireEvent.click(restore());
-    expect(screen.getByRole('alert').textContent).toMatch(/Wrong PIN/);
+    // wrong PIN: error, entry cleared, nothing replaced, dialog stays
+    typePin('11');
+    confirmPin();
+    expect(status()).toMatch(/Wrong PIN/);
+    expect(screen.getByLabelText('0 of 8 digits entered')).toBeTruthy();
     expect(props.setUserDataHolder).not.toHaveBeenCalled();
     expect(onImported).not.toHaveBeenCalled();
 
-    // typing in the PIN clears the error; the right PIN imports once
-    fireEvent.change(pinField()!, { target: { value: '432' } });
-    expect(screen.queryByRole('alert')).toBeNull();
-    fireEvent.change(pinField()!, { target: { value: '4321' } });
-    fireEvent.click(restore());
+    // typing clears the error; the right PIN imports once
+    typePin('4');
+    expect(status()).toMatch(/Enter the backup's PIN/);
+    typePin('321');
+    confirmPin();
     expect(props.setUserDataHolder).toHaveBeenCalledTimes(1);
     expect(onImported).toHaveBeenCalledTimes(1);
+    // unlocked with the PIN just typed, so the lock screen doesn't ask for it again
+    expect(props.setPinCode).toHaveBeenCalledWith('4321');
   });
 
-  it('forgets the PIN prompt when a different token is pasted', () => {
-    render(<Harness props={makeProps()} onImported={vi.fn()} />);
-    fireEvent.change(textarea(), { target: { value: pinToken('4321') } });
+  it('takes the PIN from the keyboard, not the token field underneath', () => {
+    const props = makeProps();
+    render(<Harness props={props} onImported={vi.fn()} />);
+    const token = pinToken('4321');
+    fireEvent.change(textarea(), { target: { value: token } });
     fireEvent.click(restore());
-    expect(pinField()).not.toBeNull();
-    fireEvent.change(textarea(), { target: { value: 'something else entirely' } });
-    expect(pinField()).toBeNull();
+    const dialog = pinDialog() as HTMLElement;
+    expect(document.activeElement).toBe(dialog);
+    '4321'.split('').forEach((key) => fireEvent.keyDown(dialog, { key }));
+    fireEvent.keyDown(dialog, { key: 'Enter' });
+    expect(textarea().value).toBe(token);
+    expect(props.setPinCode).toHaveBeenCalledWith('4321');
+  });
+
+  it('Back closes the PIN dialog and keeps the token, with nothing replaced', () => {
+    const props = makeProps();
+    render(<Harness props={props} onImported={vi.fn()} />);
+    const token = pinToken('4321');
+    fireEvent.change(textarea(), { target: { value: token } });
+    fireEvent.click(restore());
+    typePin('12');
+    fireEvent.click(screen.getByText('Back'));
+    expect(pinDialog()).toBeNull();
+    expect(textarea().value).toBe(token);
+    expect(props.setUserDataHolder).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    // Restore again opens a fresh PIN dialog
+    fireEvent.click(restore());
+    expect(screen.getByLabelText('0 of 8 digits entered')).toBeTruthy();
   });
 
   it('shows the reason and keeps the dialog for a token that is not a backup', () => {

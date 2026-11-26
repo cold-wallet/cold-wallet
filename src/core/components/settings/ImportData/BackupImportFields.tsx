@@ -1,44 +1,38 @@
-// BackupImportFields — the token textarea, the backup-PIN field (shown once a PIN-protected
-// backup is detected) and the error line. Used by Settings → Import and the welcome screen.
+// BackupImportFields — the token textarea and the error line, plus the PIN dialog that opens over the
+// import screen when the backup is PIN-protected. Used by Settings → Import and the welcome screen.
 import React from "react";
 import type { useBackupImport } from "./useBackupImport";
-import { PIN_MAX } from "../../pin/PinPad";
+import PinDialog from "../../pin/PinDialog";
+import { BACKUP_ERROR_TEXT } from "../../../services/userDataValidation";
 
 type ImportState = ReturnType<typeof useBackupImport>;
 
 export default function BackupImportFields({ state, autoFocus }: { state: ImportState; autoFocus?: boolean }) {
-    const { text, setText, pin, setPin, needsPin, errorText, pinHint, tokenLooksValid, error } = state;
+    const { text, setText, errorText, tokenLooksValid, error } = state;
     return (
         <>
             <textarea
-                className={"import-area" + ((text && !tokenLooksValid) || (error && error !== 'wrong-pin' && error !== 'pin-required') ? " bad" : "")}
+                className={"import-area" + ((text && !tokenLooksValid) || error ? " bad" : "")}
                 placeholder="Paste your backup token here…"
                 spellCheck={false} autoCorrect="off" autoCapitalize="off"
-                aria-invalid={!!errorText && !needsPin}
+                aria-invalid={!!errorText}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 autoFocus={autoFocus}
             />
-            {needsPin && (
-                <div className="field import-pin">
-                    <label htmlFor="backup-pin">Backup PIN</label>
-                    <input
-                        id="backup-pin"
-                        type="password"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        maxLength={PIN_MAX}
-                        placeholder="PIN set when the backup was made"
-                        className={error === 'wrong-pin' ? 'invalid' : ''}
-                        aria-invalid={error === 'wrong-pin'}
-                        value={pin}
-                        onChange={(e) => setPin(e.target.value)}
-                        autoFocus
-                    />
-                    <small className="hint">{pinHint}</small>
-                </div>
-            )}
             {errorText && <p className="import-error" role="alert">{errorText}</p>}
+            {state.askingPin && (
+                <PinDialog
+                    title="Enter backup PIN"
+                    intro="This backup is protected with the PIN the wallet had when it was exported. After restoring, the same PIN unlocks it on this device."
+                    onBack={state.cancelPin}
+                    status={state.wrongPin ? BACKUP_ERROR_TEXT['wrong-pin'] : "Enter the backup's PIN."}
+                    statusError={state.wrongPin}
+                    pin={state.pin}
+                    setPin={state.setPin}
+                    onAccept={state.submitPin}
+                />
+            )}
         </>
     );
 }

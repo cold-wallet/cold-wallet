@@ -161,19 +161,16 @@ export default interface Props {
 
     pinCodeSettingsRequested: boolean,
     setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,
+    /** the PIN this session unlocked the wallet with (null for a wallet without one) */
+    pinCode: string | null,
+    /** unlock this session with a PIN (does not change the stored data) */
     setPinCode: Dispatch<SetStateAction<string | null>>,
+    /** set or change the wallet's PIN: re-encrypts the data with it and keeps the session unlocked */
+    setWalletPin: (pin: string) => void,
     pinCodeEntered: string | null,
     setPinCodeEntered: Dispatch<SetStateAction<string | null>>,
-    pinCodeEnteringFinished: boolean,
-    setPinCodeEnteringFinished: Dispatch<SetStateAction<boolean>>,
-    pinCodeRepeatEntered: string | null,
-    setPinCodeRepeatEntered: Dispatch<SetStateAction<string | null>>,
-    invalidPinCode: boolean,
-    setInvalidPinCode: Dispatch<SetStateAction<boolean>>,
-    currentPinCodeConfirmed: boolean,
-    setCurrentPinCodeConfirmed: Dispatch<SetStateAction<boolean>>,
-    deletePinCodeRequested: boolean,
-    setDeletePinCodeRequested: Dispatch<SetStateAction<boolean>>,
+    /** Create a new empty wallet locked with `pin` (replaces whatever is stored on this device). */
+    createWallet: (pin: string) => void,
 
     priceService: PriceService,
     currencyService: CurrencyService,
