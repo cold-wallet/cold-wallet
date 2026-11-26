@@ -1,8 +1,10 @@
 import { assetSym, glyphWidth } from './visual';
 
 describe('assetSym', () => {
-  it('keeps short tickers as they are', () => {
+  it('keeps short tickers as they are, punctuation included', () => {
     expect(assetSym('weth')).toBe('WETH');
+    expect(assetSym('USD+')).toBe('USD+'); // must not read as USD
+    expect(assetSym('ETH+')).toBe('ETH+');
     expect(assetSym('1INCH')).toBe('1IN');
   });
   it('builds the chip label from letters and digits of long / punctuated tickers', () => {

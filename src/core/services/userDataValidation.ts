@@ -14,7 +14,7 @@ const holderSchema = z.object({
 
 const assetSchema = z.object({
   id: z.string().min(1),
-  currency: z.string().min(1).max(32),
+  currency: z.string().min(1).max(128), // CoinGecko has 38-char tickers; this only stops junk
   amount: z.union([z.string(), z.number()]).refine((v) => validateAmount(v).ok, 'amount must be a positive number'),
   name: z.string().min(1),
   decimalScale: z.number().int().min(0).max(36),

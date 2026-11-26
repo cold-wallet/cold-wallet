@@ -5,6 +5,7 @@ import UserData from "../../../domain/UserData";
 import uuidGenerator from "../../../utils/uuidGenerator";
 import { initUserDataHolder } from "../../../services/UserDataService";
 import { dataImporter } from "../../settings/ImportData";
+import { BACKUP_ERROR_TEXT, type BackupError } from "../../../services/userDataValidation";
 import Props from "../../Props";
 
 interface Option {
@@ -97,17 +98,21 @@ export default function NotLoggedIn(props: Props) {
 
 function WelcomeImport({ props }: { props: Props }) {
     const [text, setText] = useState('');
+    const [error, setError] = useState<BackupError | null>(null);
     const valid = text.trim().length > 8;
 
     async function paste() {
         try {
             const t = await navigator.clipboard.readText();
-            if (t) { setText(t); props.setImportDataBuffer(t); }
+            if (t) { setText(t); setError(null); props.setImportDataBuffer(t); }
         } catch { /* clipboard unavailable */ }
     }
     function doImport() {
         if (props.importDataBuffer) {
-            dataImporter.readImportedData(props.importDataBuffer, props.setUserDataHolder);
+            // Same as Settings → Import: a rejected token keeps the dialog open with the reason
+            // instead of closing onto an empty welcome screen.
+            const result = dataImporter.readImportedData(props.importDataBuffer, props.setUserDataHolder);
+            if (!result.ok) { setError(result.error); return; }
             props.loadBinanceUserData();
             props.loadMonobankUserData();
             props.loadOkxUserData();
@@ -123,12 +128,14 @@ function WelcomeImport({ props }: { props: Props }) {
                 <h3>Import wallet</h3>
                 <p className="data-desc">Paste a backup token exported from Cold Wallet to restore your portfolio.</p>
                 <textarea
-                    className={"import-area" + (text && !valid ? " bad" : "")}
+                    className={"import-area" + ((text && !valid) || error ? " bad" : "")}
                     placeholder="Paste your backup token here…"
                     value={text}
-                    onChange={(e) => { setText(e.target.value); props.setImportDataBuffer(e.target.value); }}
+                    spellCheck={false} autoCorrect="off" autoCapitalize="off" aria-invalid={!!error}
+                    onChange={(e) => { setText(e.target.value); setError(null); props.setImportDataBuffer(e.target.value); }}
                     autoFocus
                 />
+                {error && <p className="import-error" role="alert">{BACKUP_ERROR_TEXT[error]}</p>}
                 <div className="data-actbar">
                     <button className="ghostbtn" onClick={paste}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /></svg>

@@ -8,8 +8,8 @@ import AssetDTO, { crypto, fiat } from '../../domain/AssetDTO';
 import fiatCurrencies from '../../fiatCurrencies';
 import uuidGenerator from '../../utils/uuidGenerator';
 import {
-  AMOUNT_ERROR_TEXT, MAX_ASSET_NAME_LENGTH, NAME_ERROR_TEXT, amountScale, isAmountInputAllowed,
-  defaultAssetName, validateAmount, validateAssetName, type AmountError, type NameError,
+  AMOUNT_ERROR_TEXT, MAX_ASSET_NAME_LENGTH, MAX_SCALE, NAME_ERROR_TEXT, amountScale, isAmountInputAllowed,
+  defaultAssetName, normalizeAmount, validateAmount, validateAssetName, type AmountError, type NameError,
 } from '../../utils/amount';
 import { assetColor } from '../../ui/visual';
 import { CoinChip } from '../dashboard/AssetIcon';
@@ -24,10 +24,16 @@ export default function EditDialog({ props }: { props: Props }) {
   const [amountError, setAmountError] = useState<AmountError | null>(null);
   const [nameError, setNameError] = useState<NameError | null>(null);
   // Decimal places the amount may have: ISO minor units for fiat (EUR 2, JPY 0), exchange
-  // precision for crypto. Drives both the input mask and the rounding on save.
-  const scale = currency
+  // precision for crypto. Drives both the input mask and the rounding on save. An existing
+  // holding that already stores more decimals keeps them (it may predate the mask), so editing
+  // only its name never rounds its amount.
+  const currencyScale = currency
     ? amountScale(currency, props.binanceCurrencies?.[currency]?.precision, editing?.decimalScale)
     : 8;
+  const storedDecimals = editing ? ((normalizeAmount(editing.amount) ?? '').split('.')[1] ?? '').length : 0;
+  const scale = Math.min(MAX_SCALE, Math.max(currencyScale, storedDecimals));
+  // counted like validateAssetName (characters after trimming / collapsing spaces)
+  const nameLength = Array.from((props.newAssetName ?? '').replace(/\s+/g, ' ').trim()).length;
 
   // default the name when first entering the details stage for a brand-new asset
   useEffect(() => {
@@ -50,6 +56,11 @@ export default function EditDialog({ props }: { props: Props }) {
     props.setNewAssetCurrency(null);
     props.setNewAssetName(null);
     props.setNewAssetAmount(null);
+    // don't carry the previous currency's errors into the next one
+    setAmountError(null);
+    setNameError(null);
+    props.setIsNewAssetAmountInvalid(false);
+    props.setIsNewAssetNameInvalid(false);
   }
   function save() {
     // Validate AND canonicalise: the stored amount is rounded to the currency's precision with
@@ -176,9 +187,10 @@ export default function EditDialog({ props }: { props: Props }) {
             </div>
             <div className="field">
               <label>Name</label>
+              {/* No maxLength: it counts UTF-16 units (an emoji is 2), unlike the 40-character rule in
+                  validateAssetName. A live counter near the limit + the save check cover it instead. */}
               <input
                 value={props.newAssetName ?? ''}
-                maxLength={MAX_ASSET_NAME_LENGTH}
                 className={props.isNewAssetNameInvalid ? 'invalid' : ''}
                 aria-invalid={!!nameError}
                 onChange={(e) => { props.setIsNewAssetNameInvalid(false); setNameError(null); props.setNewAssetName(e.target.value); }}
@@ -186,7 +198,10 @@ export default function EditDialog({ props }: { props: Props }) {
               />
               {nameError
                 ? <small className="hint hint--error" role="alert">{NAME_ERROR_TEXT[nameError]}</small>
-                : <small className="hint">Shown as the label in your holdings list.</small>}
+                : <small className="hint">
+                    Shown as the label in your holdings list.
+                    {nameLength > MAX_ASSET_NAME_LENGTH - 10 && <> {nameLength}/{MAX_ASSET_NAME_LENGTH}</>}
+                  </small>}
             </div>
             <div className="dialog__actions">
               <button className="btn" onClick={close}>Cancel</button>

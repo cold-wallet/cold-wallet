@@ -17,6 +17,12 @@ describe('parseBackupToken', () => {
     expect(r.ok).toBe(true);
   });
 
+  it('accepts an export holding a very long ticker (CoinGecko has 38-char ones)', () => {
+    const long = new AssetDTO('id-2', 'HIXOKDKEKJCJDKSICNDNAIAIHSBZNNXNXNDUJE', '5', 'HIXOK', 8, AssetType.crypto);
+    const holder = initUserDataHolder(new UserData('u1', new UserSettings(), [long]));
+    expect(parseBackupToken(dataImporter.generateExportData(holder)).ok).toBe(true);
+  });
+
   it('accepts a PIN-protected export without being able to read its holdings', () => {
     const settings = new UserSettings();
     settings.pinCode = '4321';

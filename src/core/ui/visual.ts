@@ -39,14 +39,16 @@ export function assetColor(code: string): string {
   return `hsl(${hue}deg ${sat}% 62%)`;
 }
 
-/** Short glyph shown inside the coin chip (currency ticker, trimmed). Built from the ticker's
- *  letters and digits when it has any, so "1-COIN-CAN-…" → "1CO" and "DOG•GO•…" → "DOG" rather
- *  than punctuation or stray combining marks ("( ͡° ͜ʖ ͡°)"). Counts characters, not UTF-16
- *  units, so emoji / astral tickers are never cut in half. */
+/** Short glyph shown inside the coin chip (currency ticker, trimmed). Tickers of up to 4 visible
+ *  characters are kept verbatim, punctuation included, so "USD+" never reads as "USD". Longer
+ *  ones are cut to 3, built from their letters and digits when they have any: "1-COIN-CAN-…" →
+ *  "1CO", "DOG•GO•…" → "DOG", no stray combining marks ("( ͡° ͜ʖ ͡°)"). Counts characters, not
+ *  UTF-16 units, so emoji / astral tickers are never cut in half. */
 export function assetSym(code: string): string {
-  const all = Array.from(code.toUpperCase());
-  const alnum = all.filter((c) => /[\p{L}\p{N}]/u.test(c));
-  const chars = alnum.length ? alnum : all.filter((c) => !/[\p{M}\s]/u.test(c));
+  const visible = Array.from(code.toUpperCase()).filter((c) => !/[\p{M}\s]/u.test(c));
+  if (visible.length <= 4) return visible.join('');
+  const alnum = visible.filter((c) => /[\p{L}\p{N}]/u.test(c));
+  const chars = alnum.length ? alnum : visible;
   return chars.length <= 4 ? chars.join('') : chars.slice(0, 3).join('');
 }
 
