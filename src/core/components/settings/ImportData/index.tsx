@@ -1,6 +1,6 @@
 import UserDataHolder from "../../../domain/UserDataHolder";
-import {Dispatch, SetStateAction} from "react";
 import {BackupResult, parseBackupToken} from "../../../services/userDataValidation";
+import type {ImportedWallet} from "../../../services/UserDataService";
 
 export const dataImporter = {
 
@@ -11,12 +11,22 @@ export const dataImporter = {
 
     /**
      * Validate a backup token (decrypting it — with `pin` for a PIN-protected backup — and checking
-     * the decrypted JSON) and, only if all of that succeeds, replace the stored data with it.
+     * the decrypted JSON) and, only if all of that succeeds, replace the stored wallet with it.
      */
-    readImportedData(data: string, setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>, pin?: string): BackupResult {
-        const result = parseBackupToken(data, pin);
+    async readImportedData(
+        data: string,
+        importWallet: (imported: ImportedWallet, pin?: string) => Promise<void>,
+        pin?: string,
+    ): Promise<BackupResult> {
+        const result = await parseBackupToken(data, pin);
         if (result.ok) {
-            setUserDataHolder(result.holder);
+            try {
+                await importWallet(result.wallet, pin);
+            } catch (e) {
+                // e.g. the browser couldn't derive a key to re-save an older backup: nothing replaced
+                console.warn("backup import failed:", e);
+                return { ok: false, error: 'browser' };
+            }
         } else if (result.error !== 'pin-required') {
             console.warn("backup import rejected:", result.error);
         }

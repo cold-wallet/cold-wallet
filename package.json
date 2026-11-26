@@ -10,6 +10,7 @@
     "binance-api-node": "^0.12.9",
     "ccxt": "^4.4.100",
     "crypto-js": "^4.2.0",
+    "hash-wasm": "^4.12.0",
     "okx-api": "^2.0.8",
     "protobufjs": "^7.5.4",
     "react": "^18.2.0",

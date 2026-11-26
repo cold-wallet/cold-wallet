@@ -18,3 +18,8 @@ vi.mock('react-dom/test-utils', async () => {
   const { act } = await vi.importActual<any>('react');
   return { ...actual, act };
 });
+
+// Real Argon2id parameters cost ~64 MB and a few hundred ms per key; tests use cheap ones. Data
+// sealed this way records its own parameters, so opening it uses the same cheap ones.
+import { setKdfParamsForTests } from './core/services/PinVault';
+setKdfParamsForTests({ alg: 'argon2id', m: 64, t: 1, p: 1 });

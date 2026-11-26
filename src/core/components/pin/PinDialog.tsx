@@ -17,9 +17,11 @@ interface PinDialogProps {
   setPin: (v: string | null) => void;
   onAccept: () => void;
   footer?: ReactNode;
+  /** the PIN is being checked: the keypad is paused */
+  busy?: boolean;
 }
 
-export default function PinDialog({ title, intro, status, statusError, step, onBack, pin, setPin, onAccept, footer }: PinDialogProps) {
+export default function PinDialog({ title, intro, status, statusError, step, onBack, pin, setPin, onAccept, footer, busy = false }: PinDialogProps) {
   // Take focus when opened, so typed digits reach the keypad and not a field left focused underneath
   // (e.g. the import token textarea).
   const box = useRef<HTMLDivElement>(null);
@@ -30,7 +32,7 @@ export default function PinDialog({ title, intro, status, statusError, step, onB
         {(onBack || step) && (
           <div className="pin-dialog__head">
             {onBack && (
-              <button className="backbtn" onClick={onBack}>
+              <button className="backbtn" onClick={onBack} disabled={busy}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M15 6l-6 6 6 6" /></svg>
                 Back
               </button>
@@ -46,12 +48,16 @@ export default function PinDialog({ title, intro, status, statusError, step, onB
         </div>
         {intro && <p className="pin-dialog__intro">{intro}</p>}
         {status && <p className={'pin-dialog__status' + (statusError ? ' is-error' : '')} role="status">{status}</p>}
-        <PinPad pinCode={pin} setPinCode={setPin} acceptPinCode={onAccept} />
+        <PinPad pinCode={pin} setPinCode={setPin} acceptPinCode={onAccept} disabled={busy} />
         {footer}
       </div>
     </div>
   );
 }
+
+/** Shown when the browser itself fails (e.g. not enough memory to derive the key) — never as a
+ *  "wrong PIN", so nobody gives up a wallet over a browser problem. */
+export const BROWSER_PIN_ERROR = "This browser couldn't check the PIN (it may be short on memory). Nothing was changed. Try again, or open the wallet in another browser.";
 
 /** The warning every "choose a PIN" step carries. */
 export function ForgetPinWarning() {

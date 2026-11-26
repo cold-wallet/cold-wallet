@@ -10,16 +10,18 @@ interface PinPadProps {
   pinCode: string | null;
   setPinCode: (v: string | null) => void;
   acceptPinCode: () => void;
+  /** ignore input (e.g. while the PIN is being checked) */
+  disabled?: boolean;
 }
 
 const BACK = 'back';
 const OK = 'ok';
 
-export default function PinPad({ pinCode, setPinCode, acceptPinCode }: PinPadProps) {
+export default function PinPad({ pinCode, setPinCode, acceptPinCode, disabled = false }: PinPadProps) {
   const len = pinCode?.length || 0;
-  const press = (d: string) => { if (len < PIN_MAX) setPinCode((pinCode || '') + d); };
-  const back = () => { if (len) setPinCode(pinCode!.slice(0, -1) || null); };
-  const accept = () => { if (len >= PIN_MIN) acceptPinCode(); };
+  const press = (d: string) => { if (!disabled && len < PIN_MAX) setPinCode((pinCode || '') + d); };
+  const back = () => { if (!disabled && len) setPinCode(pinCode!.slice(0, -1) || null); };
+  const accept = () => { if (!disabled && len >= PIN_MIN) acceptPinCode(); };
 
   // The key last hit on the keyboard, lit up briefly so typing gives the same feedback as a tap.
   const [lit, setLit] = useState<string | null>(null);
@@ -61,15 +63,15 @@ export default function PinPad({ pinCode, setPinCode, acceptPinCode }: PinPadPro
           <span key={i} className={'pin-dot' + (i < len ? ' full' : i < PIN_MIN ? ' req' : '')} />
         ))}
       </div>
-      <div className="keypad">
+      <div className={'keypad' + (disabled ? ' is-busy' : '')} aria-busy={disabled}>
         {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (
-          <button key={d} className={cls('key', d)} onClick={() => press(d)}>{d}</button>
+          <button key={d} className={cls('key', d)} disabled={disabled} onClick={() => press(d)}>{d}</button>
         ))}
-        <button className={cls('key key--ok', OK)} disabled={len < PIN_MIN} onClick={acceptPinCode} title="Confirm">
+        <button className={cls('key key--ok', OK)} disabled={disabled || len < PIN_MIN} onClick={accept} title="Confirm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M5 12l5 5L20 6" /></svg>
         </button>
-        <button className={cls('key', '0')} onClick={() => press('0')}>0</button>
-        <button className={cls('key key--muted', BACK)} onClick={back} title="Delete">
+        <button className={cls('key', '0')} disabled={disabled} onClick={() => press('0')}>0</button>
+        <button className={cls('key key--muted', BACK)} disabled={disabled} onClick={back} title="Delete">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 4H8L2 12l6 8h13a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zM18 9l-6 6M12 9l6 6" /></svg>
         </button>
       </div>

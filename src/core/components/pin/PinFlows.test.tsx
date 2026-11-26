@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import PinSetup from './PinSetup';
 import PinCodeOnLogin from '../unauthorized/PinCodeOnLogin';
 import NotLoggedIn from '../unauthorized/NotLoggedIn';
@@ -78,12 +78,23 @@ describe('PinPad from the keyboard', () => {
   });
 });
 
+describe('PinSetup when the browser fails', () => {
+  it('says nothing was saved and lets the user start over', async () => {
+    const onDone = vi.fn(async () => { throw new Error('out of memory'); });
+    render(<PinSetup title="t" onDone={onDone} />);
+    typePin('2580');
+    typePin('2580');
+    await waitFor(() => expect(status()).toMatch(/couldn't lock the wallet/));
+    expect(screen.getByText('Step 1 of 2')).toBeTruthy();
+  });
+});
+
 describe('creating a wallet', () => {
   function welcome(createWallet = vi.fn()) {
     const props = {
       termsAndPolicyAgreed: true,
       importOrExportSettingRequested: null,
-      setUserDataHolder: vi.fn(),
+      importWallet: vi.fn(),
       createWallet,
     } as unknown as Props;
     render(<NotLoggedIn props={props} />);
@@ -97,7 +108,6 @@ describe('creating a wallet', () => {
     expect(props.createWallet).not.toHaveBeenCalled();
     typePin('2580');
     expect(props.createWallet).toHaveBeenCalledWith('2580');
-    expect(props.setUserDataHolder).not.toHaveBeenCalled();
   });
 
   it('stores nothing when the user goes back to the start screen', () => {
@@ -107,16 +117,32 @@ describe('creating a wallet', () => {
     fireEvent.click(screen.getByText('Back'));
     expect(screen.getByText('Try the demo')).toBeTruthy();
     expect(props.createWallet).not.toHaveBeenCalled();
-    expect(props.setUserDataHolder).not.toHaveBeenCalled();
   });
 });
 
-describe('lock screen: forgot PIN', () => {
-  function lock() {
-    const p = { pinCodeEntered: null, setPinCodeEntered: vi.fn(), setPinCode: vi.fn(), createWallet: vi.fn() };
+describe('lock screen', () => {
+  function lock(correct = '2580') {
+    const p = { unlock: vi.fn(async (pin: string) => pin === correct), createWallet: vi.fn() };
     render(<PinCodeOnLogin props={p} />);
     return p;
   }
+
+  it('never calls a browser failure a wrong PIN', async () => {
+    const p = { unlock: vi.fn(async () => { throw new Error('out of memory'); }), createWallet: vi.fn() };
+    render(<PinCodeOnLogin props={p} />);
+    typePin('2580');
+    await waitFor(() => expect(status()).toMatch(/This browser couldn't check the PIN/));
+    expect(status()).not.toMatch(/Wrong PIN/);
+  });
+
+  it('says when the PIN is wrong and passes the right one on', async () => {
+    const p = lock();
+    typePin('1111');
+    await waitFor(() => expect(status()).toMatch(/Wrong PIN/));
+    expect(screen.getByLabelText('0 of 8 digits entered')).toBeTruthy();
+    typePin('2580');
+    await waitFor(() => expect(p.unlock).toHaveBeenLastCalledWith('2580'));
+  });
 
   it('replaces the locked wallet only after a warning and a confirmed new PIN', () => {
     const p = lock();
@@ -147,32 +173,33 @@ describe('Settings: change PIN', () => {
     const props = {
       userData: { id: 'u', assets: [], settings: {} },
       userDataHolder: { pinCodeEncrypted: pinCode !== null },
-      pinCode,
-      setWalletPin: vi.fn(),
+      verifyPin: vi.fn(async (pin: string) => pin === pinCode),
+      setWalletPin: vi.fn(async () => undefined),
       setPinCodeSettingsRequested: vi.fn(),
     } as unknown as Props;
     render(<ChangePin props={props} />);
     return props;
   }
 
-  it('asks for the current PIN, then the new one twice, and only then saves', () => {
+  it('asks for the current PIN, then the new one twice, and only then saves', async () => {
     const props = open();
     expect(screen.getByText('Step 1 of 3')).toBeTruthy();
     typePin('1111');
-    expect(status()).toMatch(/Wrong PIN/);
+    await waitFor(() => expect(status()).toMatch(/Wrong PIN/));
     typePin('2580');
-    expect(screen.getByText('Step 2 of 3')).toBeTruthy();
+    await screen.findByText('Step 2 of 3');
     typePin('4444');
     expect(screen.getByText('Step 3 of 3')).toBeTruthy();
     expect(props.setWalletPin).not.toHaveBeenCalled();
     typePin('4444');
     expect(props.setWalletPin).toHaveBeenCalledWith('4444');
-    expect(props.setPinCodeSettingsRequested).toHaveBeenCalledWith(false);
+    await waitFor(() => expect(props.setPinCodeSettingsRequested).toHaveBeenCalledWith(false));
   });
 
-  it('goes back to Settings without saving', () => {
+  it('goes back to Settings without saving', async () => {
     const props = open();
     typePin('2580');
+    await screen.findByText('Step 2 of 3');
     fireEvent.click(screen.getByText('Back'));
     expect(props.setPinCodeSettingsRequested).toHaveBeenCalledWith(false);
     expect(props.setWalletPin).not.toHaveBeenCalled();

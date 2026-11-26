@@ -1,6 +1,8 @@
 import UserData, { UserSettings } from '../domain/UserData';
 import AssetDTO, { AssetType } from '../domain/AssetDTO';
-import { initUserDataHolder, sanitizeUserData } from './UserDataService';
+import { initUserDataHolder, sanitizeUserData, sealUserDataHolder } from './UserDataService';
+import { newPinKey } from './PinVault';
+import UserDataHolder from '../domain/UserDataHolder';
 import cypherService from './CypherService';
 import { dataImporter } from '../components/settings/ImportData';
 import { parseBackupToken } from './userDataValidation';
@@ -9,69 +11,87 @@ const asset = (amount: string) => new AssetDTO('id-1', 'EUR', amount, 'Savings',
 const toToken = (obj: unknown) => Buffer.from(encodeURIComponent(JSON.stringify(obj)), 'ascii').toString('base64');
 
 describe('parseBackupToken', () => {
-  it('accepts a real export (no PIN), tolerating line breaks in the pasted token', () => {
+  it('accepts a real export (no PIN), tolerating line breaks in the pasted token', async () => {
     const holder = initUserDataHolder(new UserData('u1', new UserSettings(), [asset('100')]));
     const token = dataImporter.generateExportData(holder);
     const pasted = token.replace(/(.{40})/g, '$1\n');
-    const r = parseBackupToken(pasted);
+    const r = await parseBackupToken(pasted);
     expect(r.ok).toBe(true);
   });
 
-  it('accepts an export holding a very long ticker (CoinGecko has 38-char ones)', () => {
+  it('accepts an export holding a very long ticker (CoinGecko has 38-char ones)', async () => {
     const long = new AssetDTO('id-2', 'HIXOKDKEKJCJDKSICNDNAIAIHSBZNNXNXNDUJE', '5', 'HIXOK', 8, AssetType.crypto);
     const holder = initUserDataHolder(new UserData('u1', new UserSettings(), [long]));
-    expect(parseBackupToken(dataImporter.generateExportData(holder)).ok).toBe(true);
+    expect((await parseBackupToken(dataImporter.generateExportData(holder))).ok).toBe(true);
   });
 
   describe('PIN-protected backups are decrypted and checked before anything is replaced', () => {
-    const holder = initUserDataHolder(new UserData('u1', new UserSettings(), [asset('100')]), false, '4321');
-    const token = dataImporter.generateExportData(holder);
+    let holder: UserDataHolder;
+    let token: string;
+    beforeAll(async () => {
+      holder = await sealUserDataHolder(new UserData('u1', new UserSettings(), [asset('100')]), await newPinKey('4321'));
+      token = dataImporter.generateExportData(holder);
+    });
 
-    it('asks for the PIN first', () => {
+    it('asks for the PIN first', async () => {
       expect(holder.pinCodeEncrypted).toBe(true);
-      expect(parseBackupToken(token)).toEqual({ ok: false, error: 'pin-required' });
+      expect(await parseBackupToken(token)).toEqual({ ok: false, error: 'pin-required' });
     });
-    it('accepts the right PIN', () => {
-      expect(parseBackupToken(token, '4321').ok).toBe(true);
+    it('accepts the right PIN and hands over the key, so it is not derived twice', async () => {
+      const r = await parseBackupToken(token, '4321');
+      expect(r.ok && r.wallet.data.id).toBe('u1');
+      expect(r.ok && r.wallet.pinKey).toBeTruthy();
     });
-    it('refuses a wrong PIN', () => {
-      expect(parseBackupToken(token, '1111')).toEqual({ ok: false, error: 'wrong-pin' });
+    it('refuses a wrong PIN', async () => {
+      expect(await parseBackupToken(token, '1111')).toEqual({ ok: false, error: 'wrong-pin' });
     });
-    it('refuses a token whose ciphertext was cut, even with the right PIN, and replaces nothing', () => {
+    it('refuses a token whose ciphertext was cut, even with the right PIN, and replaces nothing', async () => {
       const cut = { ...holder, encryptedData: holder.encryptedData.slice(0, -40) };
-      const set = vi.fn();
-      const r = dataImporter.readImportedData(toToken(cut), set, '4321');
+      const importWallet = vi.fn();
+      const r = await dataImporter.readImportedData(toToken(cut), importWallet, '4321');
       expect(r).toEqual({ ok: false, error: 'wrong-pin' });
-      expect(set).not.toHaveBeenCalled();
+      expect(importWallet).not.toHaveBeenCalled();
     });
-    it('refuses a PIN-protected payload that decrypts but is not a valid portfolio', () => {
+    it('still opens a backup made by an older version with its PIN', async () => {
+      const old = { pinCodeEncrypted: true, encryptedData: cypherService.encrypt(new UserData('old', new UserSettings(), [asset('5')]), '4321') };
+      const r = await parseBackupToken(toToken(old), '4321');
+      expect(r.ok && r.wallet.data.id).toBe('old');
+      expect(r.ok && r.wallet.pinKey).toBeNull(); // re-saved in the current format on import
+      expect(await parseBackupToken(toToken(old), '1111')).toEqual({ ok: false, error: 'wrong-pin' });
+    });
+    it('reports a browser failure (not a wrong PIN) when the key cannot be derived', async () => {
+      const spy = vi.spyOn(crypto.subtle, 'importKey').mockRejectedValueOnce(new Error('out of memory'));
+      expect(await parseBackupToken(token, '4321')).toEqual({ ok: false, error: 'browser' });
+      spy.mockRestore();
+    });
+    it('refuses a PIN-protected payload that decrypts but is not a valid portfolio', async () => {
       const bogus = { pinCodeEncrypted: true, encryptedData: cypherService.encrypt({ hello: 'world' }, '4321') };
-      expect(parseBackupToken(toToken(bogus), '4321')).toEqual({ ok: false, error: 'wrong-pin' });
+      expect(await parseBackupToken(toToken(bogus), '4321')).toEqual({ ok: false, error: 'wrong-pin' });
     });
   });
 
-  it('rejects garbage, wrong JSON shapes and demo backups', () => {
-    expect(parseBackupToken('not base64 at all !!!')).toEqual({ ok: false, error: 'not-a-backup' });
-    expect(parseBackupToken(toToken({ hello: 'world' }))).toEqual({ ok: false, error: 'not-a-backup' });
-    expect(parseBackupToken(toToken({ pinCodeEncrypted: 'yes', encryptedData: 'x'.repeat(40) })))
+  it('rejects garbage, wrong JSON shapes and demo backups', async () => {
+    expect(await parseBackupToken('not base64 at all !!!')).toEqual({ ok: false, error: 'not-a-backup' });
+    expect(await parseBackupToken(toToken({ hello: 'world' }))).toEqual({ ok: false, error: 'not-a-backup' });
+    expect(await parseBackupToken(toToken({ pinCodeEncrypted: 'yes', encryptedData: 'x'.repeat(40) })))
       .toEqual({ ok: false, error: 'not-a-backup' });
     const demo = initUserDataHolder(new UserData('u1', new UserSettings(), []), true);
-    expect(parseBackupToken(dataImporter.generateExportData(demo))).toEqual({ ok: false, error: 'demo' });
+    expect(await parseBackupToken(dataImporter.generateExportData(demo))).toEqual({ ok: false, error: 'demo' });
   });
 
-  it('rejects an unprotected backup whose holdings are broken', () => {
+  it('rejects an unprotected backup whose holdings are broken', async () => {
     const bad = { id: 'u1', settings: {}, assets: [{ id: 'a', currency: 'EUR', amount: '-5', name: 'x', decimalScale: 2, type: 1 }] };
     const holder = { pinCodeEncrypted: false, encryptedData: cypherService.encrypt(bad, '0123456789') };
-    expect(parseBackupToken(toToken(holder))).toEqual({ ok: false, error: 'damaged' });
+    expect(await parseBackupToken(toToken(holder))).toEqual({ ok: false, error: 'damaged' });
     const undecryptable = { pinCodeEncrypted: false, encryptedData: 'U2FsdGVkX1' + 'A'.repeat(40) };
-    expect(parseBackupToken(toToken(undecryptable))).toEqual({ ok: false, error: 'damaged' });
+    expect(await parseBackupToken(toToken(undecryptable))).toEqual({ ok: false, error: 'damaged' });
   });
 
-  it('does not replace stored data when the token is rejected', () => {
-    const set = vi.fn();
-    const r = dataImporter.readImportedData(toToken({ nope: true }), set);
+  it('does not replace stored data when the token is rejected', async () => {
+    const importWallet = vi.fn();
+    const r = await dataImporter.readImportedData(toToken({ nope: true }), importWallet);
     expect(r.ok).toBe(false);
-    expect(set).not.toHaveBeenCalled();
+    expect(importWallet).not.toHaveBeenCalled();
   });
 });
 
