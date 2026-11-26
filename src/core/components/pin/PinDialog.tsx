@@ -1,7 +1,7 @@
 // components/pin/PinDialog.tsx — the one look for every PIN screen (new wallet, wallet without a PIN,
 // unlock, change PIN): a compact dialog with an optional Back / step row, a centred title, a short
 // explanation, a status line, the keypad, and an optional footer (warning, "forgot PIN" link).
-import React, { type ReactNode } from 'react';
+import React, { useEffect, useRef, type ReactNode } from 'react';
 import PinPad from './PinPad';
 
 interface PinDialogProps {
@@ -20,9 +20,13 @@ interface PinDialogProps {
 }
 
 export default function PinDialog({ title, intro, status, statusError, step, onBack, pin, setPin, onAccept, footer }: PinDialogProps) {
+  // Take focus when opened, so typed digits reach the keypad and not a field left focused underneath
+  // (e.g. the import token textarea).
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => { box.current?.focus(); }, []);
   return (
     <div className="scrim" style={{ zIndex: 80 }}>
-      <div className="dialog pin-dialog">
+      <div className="dialog pin-dialog" ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title}>
         {(onBack || step) && (
           <div className="pin-dialog__head">
             {onBack && (
