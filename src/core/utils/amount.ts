@@ -67,10 +67,37 @@ export function normalizeAmount(raw: string | number | null | undefined, scale: 
   return r.ok ? r.value : null;
 }
 
-/** For NumericFormat's isAllowed: block typing an integer part longer than MAX_INTEGER_DIGITS. */
+/** Block an integer part longer than MAX_INTEGER_DIGITS (leading zeros don't count). */
 export function isAmountInputAllowed(value: string): boolean {
   const intPart = (value || '').split('.')[0].replace(/^0+/, '');
   return intPart.length <= MAX_INTEGER_DIGITS;
+}
+
+/**
+ * Turn whatever was typed or pasted into the amount field into a numeric string with "." as the
+ * decimal point, limited to `scale` decimals — or `null` to reject the change (too many digits).
+ * Works on the input value itself, not on key events, so it also covers paste and phone keyboards
+ * (Android often reports key "Unidentified"). Separator rules:
+ *   - one comma and no dot → decimal comma ("1,5" → "1.5"), the UA/EU way of typing it;
+ *   - comma(s) and a dot → commas group thousands ("1,234.56" → "1234.56");
+ *   - several commas, no dot → they group thousands ("1,234,567" → "1234567");
+ *   - spaces / apostrophes are grouping and are dropped ("1 234,5" → "1234.5").
+ */
+export function sanitizeAmountInput(raw: string, scale: number): string | null {
+  let s = (raw || '').replace(/[\s'\u2019\u00A0\u202F]/g, '');
+  const commas = (s.match(/,/g) || []).length;
+  const hasDot = s.includes('.');
+  s = (commas === 1 && !hasDot) ? s.replace(',', '.') : s.replace(/,/g, '');
+  s = s.replace(/[^\d.]/g, '');
+  const dot = s.indexOf('.');
+  let intPart = dot < 0 ? s : s.slice(0, dot);
+  let frac = dot < 0 ? null : s.slice(dot + 1).replace(/\./g, '');
+  intPart = intPart.replace(/^0+(?=\d)/, '');
+  if (frac !== null && !intPart) intPart = '0';
+  const sc = clampScale(scale);
+  if (frac !== null) frac = sc ? frac.slice(0, sc) : null;
+  if (!isAmountInputAllowed(intPart)) return null;
+  return frac === null ? intPart : `${intPart}.${frac}`;
 }
 
 export type NameError = 'empty' | 'too-long';

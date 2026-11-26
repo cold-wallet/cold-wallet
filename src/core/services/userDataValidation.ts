@@ -28,21 +28,24 @@ const userDataSchema = z.object({
   lastOnline: z.number().optional(),
 }).passthrough();
 
-export type BackupError = 'not-a-backup' | 'damaged' | 'demo';
+export type BackupError = 'not-a-backup' | 'damaged' | 'demo' | 'pin-required' | 'wrong-pin';
 export type BackupResult = { ok: true; holder: UserDataHolder } | { ok: false; error: BackupError };
 
 export const BACKUP_ERROR_TEXT: Record<BackupError, string> = {
   'not-a-backup': "This isn't a Cold Wallet backup token. Copy it again from Export.",
   damaged: 'This backup is damaged or incomplete, so nothing was changed.',
   demo: 'This backup was made in demo mode and has no real portfolio to restore.',
+  'pin-required': 'This backup is protected with a PIN. Enter it so the backup can be checked before restoring.',
+  'wrong-pin': 'Wrong PIN, or the backup is damaged. Nothing was changed.',
 };
 
 /**
- * Decode and check a backup token. The holder's shape is always checked; when the backup has no
- * PIN its payload can be decrypted here too, so the holdings themselves are validated before
- * anything is replaced. (PIN-protected payloads are canonicalised after unlock — see UserDataService.sanitizeUserData.)
+ * Decode and fully check a backup token before it may replace anything: the holder's shape, then
+ * the payload is decrypted (with the default key, or with `pin` for a PIN-protected backup) and the
+ * decrypted JSON is validated. A cut or mangled token fails to decrypt / parse here, so it can never
+ * overwrite the stored portfolio. A PIN-protected backup without `pin` returns 'pin-required'.
  */
-export function parseBackupToken(token: string): BackupResult {
+export function parseBackupToken(token: string, pin?: string): BackupResult {
   let parsed: unknown;
   try {
     const text = Buffer.from(token.replace(/\s+/g, ''), 'base64').toString('ascii');
@@ -54,14 +57,16 @@ export function parseBackupToken(token: string): BackupResult {
   if (!holder.success) return { ok: false, error: 'not-a-backup' };
   if (holder.data.demo) return { ok: false, error: 'demo' };
 
-  if (!holder.data.pinCodeEncrypted) {
-    let payload: unknown;
-    try {
-      payload = cypherService.decrypt<unknown>(holder.data.encryptedData, DEFAULT_PIN_CODE);
-    } catch {
-      return { ok: false, error: 'damaged' };
-    }
-    if (!userDataSchema.safeParse(payload).success) return { ok: false, error: 'damaged' };
+  const pinProtected = holder.data.pinCodeEncrypted;
+  if (pinProtected && !pin) return { ok: false, error: 'pin-required' };
+  const failed: BackupError = pinProtected ? 'wrong-pin' : 'damaged';
+  let payload: unknown;
+  try {
+    // throws on a wrong key or a damaged ciphertext (invalid UTF-8 / JSON after decryption)
+    payload = cypherService.decrypt<unknown>(holder.data.encryptedData, pinProtected ? pin as string : DEFAULT_PIN_CODE);
+  } catch {
+    return { ok: false, error: failed };
   }
-  return { ok: true, holder: new UserDataHolder(holder.data.pinCodeEncrypted, holder.data.encryptedData, false) };
+  if (!userDataSchema.safeParse(payload).success) return { ok: false, error: failed };
+  return { ok: true, holder: new UserDataHolder(pinProtected, holder.data.encryptedData, false) };
 }

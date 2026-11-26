@@ -23,12 +23,33 @@ describe('parseBackupToken', () => {
     expect(parseBackupToken(dataImporter.generateExportData(holder)).ok).toBe(true);
   });
 
-  it('accepts a PIN-protected export without being able to read its holdings', () => {
+  describe('PIN-protected backups are decrypted and checked before anything is replaced', () => {
     const settings = new UserSettings();
     settings.pinCode = '4321';
     const holder = initUserDataHolder(new UserData('u1', settings, [asset('100')]));
-    expect(holder.pinCodeEncrypted).toBe(true);
-    expect(parseBackupToken(dataImporter.generateExportData(holder)).ok).toBe(true);
+    const token = dataImporter.generateExportData(holder);
+
+    it('asks for the PIN first', () => {
+      expect(holder.pinCodeEncrypted).toBe(true);
+      expect(parseBackupToken(token)).toEqual({ ok: false, error: 'pin-required' });
+    });
+    it('accepts the right PIN', () => {
+      expect(parseBackupToken(token, '4321').ok).toBe(true);
+    });
+    it('refuses a wrong PIN', () => {
+      expect(parseBackupToken(token, '1111')).toEqual({ ok: false, error: 'wrong-pin' });
+    });
+    it('refuses a token whose ciphertext was cut, even with the right PIN, and replaces nothing', () => {
+      const cut = { ...holder, encryptedData: holder.encryptedData.slice(0, -40) };
+      const set = vi.fn();
+      const r = dataImporter.readImportedData(toToken(cut), set, '4321');
+      expect(r).toEqual({ ok: false, error: 'wrong-pin' });
+      expect(set).not.toHaveBeenCalled();
+    });
+    it('refuses a PIN-protected payload that decrypts but is not a valid portfolio', () => {
+      const bogus = { pinCodeEncrypted: true, encryptedData: cypherService.encrypt({ hello: 'world' }, '4321') };
+      expect(parseBackupToken(toToken(bogus), '4321')).toEqual({ ok: false, error: 'wrong-pin' });
+    });
   });
 
   it('rejects garbage, wrong JSON shapes and demo backups', () => {

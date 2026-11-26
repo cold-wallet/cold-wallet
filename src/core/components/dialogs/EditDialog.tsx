@@ -2,13 +2,13 @@
 // Drives the real ColdWallet new-asset state (Props) + setUserData. Two add stages:
 // pick currency → details; edit jumps straight to details.
 import React, { useEffect, useState } from 'react';
-import { NumericFormat } from 'react-number-format';
+import AmountInput from './AmountInput';
 import Props from '../Props';
 import AssetDTO, { crypto, fiat } from '../../domain/AssetDTO';
 import fiatCurrencies from '../../fiatCurrencies';
 import uuidGenerator from '../../utils/uuidGenerator';
 import {
-  AMOUNT_ERROR_TEXT, MAX_ASSET_NAME_LENGTH, MAX_SCALE, NAME_ERROR_TEXT, amountScale, isAmountInputAllowed,
+  AMOUNT_ERROR_TEXT, MAX_ASSET_NAME_LENGTH, MAX_SCALE, NAME_ERROR_TEXT, amountScale,
   defaultAssetName, normalizeAmount, validateAmount, validateAssetName, type AmountError, type NameError,
 } from '../../utils/amount';
 import { assetColor } from '../../ui/visual';
@@ -73,17 +73,22 @@ export default function EditDialog({ props }: { props: Props }) {
     if (!name.ok) props.setIsNewAssetNameInvalid(true);
     if (!amount.ok || !name.ok) return;
 
+    // Stored precision follows the value actually saved: the currency's scale, or more only if this
+    // value itself has more decimals (a kept legacy amount) — never the replaced value's decimals.
+    const savedDecimals = (amount.value.split('.')[1] ?? '').length;
+    const savedScale = Math.min(MAX_SCALE, Math.max(currencyScale, savedDecimals));
+
     const userDataNew = { ...props.userData };
     if (!userDataNew.assets) userDataNew.assets = [];
     if (editing) {
       userDataNew.assets = userDataNew.assets.map((a) =>
         a.id === editing.id
-          ? new AssetDTO(editing.id, editing.currency, amount.value, name.value, scale, editing.type)
+          ? new AssetDTO(editing.id, editing.currency, amount.value, name.value, savedScale, editing.type)
           : a);
     } else {
       const cur = currency as string;
       const fc = fiatCurrencies.getByStringCode(cur);
-      const asset = new AssetDTO(uuidGenerator.generateUUID(), cur, amount.value, name.value, scale, fc ? fiat : crypto);
+      const asset = new AssetDTO(uuidGenerator.generateUUID(), cur, amount.value, name.value, savedScale, fc ? fiat : crypto);
       userDataNew.assets = [asset, ...userDataNew.assets];
     }
     props.setUserData(userDataNew);
@@ -167,21 +172,15 @@ export default function EditDialog({ props }: { props: Props }) {
             </div>
             <div className="field">
               <label>Amount</label>
-              <NumericFormat
-                allowNegative={false}
-                allowLeadingZeros={false}
-                valueIsNumericString
-                thousandSeparator
-                displayType="input"
-                inputMode="decimal"
-                decimalScale={scale}
-                isAllowed={(v) => isAmountInputAllowed(v.value)}
+              <AmountInput
                 value={props.newAssetAmount ?? ''}
+                scale={scale}
+                currency={cur}
                 placeholder={(scale ? '0.' + '0'.repeat(Math.min(scale, 2)) : '0') + ' ' + cur}
                 className={props.isNewAssetAmountInvalid ? 'invalid' : ''}
-                aria-invalid={!!amountError}
+                invalid={!!amountError}
                 autoFocus
-                onValueChange={(v) => { props.setIsNewAssetAmountInvalid(false); setAmountError(null); props.setNewAssetAmount(v.value); }}
+                onChange={(v) => { props.setIsNewAssetAmountInvalid(false); setAmountError(null); props.setNewAssetAmount(v); }}
               />
               {amountError && <small className="hint hint--error" role="alert">{AMOUNT_ERROR_TEXT[amountError]}</small>}
             </div>

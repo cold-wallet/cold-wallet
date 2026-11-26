@@ -99,3 +99,37 @@ describe('defaultAssetName', () => {
     expect(Array.from(defaultAssetName('X'.repeat(60))).length).toBe(MAX_ASSET_NAME_LENGTH);
   });
 });
+
+describe('sanitizeAmountInput', () => {
+  it('reads a single comma as the decimal separator (UA/EU typing)', async () => {
+    const { sanitizeAmountInput } = await import('./amount');
+    expect(sanitizeAmountInput('1,5', 8)).toBe('1.5');
+    expect(sanitizeAmountInput('0,25', 2)).toBe('0.25');
+    expect(sanitizeAmountInput(',5', 2)).toBe('0.5');
+    expect(sanitizeAmountInput('1,', 2)).toBe('1.');
+  });
+  it('treats commas as thousands when a dot is present or there are several', async () => {
+    const { sanitizeAmountInput } = await import('./amount');
+    expect(sanitizeAmountInput('1,234.56', 2)).toBe('1234.56');
+    expect(sanitizeAmountInput('1,234,567', 2)).toBe('1234567');
+  });
+  it('drops spaces / apostrophes used for grouping', async () => {
+    const { sanitizeAmountInput } = await import('./amount');
+    expect(sanitizeAmountInput('1 234,5', 2)).toBe('1234.5');
+    expect(sanitizeAmountInput("1'234.5", 2)).toBe('1234.5');
+    expect(sanitizeAmountInput('1 234', 2)).toBe('1234');
+  });
+  it('cuts decimals to the scale, drops junk, leading zeros and extra dots', async () => {
+    const { sanitizeAmountInput } = await import('./amount');
+    expect(sanitizeAmountInput('1.23456', 2)).toBe('1.23');
+    expect(sanitizeAmountInput('1500.75', 0)).toBe('1500'); // JPY
+    expect(sanitizeAmountInput('abc12x.3.4', 8)).toBe('12.34');
+    expect(sanitizeAmountInput('007', 2)).toBe('7');
+    expect(sanitizeAmountInput('', 2)).toBe('');
+  });
+  it('rejects a change that would exceed the digit cap', async () => {
+    const { sanitizeAmountInput } = await import('./amount');
+    expect(sanitizeAmountInput('9'.repeat(30), 2)).toBe('9'.repeat(30));
+    expect(sanitizeAmountInput('9'.repeat(31), 2)).toBeNull();
+  });
+});

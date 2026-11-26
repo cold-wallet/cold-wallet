@@ -124,6 +124,11 @@ body {
   .app:not(.m-classic) .row__right  { grid-column: 4; }
   .app:not(.m-classic) .row__usd,
   .app:not(.m-classic) .row__amt { white-space: nowrap; }
+  /* row__end is display:contents here, so its 200px cap doesn't apply: cap the shared
+     price column through row__right instead, or one long amount line narrows every row's name. */
+  .app:not(.m-classic) .row__right { min-width: 0; max-width: 45vw; }
+  .app:not(.m-classic) .row__usd,
+  .app:not(.m-classic) .row__amt { overflow: hidden; text-overflow: ellipsis; }
   .app:not(.m-classic) .row:hover .row__right { opacity: 1; }
 }
 
@@ -302,7 +307,8 @@ body {
    name column or push the USD value out of the row. */
 .row__end { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; max-width: 200px; }
 .row__right { text-align: right; min-width: 0; }
-.row__usd { font-weight: 600; font-size: 14px; }
+/* nowrap: the hover actions share the capped row__end, so a long USD value must not wrap */
+.row__usd { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row__amt { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Ticker inside an amount ("5 1-COIN-CAN-CHANGE-YOUR-LIFE"): capped so the number stays visible. */
 .amt-code { display: inline-block; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
@@ -753,6 +759,7 @@ body {
 .import-area:focus { border-color: var(--accent); }
 .import-area.bad { border-color: var(--danger); }
 .import-error { margin: 8px 0 0; font-size: 12px; color: var(--danger); }
+.import-pin { margin-top: 14px; }
 .data-actbar { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
 .data-actbar .meta { margin-left: auto; font-size: 11.5px; color: var(--ink-3); }
 .ghostbtn {

@@ -51,6 +51,23 @@ describe('EditDialog', () => {
     expect(saved.name).toBe('Renamed only');
   });
 
+  it('saving a new amount for a legacy holding stores the currency precision, not the old one', () => {
+    const btc = new AssetDTO('a1', 'BTC', '0.123456789012', 'Cold storage', 12, AssetType.crypto);
+    const setUserData = vi.fn();
+    render(<EditDialog props={makeProps({
+      assetToEdit: btc,
+      newAssetAmount: '5',
+      newAssetName: 'Cold storage',
+      binanceCurrencies: { BTC: { precision: 8 } } as unknown as Props['binanceCurrencies'],
+      userData: new UserData('u1', new UserSettings(), [btc]),
+      setUserData,
+    })} />);
+    fireEvent.click(screen.getByText('Save'));
+    const saved = setUserData.mock.calls[0][0].assets[0];
+    expect(saved.amount).toBe('5');
+    expect(saved.decimalScale).toBe(8);
+  });
+
   it('a new holding is still rounded to the currency precision', () => {
     const setUserData = vi.fn();
     render(<EditDialog props={makeProps({ newAssetCurrency: 'EUR', newAssetAmount: '10.555', newAssetName: 'Cash', setUserData })} />);

@@ -8,7 +8,8 @@ import React, { useRef, useState } from "react";
 import Props from "../Props";
 import { onSaveSetting } from "../settings/IntegrationSettings";
 import { dataImporter } from "../settings/ImportData";
-import { BACKUP_ERROR_TEXT, type BackupError } from "../../services/userDataValidation";
+import { useBackupImport } from "../settings/ImportData/useBackupImport";
+import BackupImportFields from "../settings/ImportData/BackupImportFields";
 import ccxtConnector from "../../integrations/ccxt/ccxtConnector";
 import { isConfigured, persistEnabled, setTempEnabled, validateSavedCredentials } from "./integrationActions";
 import PinPad, { PIN_MAX, PIN_MIN } from "../pin/PinPad";
@@ -517,21 +518,9 @@ function ExportView({ props }: { props: Props }) {
 }
 
 function ImportView({ props }: { props: Props }) {
-  const [text, setText] = useState('');
-  const [error, setError] = useState<BackupError | null>(null);
-  const valid = text.trim().length > 8;
-  function doImport() {
-    if (props.importDataBuffer) {
-      // Nothing is replaced unless the token decodes into a valid backup; on failure the dialog
-      // stays open with the reason instead of silently closing.
-      const result = dataImporter.readImportedData(props.importDataBuffer, props.setUserDataHolder);
-      if (!result.ok) { setError(result.error); return; }
-      props.loadBinanceUserData();
-      props.loadMonobankUserData();
-      props.loadOkxUserData();
-      props.stateReset();
-    }
-  }
+  // Nothing is replaced unless the token decrypts (with its PIN, if it has one) into a valid backup;
+  // on failure the dialog stays open with the reason.
+  const state = useBackupImport(props, () => props.stateReset());
   return (
     <div className="dlg__body">
       <div className="cfg-head">
@@ -539,13 +528,10 @@ function ImportView({ props }: { props: Props }) {
         <div className="cfg-title"><b>Import backup</b></div>
       </div>
       <p className="data-desc">Paste a backup token exported from Cold Wallet to restore your portfolio. This replaces your current holdings.</p>
-      <textarea className={"import-area" + ((text && !valid) || error ? " bad" : "")} placeholder="Paste your backup token here…"
-        spellCheck={false} autoCorrect="off" autoCapitalize="off" aria-invalid={!!error}
-        value={text} onChange={(e) => { setText(e.target.value); setError(null); props.setImportDataBuffer(e.target.value); }} />
-      {error && <p className="import-error" role="alert">{BACKUP_ERROR_TEXT[error]}</p>}
+      <BackupImportFields state={state} />
       <div className="cfg-foot">
         <button className="btn" onClick={() => props.setImportOrExportSettingRequested(null)}>Cancel</button>
-        <button className="btn btn--p" disabled={!valid} onClick={doImport}>Restore</button>
+        <button className="btn btn--p" disabled={!state.canSubmit} onClick={state.submit}>Restore</button>
       </div>
     </div>
   );
