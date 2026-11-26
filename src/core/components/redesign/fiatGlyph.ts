@@ -47,22 +47,28 @@ export interface FiatTint { from: string; to: string; ink: string; }
 
 // Major currencies get a colour people associate with them; everything else shares one calm
 // slate tile so the list stays even and the symbol does the identifying.
+// Palette: every tile sits in the same OKLCH band (dark tiles L 0.60→0.43, light tiles
+// L 0.80→0.66, chroma ≈ 0.095–0.11), muted to match the dark green-grey UI so no fiat tile
+// out-shouts the emerald accent or the coins' brand colours. Reds are spread into distinct
+// warm hues (rose, terracotta, brick, raspberry, copper) so none reads as the --danger red.
+// White ink on dark tiles ≥ 3.8:1, dark ink on light tiles ≥ 5.6:1 (symbols are large + bold).
 const T = (from: string, to: string, ink = '#fff'): FiatTint => ({ from, to, ink });
+const INK_DARK = '#1a1710';
 const FIAT_TINTS: Record<string, FiatTint> = {
-  USD: T('#3fae74', '#1d6b45'),
-  EUR: T('#5583f2', '#2a4db5'),
-  GBP: T('#9364dc', '#5a349e'),
-  UAH: T('#ffd84d', '#e6a700', '#1d1a10'),
-  JPY: T('#e6596a', '#a82638'),
-  CNY: T('#ea5a43', '#a92b19'),
-  CHF: T('#ea4f55', '#ae2329'),
-  PLN: T('#e2546d', '#a5223b'),
-  TRY: T('#f05656', '#b52424'),
-  INR: T('#f7a04a', '#c2660d'),
-  XAU: T('#f3d36b', '#c79a1e', '#2a2108'),
-  XAG: T('#e3e7ec', '#9aa3ae', '#1b1f24'),
+  USD: T('#49916a', '#0d5f3b'), // green, in family with the accent (h 158)
+  EUR: T('#637fb9', '#354e84'), // blue, the app's --fiat hue (h 264)
+  GBP: T('#8973b1', '#58427c'), // violet (h 300)
+  UAH: T('#d7bc66', '#aa9039', INK_DARK), // muted gold (h 92)
+  JPY: T('#ad6783', '#773752'), // rose (h 355)
+  CNY: T('#b26a5e', '#7c392f'), // terracotta (h 30)
+  CHF: T('#b2686e', '#7b373f'), // brick (h 15)
+  PLN: T('#a66992', '#713960'), // raspberry (h 340)
+  TRY: T('#af6d4f', '#793c1f'), // copper (h 45)
+  INR: T('#ebb16c', '#bd853f', INK_DARK), // saffron (h 70)
+  XAU: T('#d9ba70', '#ac8e44', INK_DARK), // gold
+  XAG: T('#b8bec5', '#8d9399', INK_DARK), // silver
 };
-const DEFAULT_TINT = T('#62788f', '#384859');
+const DEFAULT_TINT = T('#6e8393', '#3e5361'); // slate (h 240)
 
 export function fiatTint(code: string): FiatTint {
   return FIAT_TINTS[code.toUpperCase()] || DEFAULT_TINT;
