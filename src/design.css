@@ -790,10 +790,11 @@ body {
   display: grid; place-items: center; user-select: none;
 }
 .key:hover { background: var(--card-hi); border-color: var(--line-2); }
-.key:active { transform: scale(.96); background: var(--accent-dim); }
+.key:active, .key.is-pressed { transform: scale(.96); background: var(--accent-dim); }
 .key svg { width: 24px; height: 24px; }
 .key--ok { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .key--ok:hover { filter: brightness(1.08); background: var(--accent); }
+.key--ok.is-pressed { background: var(--accent); filter: brightness(1.12); }
 .key--ok:disabled { opacity: .4; cursor: not-allowed; filter: none; }
 .key--muted { color: var(--ink-2); }
 .pin-msg { text-align: center; font-size: 12.5px; margin-top: 18px; min-height: 16px; color: var(--ink-3); }

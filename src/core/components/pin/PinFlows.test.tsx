@@ -55,6 +55,28 @@ describe('PinSetup', () => {
   });
 });
 
+describe('PinPad from the keyboard', () => {
+  it('takes digits, Backspace and Enter, and ignores keys typed into a text field', () => {
+    const onDone = vi.fn();
+    render(<><input aria-label="other" /><PinSetup title="t" onDone={onDone} /></>);
+    const key = (k: string) => fireEvent.keyDown(window, { key: k });
+    for (const k of ['1', '2', '3', '9', 'Backspace', '4']) key(k);
+    fireEvent.keyDown(screen.getByLabelText('other'), { key: '7' }); // typed into the field, not the PIN
+    key('Enter');
+    expect(screen.getByText('Step 2 of 2')).toBeTruthy();
+    for (const k of '1234') key(k);
+    fireEvent.keyDown(window, { key: '5', ctrlKey: true }); // shortcuts are left alone
+    key('Enter');
+    expect(onDone).toHaveBeenCalledWith('1234');
+  });
+
+  it('does not accept a PIN shorter than 4 digits on Enter', () => {
+    render(<PinSetup title="t" onDone={vi.fn()} />);
+    for (const k of ['1', '2', '3', 'Enter']) fireEvent.keyDown(window, { key: k });
+    expect(screen.getByText('Step 1 of 2')).toBeTruthy();
+  });
+});
+
 describe('creating a wallet', () => {
   function welcome(createWallet = vi.fn()) {
     const props = {
