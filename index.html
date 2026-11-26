@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="border-themed-color" lang="en" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en" xml:lang="en-US" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8"/>
     <!-- Google tag (gtag.js) — GA4. Lives here, not in a React component, so every route
@@ -37,6 +37,9 @@
     <style>
         :root { color-scheme: dark; }
         html, body { margin: 0; height: 100%; }
+        /* The canvas shows below the 100%-tall page when a mobile browser hides its toolbar
+           mid-scroll; keep it the page colour (it used to be a stray teal theme class). */
+        html { background: #080c0b; }
         body {
             background: #080c0b;
             background-image: radial-gradient(120% 90% at 78% -10%, #102019 0%, #080c0b 55%);
