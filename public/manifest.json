@@ -3,33 +3,18 @@
   "name": "Cold Wallet",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "512x512 256x256 192x192 64x64 32x32 16x16",
-      "type": "image/x-icon"
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
     },
     {
-      "src": "logo32.png",
-      "type": "image/svg",
-      "sizes": "32x32"
-    },
-    {
-      "src": "logo64.png",
-      "type": "image/svg",
-      "sizes": "64x64"
-    },
-    {
-      "src": "logo192.png",
-      "type": "image/svg",
+      "src": "icon-192.png",
+      "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo256.png",
-      "type": "image/svg",
-      "sizes": "256x256"
-    },
-    {
-      "src": "logo512.svg",
-      "type": "image/svg",
+      "src": "icon-512.png",
+      "type": "image/png",
       "sizes": "512x512"
     }
   ],
