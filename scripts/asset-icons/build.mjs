@@ -80,6 +80,7 @@ function buildCrypto() {
   const manifest = JSON.parse(fs.readFileSync(path.join(CI, 'manifest.json'), 'utf8'));
   const codes = [...new Set([...manifest.map((m) => m.symbol.toUpperCase()), ...EXTRA_CRYPTO])].filter(isSafeCode);
   const done = [];
+  const round = []; // cryptocurrency-icons are circles with transparent corners
   const from = { web3icons: 0, 'cryptocurrency-icons': 0 };
   for (const code of codes.sort()) {
     let svg = w3svg(path.join(W3, 'tokens/background', code + '.svg.js'));
@@ -93,9 +94,10 @@ function buildCrypto() {
     fs.writeFileSync(path.join(dir, fileCode(code) + '.svg'), minify(svg));
     from[src]++;
     done.push(code);
+    if (src === 'cryptocurrency-icons') round.push(code);
   }
   console.log(`crypto: ${done.length} icons`, from);
-  return done;
+  return { done, round };
 }
 
 // ---------------------------------------------------------------- sources
@@ -149,7 +151,7 @@ function buildSources() {
   return done.sort();
 }
 
-const crypto = buildCrypto();
+const { done: crypto, round: roundCrypto } = buildCrypto();
 const sources = buildSources();
 
 const list = (arr) => {
@@ -177,6 +179,12 @@ ${list(crypto)}
 /** Source keys with a mark at asset-icons/source/<key>.svg. */
 export const SOURCE_ICON_KEYS: readonly string[] = [
 ${list(sources)}
+];
+
+/** Crypto icons drawn as a circle with transparent corners (cryptocurrency-icons); the chip
+ *  scales them up so the circle fills its rounded-square tile like the web3icons tiles do. */
+export const ROUND_CRYPTO_ICON_CODES: readonly string[] = [
+${list(roundCrypto)}
 ];
 `,
 );

@@ -40,7 +40,7 @@ export default function ConfirmDelete({ props }: { props: Props }) {
         <p className="confirm__text">This removes <b style={{ color: 'var(--ink)' }}>{a.normalizedName}</b> from your portfolio. This can't be undone.</p>
         <div className="confirm__asset">
           <CoinChip className="del-ico" code={a.currency} kind={a.type === AssetType.fiat ? 'fiat' : 'crypto'} color={color}
-                    style={{ width: 30, height: 30, borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 600, flex: 'none' }} />
+                    style={{ width: 30, height: 30, borderRadius: 9, display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 600, flex: 'none' }} />
           <span className="num">
             <AmountText amt={amt} code={a.currency} hidden={hidden} />
           </span>

@@ -2,7 +2,7 @@
 // drawn tile with the currency symbol (₴ € £ …). Anything without an icon — or whose icon fails
 // to load — keeps the original coloured ticker chip / tinted letter.
 import React, { useEffect, useState } from 'react';
-import { cryptoIconUrl } from './assetIcons';
+import { cryptoIconUrl, isRoundCryptoIcon } from './assetIcons';
 import { assetSym } from './visual';
 import { fiatSymbol, fiatTint } from './fiatGlyph';
 import fiatCurrencies from '../../fiatCurrencies';
@@ -46,9 +46,12 @@ export function CoinChip({ code, kind, color, className, text, style, children }
     );
   }
   if (src) {
+    const img = <img className="asset-icon" src={src} alt="" draggable={false} decoding="async" onError={onError} />;
     return (
       <span className={className + ' has-icon'} style={style}>
-        <img className="asset-icon" src={src} alt="" draggable={false} decoding="async" onError={onError} />
+        {/* Round logos sit in a clipping box and are scaled up so the circle fills the tile's
+            corners; the clip is a child, so the chip itself can still let the source badge overhang. */}
+        {isRoundCryptoIcon(code) ? <span className="asset-icon-clip">{img}</span> : img}
         {children}
       </span>
     );

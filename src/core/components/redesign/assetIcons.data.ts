@@ -55,3 +55,30 @@ export const SOURCE_ICON_KEYS: readonly string[] = [
   'gate', 'gemini', 'hashkey', 'huobi', 'hyperliquid', 'kraken', 'kucoin', 'metamask', 'mexc',
   'monobank', 'okx', 'paradex', 'upbit', 'whitebit',
 ];
+
+/** Crypto icons drawn as a circle with transparent corners (cryptocurrency-icons); the chip
+ *  scales them up so the circle fills its rounded-square tile like the web3icons tiles do. */
+export const ROUND_CRYPTO_ICON_CODES: readonly string[] = [
+  '0XBTC', '2GIVE', 'ACTN', 'ADD', 'ADX', 'AE', 'AEON', 'AEUR', 'AGI', 'AION', 'AMB', 'AMP', 'AMPL',
+  'ANKR', 'APPC', 'ARG', 'ARN', 'ARNX', 'ARY', 'AST', 'AUDR', 'AYWA', 'BAB', 'BAL', 'BAND', 'BAY',
+  'BCBC', 'BCC', 'BCIO', 'BCO', 'BCPT', 'BDL', 'BELA', 'BIX', 'BLCN', 'BLK', 'BNTY', 'BOOTY', 'BOS',
+  'BPT', 'BQ', 'BRD', 'BSD', 'BTCD', 'BTCH', 'BTCZ', 'BTDX', 'BTT', 'BTX', 'BURST', 'BZE', 'CALL',
+  'CC', 'CDN', 'CHIPS', 'CHSB', 'CIX', 'CLAM', 'CLOAK', 'CMM', 'CMT', 'CNX', 'CNY', 'COB', 'COLX',
+  'COQUI', 'CRED', 'CRW', 'CS', 'D', 'DAT', 'DCN', 'DEEZ', 'DEW', 'DGD', 'DLT', 'DOCK', 'DROP',
+  'DTA', 'DTH', 'DTR', 'EBST', 'ECA', 'EDO', 'EDOGE', 'ELA', 'ELEC', 'ELIX', 'ELLA', 'EMB', 'EMC',
+  'EMC2', 'ENTRP', 'EON', 'EOP', 'EQLI', 'EQUA', 'ETHOS', 'EUR', 'EVX', 'EXMO', 'EXP', 'FAIR',
+  'FJC', 'FLDC', 'FLO', 'FUEL', 'GBP', 'GBX', 'GENERIC', 'GIN', 'GLXT', 'GMR', 'GMT', 'GNT', 'GOLD',
+  'GRS', 'GSC', 'GTO', 'GUP', 'GVT', 'GXS', 'GZR', 'HIGHT', 'HODL', 'HPB', 'HSR', 'HTML', 'HUC',
+  'ICN', 'ILK', 'INK', 'IOP', 'IOST', 'IOTX', 'ITC', 'JNT', 'JPY', 'KLOWN', 'KRB', 'LBC', 'LEND',
+  'LKK', 'LUN', 'MAID', 'MCAP', 'MCO', 'MDA', 'MDS', 'MEETONE', 'MIOTA', 'MITH', 'MNX', 'MNZ',
+  'MOAC', 'MSR', 'MZC', 'NANO', 'NAS', 'NCASH', 'NDZ', 'NEBL', 'NEOS', 'NEU', 'NIO', 'NLC2', 'NLG',
+  'NMC', 'NTBC', 'NXS', 'OK', 'OMG', 'OOT', 'OST', 'PASC', 'PASL', 'PAX', 'PAYX', 'PINK', 'PIRL',
+  'POA', 'POE', 'POLIS', 'POT', 'PPP', 'PRL', 'PUNGO', 'PURA', 'QIWI', 'QSP', 'RADS', 'RAP',
+  'REPV2', 'RHOC', 'RIC', 'RPX', 'RUB', 'RYO', 'SAFEMOON', 'SBERBANK', 'SER', 'SHIFT', 'SIB', 'SIN',
+  'SKY', 'SLS', 'SMART', 'SNGLS', 'SNM', 'SOC', 'SPACEHBIT', 'SPHTX', 'SRN', 'STAK', 'START',
+  'STORM', 'STOX', 'STQ', 'STRAT', 'SUMO', 'TAAS', 'TAU', 'TBX', 'TEN', 'TERN', 'TGCH', 'TIX',
+  'TKS', 'TNB', 'TNC', 'TOMO', 'TPAY', 'TRIG', 'TRTL', 'TZC', 'UBQ', 'UNITY', 'USD', 'VERI', 'VIA',
+  'VIBE', 'VIVO', 'VRC', 'VRSC', 'WABI', 'WAX', 'WGR', 'WICC', 'WINGS', 'WPR', 'WTC', 'X', 'XAS',
+  'XBC', 'XBP', 'XBY', 'XDN', 'XIN', 'XMCC', 'XMG', 'XMO', 'XMY', 'XP', 'XPA', 'XPM', 'XSG', 'XUC',
+  'XVC', 'XZC', 'YOYOW', 'ZCL', 'ZEL', 'ZEST', 'ZILLA',
+];

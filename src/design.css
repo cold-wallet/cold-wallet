@@ -239,8 +239,9 @@ body {
 .row + .row { margin-top: 2px; }
 .row:hover { background: var(--card); border-color: var(--line); }
 .row.is-active { background: var(--card-hi); border-color: var(--accent-dim); }
+/* Currency chips are rounded squares (radius ≈ 0.3 × side, as in the Allocation legend). */
 .coin {
-  width: 40px; height: 40px; border-radius: 50%; flex: none;
+  width: 40px; height: 40px; border-radius: 12px; flex: none;
   display: grid; place-items: center; font-size: 17px; font-weight: 600;
   color: #fff; position: relative;
 }
@@ -258,6 +259,13 @@ body {
   display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover;
   user-select: none; -webkit-user-drag: none; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
+/* Round coin logos (cryptocurrency-icons): clip to the chip's shape and scale up 1.2× so the
+   circle's fill reaches the rounded corners (×1.17 is the minimum at radius 0.3 × side). */
+.asset-icon-clip {
+  display: block; width: 100%; height: 100%; border-radius: inherit; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.asset-icon-clip .asset-icon { transform: scale(1.2); box-shadow: none; }
 /* Fiat: drawn symbol tile (fiatGlyph.ts). The symbol scales with its length, relative to each
    chip's own font-size, so the same markup fits the 40px row coin and the 18px legend chip. */
 .fiat-glyph {
@@ -571,7 +579,7 @@ body {
 .fs-d-list::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 9px; border: 3px solid transparent; background-clip: padding-box; }
 .fs-d-row { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: var(--r-sm); }
 .fs-d-row + .fs-d-row { border-top: 1px solid var(--line); }
-.fs-d-ico { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
+.fs-d-ico { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
 .fs-d-main { flex: 1; min-width: 0; }
 .fs-d-asset { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fs-d-meta { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
@@ -785,7 +793,7 @@ body {
 }
 .asset-card:hover { border-color: var(--accent); background: var(--card-hi); transform: translateY(-1px); }
 .asset-card.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim); }
-.asset-card__ico { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; font-weight: 600; }
+.asset-card__ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; font-weight: 600; }
 .asset-card__code { font-size: 13px; font-weight: 600; }
 .asset-card__name { font-size: 10.5px; color: var(--ink-3); margin-top: -5px; }
 
@@ -794,7 +802,7 @@ body {
 .asset-list::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
 .asset-li { display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: var(--r-sm); cursor: pointer; transition: .12s; }
 .asset-li:hover { background: var(--card-hi); }
-.asset-li__ico { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
+.asset-li__ico { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
 .asset-li__main { flex: 1; min-width: 0; }
 .asset-li__code { font-size: 13.5px; font-weight: 600; }
 .asset-li__name { font-size: 11.5px; color: var(--ink-3); }
@@ -814,7 +822,7 @@ body {
 .connect-cta > svg { width: 17px; height: 17px; color: var(--ink-3); flex: none; }
 
 .sel-chip { display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 16px; }
-.sel-chip__ico { width: 38px; height: 38px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 17px; font-weight: 600; }
+.sel-chip__ico { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; font-size: 17px; font-weight: 600; }
 .sel-chip__main { flex: 1; }
 .sel-chip__code { font-size: 14px; font-weight: 600; }
 .sel-chip__name { font-size: 11.5px; color: var(--ink-3); }
