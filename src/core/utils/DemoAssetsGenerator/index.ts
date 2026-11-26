@@ -4,67 +4,7 @@ import UserData, {MetaMaskIntegrationSettingsData, UserSettings} from "../../dom
 import {AddressBalanceResult, MetaMaskAccount} from "../../integrations/metamask/MetaMaskWallet";
 import {initUserDataHolder} from "../../services/UserDataService";
 
-/*
- * Demo portfolio: a fixed, realistic set of holdings (same on every visit) so the demo — and the
- * landing's hero screenshot taken from it — always shows a believable mix of fiat and crypto
- * across every source. Labels follow the formats the real integrations produce
- * (monobankApiClient, BinanceApiService, okxApiClient, MetaMaskLoader), so a demo row looks
- * exactly like a connected one. Addresses and card numbers are made up.
- */
-
-type Source = 'manual' | 'binance' | 'monobank' | 'okx' | 'metamask';
-type DemoHolding = { currency: string; amount: string; name: string; type: AssetType };
-
-const FIAT_SCALE = 2;
-const CRYPTO_SCALE = 8;
-const DEMO_WALLET = '0x8b2f41c97e0d6a35f1c4e2b9a07d3e5c6f9a1b24';
-
-const MANUAL: DemoHolding[] = [
-    {currency: 'EUR', amount: '9500.00', name: 'Savings account', type: AssetType.fiat},
-    {currency: 'USD', amount: '4800.00', name: 'Cash', type: AssetType.fiat},
-    {currency: 'GBP', amount: '2300.00', name: 'Revolut', type: AssetType.fiat},
-];
-
-const MONOBANK: DemoHolding[] = [
-    {currency: 'UAH', amount: '86400.00', name: 'UAH 537541******4127 black', type: AssetType.fiat},
-    {currency: 'USD', amount: '3250.00', name: 'USD 537541******8803 black', type: AssetType.fiat},
-    {currency: 'EUR', amount: '1840.00', name: 'EUR 537541******2216 white', type: AssetType.fiat},
-];
-
-const BINANCE: DemoHolding[] = [
-    {currency: 'BTC', amount: '0.142', name: 'BTC Funding', type: AssetType.crypto},
-    {currency: 'USDT', amount: '3200', name: 'USDT Funding', type: AssetType.crypto},
-    {currency: 'BNB', amount: '2.4', name: 'BNB Funding', type: AssetType.crypto},
-];
-
-const OKX: DemoHolding[] = [
-    {currency: 'ETH', amount: '1.85', name: 'ETH funding OKX', type: AssetType.crypto},
-    {currency: 'SOL', amount: '24', name: 'SOL trading OKX', type: AssetType.crypto},
-];
-
-const METAMASK: DemoHolding[] = [
-    {currency: 'ETH', amount: '0.62', name: `ETH Ethereum ${DEMO_WALLET}`, type: AssetType.crypto},
-    {currency: 'USDC', amount: '1250', name: `USDC Base ${DEMO_WALLET}`, type: AssetType.crypto},
-];
-
-function toAssets(holdings: DemoHolding[], source: Source): AssetDTO[] {
-    return holdings.map(({currency, amount, name, type}) => new AssetDTO(
-        uuidGenerator.generateUUID(),
-        currency,
-        amount,
-        name,
-        type === AssetType.fiat ? FIAT_SCALE : CRYPTO_SCALE,
-        type,
-        source === 'binance',
-        source === 'monobank',
-        source === 'okx',
-        false,
-        null,
-        source === 'metamask',
-    ));
-}
-
-/** Builds a fresh demo UserDataHolder (demo manual holdings + demo settings), already in demo mode. */
+/** Builds a fresh demo UserDataHolder (random demo assets + demo settings), already in demo mode. */
 export function buildDemoUserDataHolder() {
     const userData = new UserData(
         uuidGenerator.generateUUID(),
@@ -74,25 +14,168 @@ export function buildDemoUserDataHolder() {
     return initUserDataHolder(userData, true);
 }
 
-/** Hand-entered ("Cash / Manual") demo holdings. Integration holdings come from the loaders below. */
-export function createDemoAssets() {
-    return toAssets(MANUAL, 'manual');
-}
-
 export function createDemoBinanceAssets() {
-    return toAssets(BINANCE, 'binance');
+    const length = 1 + Math.random() * 5;
+    return Array.from({length}, () => {
+        const currency = getRandomCryptoCurrency();
+        return new AssetDTO(
+            uuidGenerator.generateUUID(),
+            currency,
+            getRandomAmount(currency, AssetType.crypto).toString(),
+            "demo binance amount",
+            8,
+            AssetType.crypto,
+            true,
+            false,
+            false,
+            false,
+            null,
+            false,
+        )
+    })
 }
 
 export function createDemoOkxAssets() {
-    return toAssets(OKX, 'okx');
+    const length = 1 + Math.random() * 5;
+    return Array.from({length}, () => {
+        const currency = getRandomCryptoCurrency();
+        return new AssetDTO(
+            uuidGenerator.generateUUID(),
+            currency,
+            getRandomAmount(currency, AssetType.crypto).toString(),
+            "demo okx amount",
+            8,
+            AssetType.crypto,
+            false,
+            false,
+            true,
+            false,
+            null,
+            false,
+        )
+    })
 }
 
 export function createDemoMetamaskAssets() {
-    return toAssets(METAMASK, 'metamask');
+    const length = 1 + Math.random() * 5;
+    return Array.from({length}, () => {
+        const currency = getRandomCryptoCurrency();
+        return new AssetDTO(
+            uuidGenerator.generateUUID(),
+            currency,
+            getRandomAmount(currency, AssetType.crypto).toString(),
+            "demo metamask amount",
+            8,
+            AssetType.crypto,
+            false,
+            false,
+            false,
+            false,
+            null,
+            true,
+        )
+    })
 }
 
 export function createDemoMonobankAssets() {
-    return toAssets(MONOBANK, 'monobank');
+    const length = 1 + Math.random() * 5;
+    return Array.from({length}, () => {
+        const currency = getRandomFiatCurrency();
+        return new AssetDTO(
+            uuidGenerator.generateUUID(),
+            currency,
+            getRandomAmount(currency, AssetType.fiat).toString(),
+            "demo monobank amount",
+            8,
+            AssetType.fiat,
+            false,
+            true,
+            false,
+            false,
+            null,
+            false,
+        )
+    })
+}
+
+export function createDemoAssets() {
+    function createDemoAsset() {
+        function generateOneRandomTrue(length: number): boolean[] {
+            const arr = Array.from({length}, () => false);
+            const randomIndex = Math.floor(Math.random() * arr.length);
+            arr[randomIndex] = true;
+            return arr;
+        }
+
+        const {currency, type} = getRandomCurrency();
+        const randomArr = generateOneRandomTrue(4);
+        const isCrypto = type === AssetType.crypto;
+        return new AssetDTO(
+            uuidGenerator.generateUUID(),
+            currency,
+            getRandomAmount(currency, type).toString(),
+            "demo amount",
+            8,
+            type,
+            isCrypto && randomArr[0],
+            isCrypto && randomArr[1],
+            isCrypto && randomArr[2],
+            false,
+            null,
+            isCrypto && randomArr[3]
+        )
+    }
+
+    const length = 1 + Math.random() * 5;
+    return Array.from({length}, createDemoAsset);
+}
+
+function getRandomBoolean() {
+    return Math.random() < 0.5;
+}
+
+function getRandomCurrency() {
+    const type = getRandomBoolean() ? AssetType.crypto : AssetType.fiat;
+    return {
+        currency: type === AssetType.crypto ? getRandomCryptoCurrency() : getRandomFiatCurrency(),
+        type: type,
+    };
+}
+
+function getRandomCryptoCurrency(): string {
+    return [
+        "BTC",
+        "ETH",
+        "SOL",
+        "USDT",
+        "USDC",
+        "DOT",
+        "DAI",
+        "BNB",
+        "XRP",
+        "XLM",
+        "ADA",
+    ][Number((Math.random() * 10).toFixed())];
+}
+
+function getRandomFiatCurrency(): string {
+    return [
+        "UAH",
+        "USD",
+        "EUR",
+        "GBP",
+        "TRY",
+        "PLN",
+    ][Number((Math.random() * 5).toFixed())];
+}
+
+function getRandomAmount(currency: string, type: AssetType = AssetType.crypto): number {
+    const amount = Math.random() * (currency === "BTC" ? Math.random()// * Math.random() * 10
+            : currency === "ETH" || currency === "BNB" ? 10
+                : (type === AssetType.fiat ? 10000 : currency.startsWith("USD") ? 1000 : 100)
+    );
+    // Fiat currencies can't have more than 2 decimal places.
+    return type === AssetType.fiat ? Number(amount.toFixed(2)) : amount;
 }
 
 export function createDemoUserSettings() {
@@ -128,3 +211,4 @@ export function createDemoUserSettings() {
         } as MetaMaskIntegrationSettingsData
     );
 }
+
