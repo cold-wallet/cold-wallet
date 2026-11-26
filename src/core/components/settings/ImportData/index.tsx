@@ -1,5 +1,6 @@
 import UserDataHolder from "../../../domain/UserDataHolder";
 import {Dispatch, SetStateAction} from "react";
+import {BackupResult, parseBackupToken} from "../../../services/userDataValidation";
 
 export const dataImporter = {
 
@@ -8,21 +9,18 @@ export const dataImporter = {
         return Buffer.from(encodeURIComponent(JSON.stringify(data)), 'ascii').toString('base64');
     },
 
-    readImportedData(data: string, setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>) {
-        try {
-            let text = Buffer.from(data, 'base64').toString('ascii');
-            try {
-                let parsed = JSON.parse(decodeURIComponent(text));
-                setUserDataHolder(parsed);
-                console.log("imported successfully")
-            } catch (e) {
-                console.error("error while parsing json string: ", text)
-                console.error(e)
-            }
-        } catch (e) {
-            console.error("error while decoding string: ", data)
-            console.error(e)
+    /**
+     * Validate a backup token (decrypting it — with `pin` for a PIN-protected backup — and checking
+     * the decrypted JSON) and, only if all of that succeeds, replace the stored data with it.
+     */
+    readImportedData(data: string, setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>, pin?: string): BackupResult {
+        const result = parseBackupToken(data, pin);
+        if (result.ok) {
+            setUserDataHolder(result.holder);
+        } else if (result.error !== 'pin-required') {
+            console.warn("backup import rejected:", result.error);
         }
+        return result;
     }
 
 }

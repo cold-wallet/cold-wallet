@@ -2,12 +2,15 @@
 // Drives the real ColdWallet new-asset state (Props) + setUserData. Two add stages:
 // pick currency → details; edit jumps straight to details.
 import React, { useEffect, useState } from 'react';
-import { NumericFormat } from 'react-number-format';
+import AmountInput from './AmountInput';
 import Props from '../Props';
 import AssetDTO, { crypto, fiat } from '../../domain/AssetDTO';
 import fiatCurrencies from '../../fiatCurrencies';
 import uuidGenerator from '../../utils/uuidGenerator';
-import assetDataValidator from '../../utils/AssetDataValidator';
+import {
+  AMOUNT_ERROR_TEXT, MAX_ASSET_NAME_LENGTH, MAX_SCALE, NAME_ERROR_TEXT, amountScale,
+  defaultAssetName, normalizeAmount, validateAmount, validateAssetName, type AmountError, type NameError,
+} from '../../utils/amount';
 import { assetColor } from '../../ui/visual';
 import { CoinChip } from '../dashboard/AssetIcon';
 
@@ -18,11 +21,24 @@ export default function EditDialog({ props }: { props: Props }) {
   const currency = editing ? editing.currency : props.newAssetCurrency;
   const stage: 'pick' | 'details' = currency ? 'details' : 'pick';
   const [q, setQ] = useState('');
+  const [amountError, setAmountError] = useState<AmountError | null>(null);
+  const [nameError, setNameError] = useState<NameError | null>(null);
+  // Decimal places the amount may have: ISO minor units for fiat (EUR 2, JPY 0), exchange
+  // precision for crypto. Drives both the input mask and the rounding on save. An existing
+  // holding that already stores more decimals keeps them (it may predate the mask), so editing
+  // only its name never rounds its amount.
+  const currencyScale = currency
+    ? amountScale(currency, props.binanceCurrencies?.[currency]?.precision, editing?.decimalScale)
+    : 8;
+  const storedDecimals = editing ? ((normalizeAmount(editing.amount) ?? '').split('.')[1] ?? '').length : 0;
+  const scale = Math.min(MAX_SCALE, Math.max(currencyScale, storedDecimals));
+  // counted like validateAssetName (characters after trimming / collapsing spaces)
+  const nameLength = Array.from((props.newAssetName ?? '').replace(/\s+/g, ' ').trim()).length;
 
   // default the name when first entering the details stage for a brand-new asset
   useEffect(() => {
     if (!editing && currency && props.newAssetName == null) {
-      props.setNewAssetName(currency + ' amount');
+      props.setNewAssetName(defaultAssetName(currency));
     }
     // eslint-disable-next-line
   }, [editing, currency]);
@@ -40,28 +56,39 @@ export default function EditDialog({ props }: { props: Props }) {
     props.setNewAssetCurrency(null);
     props.setNewAssetName(null);
     props.setNewAssetAmount(null);
+    // don't carry the previous currency's errors into the next one
+    setAmountError(null);
+    setNameError(null);
+    props.setIsNewAssetAmountInvalid(false);
+    props.setIsNewAssetNameInvalid(false);
   }
   function save() {
-    const amountValid = assetDataValidator.isAssetAmountValid(props.newAssetAmount);
-    const nameValid = assetDataValidator.isAssetNameValid(props.newAssetName);
-    if (!amountValid) props.setIsNewAssetAmountInvalid(true);
-    if (!nameValid) props.setIsNewAssetNameInvalid(true);
-    if (!amountValid || !nameValid) return;
+    // Validate AND canonicalise: the stored amount is rounded to the currency's precision with
+    // trailing zeros stripped, the name is trimmed — so "1,012.000…000" is saved as "1012".
+    const amount = validateAmount(props.newAssetAmount, scale);
+    const name = validateAssetName(props.newAssetName);
+    setAmountError(amount.ok ? null : amount.error);
+    setNameError(name.ok ? null : name.error);
+    if (!amount.ok) props.setIsNewAssetAmountInvalid(true);
+    if (!name.ok) props.setIsNewAssetNameInvalid(true);
+    if (!amount.ok || !name.ok) return;
+
+    // Stored precision follows the value actually saved: the currency's scale, or more only if this
+    // value itself has more decimals (a kept legacy amount) — never the replaced value's decimals.
+    const savedDecimals = (amount.value.split('.')[1] ?? '').length;
+    const savedScale = Math.min(MAX_SCALE, Math.max(currencyScale, savedDecimals));
 
     const userDataNew = { ...props.userData };
     if (!userDataNew.assets) userDataNew.assets = [];
     if (editing) {
       userDataNew.assets = userDataNew.assets.map((a) =>
         a.id === editing.id
-          ? new AssetDTO(editing.id, editing.currency, props.newAssetAmount || '0', props.newAssetName || '', editing.decimalScale, editing.type)
+          ? new AssetDTO(editing.id, editing.currency, amount.value, name.value, savedScale, editing.type)
           : a);
     } else {
       const cur = currency as string;
       const fc = fiatCurrencies.getByStringCode(cur);
-      const decimalScale = fc
-        ? fc.afterDecimalPoint
-        : ((props.binanceCurrencies && props.binanceCurrencies[cur] && props.binanceCurrencies[cur].precision) || 8);
-      const asset = new AssetDTO(uuidGenerator.generateUUID(), cur, props.newAssetAmount || '0', props.newAssetName || '', decimalScale, fc ? fiat : crypto);
+      const asset = new AssetDTO(uuidGenerator.generateUUID(), cur, amount.value, name.value, savedScale, fc ? fiat : crypto);
       userDataNew.assets = [asset, ...userDataNew.assets];
     }
     props.setUserData(userDataNew);
@@ -95,7 +122,7 @@ export default function EditDialog({ props }: { props: Props }) {
                     <div className="asset-li" key={o.value} onClick={() => pick(o.value)}>
                       <CoinChip className="asset-li__ico" code={o.value} color={c} />
                       <div className="asset-li__main">
-                        <div className="asset-li__code">{o.value}</div>
+                        <div className="asset-li__code" title={o.value}>{o.value}</div>
                         <div className="asset-li__name">{o.label}</div>
                       </div>
                       <span className="asset-li__kind">{fiatCurrencies.getByStringCode(o.value) ? 'Fiat' : 'Crypto'}</span>
@@ -138,35 +165,43 @@ export default function EditDialog({ props }: { props: Props }) {
             <div className="sel-chip">
               <CoinChip className="sel-chip__ico" code={cur} kind={isFiat ? 'fiat' : 'crypto'} color={color} />
               <div className="sel-chip__main">
-                <div className="sel-chip__code">{cur} <span style={{ color: 'var(--ink-3)', fontWeight: 400, fontSize: 12 }}>· {isFiat ? 'fiat' : 'crypto'}</span></div>
-                <div className="sel-chip__name">{props.newAssetName || cur + ' amount'}</div>
+                <div className="sel-chip__code" title={cur}>{cur} <span style={{ color: 'var(--ink-3)', fontWeight: 400, fontSize: 12 }}>· {isFiat ? 'fiat' : 'crypto'}</span></div>
+                <div className="sel-chip__name">{props.newAssetName || defaultAssetName(cur)}</div>
               </div>
               {!editing && <button className="sel-chip__change" onClick={back}>Change</button>}
             </div>
             <div className="field">
               <label>Amount</label>
-              <NumericFormat
-                allowNegative={false}
-                allowLeadingZeros={false}
-                valueIsNumericString
-                thousandSeparator
-                displayType="input"
+              <AmountInput
                 value={props.newAssetAmount ?? ''}
-                placeholder={'0.00 ' + cur}
+                scale={scale}
+                currencyScale={currencyScale}
+                currency={cur}
+                placeholder={(scale ? '0.' + '0'.repeat(Math.min(scale, 2)) : '0') + ' ' + cur}
                 className={props.isNewAssetAmountInvalid ? 'invalid' : ''}
+                invalid={!!amountError}
                 autoFocus
-                onValueChange={(v) => { props.setIsNewAssetAmountInvalid(false); props.setNewAssetAmount(v.value); }}
+                onChange={(v) => { props.setIsNewAssetAmountInvalid(false); setAmountError(null); props.setNewAssetAmount(v); }}
               />
+              {amountError && <small className="hint hint--error" role="alert">{AMOUNT_ERROR_TEXT[amountError]}</small>}
             </div>
             <div className="field">
               <label>Name</label>
+              {/* No maxLength: it counts UTF-16 units (an emoji is 2), unlike the 40-character rule in
+                  validateAssetName. A live counter near the limit + the save check cover it instead. */}
               <input
                 value={props.newAssetName ?? ''}
                 className={props.isNewAssetNameInvalid ? 'invalid' : ''}
-                onChange={(e) => { props.setIsNewAssetNameInvalid(false); props.setNewAssetName(e.target.value); }}
-                placeholder={cur + ' amount'}
+                aria-invalid={!!nameError}
+                onChange={(e) => { props.setIsNewAssetNameInvalid(false); setNameError(null); props.setNewAssetName(e.target.value); }}
+                placeholder={defaultAssetName(cur)}
               />
-              <small className="hint">Shown as the label in your holdings list.</small>
+              {nameError
+                ? <small className="hint hint--error" role="alert">{NAME_ERROR_TEXT[nameError]}</small>
+                : <small className="hint">
+                    Shown as the label in your holdings list.
+                    {nameLength > MAX_ASSET_NAME_LENGTH - 10 && <> {nameLength}/{MAX_ASSET_NAME_LENGTH}</>}
+                  </small>}
             </div>
             <div className="dialog__actions">
               <button className="btn" onClick={close}>Cancel</button>

@@ -23,7 +23,9 @@ export default class AssetDTO {
         public ccxtExchangeName: string | null = null,
         public isMetaMaskAsset: boolean = false,
     ) {
-        if (!id || !currency || !amount || !name || !decimalScale || (+amount) <= 0) {
+        // decimalScale 0 is valid (JPY, KRW and other currencies without minor units).
+        if (!id || !currency || !amount || !name || typeof decimalScale !== 'number' || decimalScale < 0
+            || (+amount) <= 0) {
             throw new Error(`invalid asset parameters: ${id}, ${currency}, ${amount}, ${name}, ${decimalScale}`)
         }
         this.id = id;

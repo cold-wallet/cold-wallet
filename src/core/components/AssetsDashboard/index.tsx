@@ -18,8 +18,9 @@ import TreemapChart from "../dashboard/TreemapChart";
 import HoldingRow from "../dashboard/HoldingRow";
 import { NumericFormat } from "react-number-format";
 import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../../ui/format";
-import { shortenAddresses } from "../../ui/visual";
+import { assetSym, shortenAddresses } from "../../ui/visual";
 import { CoinChip, SourceMark } from "../dashboard/AssetIcon";
+import { normalizeAmount } from "../../utils/amount";
 import {
     assetSlices,
     chartData,
@@ -96,7 +97,10 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     function editAsset(asset: AssetDTO) {
         props.stateReset();
         props.setAssetToEdit(asset);
-        props.setNewAssetAmount(asset.amount);
+        // Open with the canonical value (a legacy "1012.0000000000000000000" shows as "1012") but
+        // never rounded to the currency's precision: opening a holding to rename it must not change
+        // its amount. Falls back to the raw string if it can't be parsed.
+        props.setNewAssetAmount(normalizeAmount(asset.amount) ?? asset.amount);
         props.setNewAssetName(asset.name);
     }
     function deleteAsset(asset: AssetDTO) {
@@ -273,7 +277,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                         onMouseLeave={() => setHot(null)}
                                     >
                                         <span className="legend__fill" style={{ width: (l.usd / maxLeaf) * 100 + '%', background: l.color }} />
-                                        <CoinChip className="legend__chip" code={l.code as string || ''} kind={l.kind as 'fiat' | 'crypto'} color={l.color} text={(l.code as string || '').slice(0, 3)} />
+                                        <CoinChip className="legend__chip" code={l.code as string || ''} kind={l.kind as 'fiat' | 'crypto'} color={l.color} text={Array.from(assetSym(l.code as string || '')).slice(0, 3).join('')} />
                                         <span className="legend__amt num">
                                             {hidden ? `${AMOUNT_MASK}\u00A0${l.code}` : (
                                                 <><NumericFormat displayType="text" thousandSeparator valueIsNumericString decimalScale={amt.decimalScale} value={amt.value} />{'\u00A0'}{l.code}</>

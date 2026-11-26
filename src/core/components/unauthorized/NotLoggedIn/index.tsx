@@ -1,10 +1,11 @@
 // NotLoggedIn — first-run gate, reskinned to the new WelcomeView design.
 // Same mechanics: create wallet / demo mode / import-from-token + terms checkbox.
-import React, { useState, type ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import UserData from "../../../domain/UserData";
 import uuidGenerator from "../../../utils/uuidGenerator";
 import { initUserDataHolder } from "../../../services/UserDataService";
-import { dataImporter } from "../../settings/ImportData";
+import { useBackupImport } from "../../settings/ImportData/useBackupImport";
+import BackupImportFields from "../../settings/ImportData/BackupImportFields";
 import Props from "../../Props";
 
 interface Option {
@@ -96,25 +97,20 @@ export default function NotLoggedIn(props: Props) {
 }
 
 function WelcomeImport({ props }: { props: Props }) {
-    const [text, setText] = useState('');
-    const valid = text.trim().length > 8;
+    // Same flow as Settings → Import: the token (and its PIN, if it has one) is decrypted and
+    // validated before anything is replaced; a rejected token keeps the dialog open with the reason.
+    const state = useBackupImport(props, () => {
+        props.stateReset();
+        props.setShowCreateNewAssetWindow(false);
+        props.setCreatingNewAsset(false);
+    });
+    const { text, setText } = state;
 
     async function paste() {
         try {
             const t = await navigator.clipboard.readText();
-            if (t) { setText(t); props.setImportDataBuffer(t); }
+            if (t) setText(t);
         } catch { /* clipboard unavailable */ }
-    }
-    function doImport() {
-        if (props.importDataBuffer) {
-            dataImporter.readImportedData(props.importDataBuffer, props.setUserDataHolder);
-            props.loadBinanceUserData();
-            props.loadMonobankUserData();
-            props.loadOkxUserData();
-        }
-        props.stateReset();
-        props.setShowCreateNewAssetWindow(false);
-        props.setCreatingNewAsset(false);
     }
 
     return (
@@ -122,13 +118,7 @@ function WelcomeImport({ props }: { props: Props }) {
             <div className="dialog" style={{ width: 520 }} onClick={(e) => e.stopPropagation()}>
                 <h3>Import wallet</h3>
                 <p className="data-desc">Paste a backup token exported from Cold Wallet to restore your portfolio.</p>
-                <textarea
-                    className={"import-area" + (text && !valid ? " bad" : "")}
-                    placeholder="Paste your backup token here…"
-                    value={text}
-                    onChange={(e) => { setText(e.target.value); props.setImportDataBuffer(e.target.value); }}
-                    autoFocus
-                />
+                <BackupImportFields state={state} autoFocus />
                 <div className="data-actbar">
                     <button className="ghostbtn" onClick={paste}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /></svg>
@@ -138,7 +128,7 @@ function WelcomeImport({ props }: { props: Props }) {
                 </div>
                 <div className="dialog__actions">
                     <button className="btn" onClick={() => props.stateReset()}>Cancel</button>
-                    <button className="btn btn--p" disabled={!valid} onClick={doImport}>Import</button>
+                    <button className="btn btn--p" disabled={!state.canSubmit} onClick={state.submit}>Import</button>
                 </div>
             </div>
         </div>

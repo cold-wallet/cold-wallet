@@ -124,6 +124,11 @@ body {
   .app:not(.m-classic) .row__right  { grid-column: 4; }
   .app:not(.m-classic) .row__usd,
   .app:not(.m-classic) .row__amt { white-space: nowrap; }
+  /* row__end is display:contents here, so its 200px cap doesn't apply: cap the shared
+     price column through row__right instead, or one long amount line narrows every row's name. */
+  .app:not(.m-classic) .row__right { min-width: 0; max-width: 45vw; }
+  .app:not(.m-classic) .row__usd,
+  .app:not(.m-classic) .row__amt { overflow: hidden; text-overflow: ellipsis; }
   .app:not(.m-classic) .row:hover .row__right { opacity: 1; }
 }
 
@@ -277,11 +282,19 @@ body {
 .fiat-glyph[data-len="2"] .fiat-glyph__sym { font-size: 1em; }
 .fiat-glyph[data-len="3"] .fiat-glyph__sym { font-size: 0.78em; letter-spacing: -0.04em; }
 .fiat-glyph[data-len="4"] .fiat-glyph__sym { font-size: 0.62em; letter-spacing: -0.04em; }
+/* Ticker text fallback (no icon): same length-based shrink, relative to each chip's own
+   font-size, so WETH / USDC fit the 40px row chip and the 18px legend chip alike. */
+.coin-text__sym { line-height: 1; white-space: nowrap; letter-spacing: -0.02em; }
+.coin-text[data-len="3"] .coin-text__sym { font-size: 0.8em; letter-spacing: -0.03em; }
+.coin-text[data-len="4"] .coin-text__sym { font-size: 0.64em; letter-spacing: -0.03em; }
+.coin-text[data-len="5"] .coin-text__sym { font-size: 0.52em; letter-spacing: -0.03em; } /* wide CJK / emoji labels */
 .coin__src.has-icon { background: var(--panel); }
 .coin__src.has-icon .asset-icon { border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.14); }
 .row__main { min-width: 0; }
-.row__top { display: flex; align-items: center; gap: 8px; }
-.row__asset { font-weight: 600; font-size: 14px; }
+.row__top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.row__top .tag { flex: none; }
+/* Very long tickers (CoinGecko has 38-char ones) end in an ellipsis; the row title has the full one. */
+.row__asset { font-weight: 600; font-size: 14px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tag {
   font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
   padding: 2px 6px; border-radius: 5px; color: var(--ink-3); border: 1px solid var(--line-2);
@@ -290,10 +303,15 @@ body {
 /* Right cluster: the amount stays fixed at the right edge and is never covered, so it
    stays selectable. Edit/delete reveal on hover to the LEFT of the amount; the name
    column (1fr) gives up the room and truncates with an ellipsis. */
-.row__end { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-.row__right { text-align: right; }
-.row__usd { font-weight: 600; font-size: 14px; }
-.row__amt { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+/* The amount column never grows past 200px, so a huge amount or long ticker can't squeeze the
+   name column or push the USD value out of the row. */
+.row__end { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; max-width: 200px; }
+.row__right { text-align: right; min-width: 0; }
+/* nowrap: the hover actions share the capped row__end, so a long USD value must not wrap */
+.row__usd { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row__amt { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Ticker inside an amount ("5 1-COIN-CAN-CHANGE-YOUR-LIFE"): capped so the number stays visible. */
+.amt-code { display: inline-block; max-width: 7em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
 
 /* display:none (not opacity) so a hidden cluster reserves no space — flex gap skips it. */
 .row__actions { display: none; order: -1; gap: 6px; }
@@ -528,9 +546,12 @@ body {
 .confirm__ico { width: 48px; height: 48px; border-radius: 14px; margin: 0 auto 16px; display: grid; place-items: center; background: color-mix(in oklab, var(--danger) 16%, transparent); color: var(--danger); }
 .confirm__ico svg { width: 24px; height: 24px; }
 .confirm h3 { text-align: center; margin: 0 0 8px; }
-.confirm__text { text-align: center; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 4px; }
+.confirm__text { text-align: center; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 4px; overflow-wrap: anywhere; }
 .confirm__asset { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 16px 0 4px; padding: 12px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md); }
 .confirm__asset .num { font-family: var(--mono); }
+.confirm__amounts { display: flex; flex-direction: column; min-width: 0; text-align: left; }
+.confirm__amt, .confirm__usd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.confirm__usd { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
 
 /* treemap chart */
 .treemap { position: relative; width: 100%; height: 100%; min-height: 312px; border-radius: var(--r-md); overflow: hidden; background: var(--bg); }
@@ -582,7 +603,7 @@ body {
 .fs-d-ico { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
 .fs-d-main { flex: 1; min-width: 0; }
 .fs-d-asset { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fs-d-meta { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+.fs-d-meta { font-size: 11px; color: var(--ink-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fs-d-usd { text-align: right; }
 .fs-d-usd .num { font-size: 13px; font-weight: 600; }
 .fs-d-pct { font-size: 11px; color: var(--ink-3); font-weight: 400; margin-top: 2px; }
@@ -740,6 +761,8 @@ body {
 .import-area::placeholder { color: var(--ink-3); font-family: var(--ui); font-size: 13px; }
 .import-area:focus { border-color: var(--accent); }
 .import-area.bad { border-color: var(--danger); }
+.import-error { margin: 8px 0 0; font-size: 12px; color: var(--danger); }
+.import-pin { margin-top: 14px; }
 .data-actbar { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
 .data-actbar .meta { margin-left: auto; font-size: 11.5px; color: var(--ink-3); }
 .ghostbtn {
@@ -804,8 +827,8 @@ body {
 .asset-li:hover { background: var(--card-hi); }
 .asset-li__ico { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
 .asset-li__main { flex: 1; min-width: 0; }
-.asset-li__code { font-size: 13.5px; font-weight: 600; }
-.asset-li__name { font-size: 11.5px; color: var(--ink-3); }
+.asset-li__code { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asset-li__name { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .asset-li__kind { font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); border: 1px solid var(--line-2); border-radius: 5px; padding: 3px 7px; }
 
 .connect-cta {
@@ -823,9 +846,11 @@ body {
 
 .sel-chip { display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 16px; }
 .sel-chip__ico { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; font-size: 17px; font-weight: 600; }
-.sel-chip__main { flex: 1; }
-.sel-chip__code { font-size: 14px; font-weight: 600; }
-.sel-chip__name { font-size: 11.5px; color: var(--ink-3); }
+.sel-chip__main { flex: 1; min-width: 0; }
+.sel-chip__code { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sel-chip__name { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sel-chip__change { font-size: 12px; font-weight: 600; color: var(--accent); background: none; border: 0; cursor: pointer; font-family: var(--ui); padding: 6px 8px; border-radius: 8px; }
 .sel-chip__change:hover { background: var(--accent-dim); }
 .field small.hint { display: block; font-size: 11px; color: var(--ink-3); letter-spacing: 0; text-transform: none; margin-top: 6px; font-weight: 400; }
+.field small.hint--error { color: var(--danger); }
+.field small.hint--notice { color: var(--accent); }
