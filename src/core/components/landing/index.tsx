@@ -66,7 +66,7 @@ type Feature = { n: string; title: string; body: string; icon: React.ReactNode }
 const FEATURES: Feature[] = [
     {
         n: '01', title: 'Anonymous by design',
-        body: "No account, no email, no KYC. We never see your balances or your history, so there's nothing to leak or subpoena.",
+        body: "No account, no email, no KYC. We never see your balances or your history, so we can't leak them or hand them over.",
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" /><path d="m9 12 2 2 4-4" /></svg>,
     },
     {
@@ -100,7 +100,7 @@ type Util = { title: string; body: string; icon: React.ReactNode };
 const TRUST: Util[] = [
     {
         title: 'Reads, never moves',
-        body: "Integrations only pull balances. Cold Wallet can't send, swap, or spend a single thing.",
+        body: "Integrations only pull balances. Cold Wallet can't send, swap, or spend your funds.",
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>,
     },
     {
@@ -241,7 +241,7 @@ export default function Landing() {
                     <div className="trust__head reveal">
                         <p className="eyebrow"><span className="dot">●</span> Read-only by design</p>
                         <h2>It runs on your device.<br /><span className="g">There's nothing<br />to steal.</span></h2>
-                        <p>Cold Wallet is a self-custodied dashboard that runs entirely on your device. There's no backend and nowhere for your data to be sent. It only <em>reads</em> your balances through the integrations you connect, straight from where your money already lives. It never asks for your seed phrase or private keys, and it can't move your funds.</p>
+                        <p>Cold Wallet is a non-custodial dashboard. There's no backend and nowhere for your data to be sent. It only reads your balances through the integrations you connect, straight from your bank, exchanges and wallets. It never asks for your seed phrase or private keys.</p>
                         <a className="btn" href={GITHUB} {...ext}><IconGithub /> View source on GitHub</a>
                     </div>
                     <div className="trust__list reveal">
