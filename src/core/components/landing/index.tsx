@@ -241,7 +241,7 @@ export default function Landing() {
                     <div className="trust__head reveal">
                         <p className="eyebrow"><span className="dot">●</span> Read-only by design</p>
                         <h2>It runs on your device.<br /><span className="g">There's nothing<br />to steal.</span></h2>
-                        <p>Cold Wallet is a self-custodied dashboard that runs entirely on your device. There's no backend and nowhere for your data to be sent. It only <em>reads</em> your balances through the integrations you connect, straight from where your money already lives. It never holds your keys or your coins.</p>
+                        <p>Cold Wallet is a self-custodied dashboard that runs entirely on your device. There's no backend and nowhere for your data to be sent. It only <em>reads</em> your balances through the integrations you connect, straight from where your money already lives. It never asks for your seed phrase or private keys, and it can't move your funds.</p>
                         <a className="btn" href={GITHUB} {...ext}><IconGithub /> View source on GitHub</a>
                     </div>
                     <div className="trust__list reveal">
