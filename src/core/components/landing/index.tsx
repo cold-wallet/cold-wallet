@@ -122,24 +122,19 @@ const TRUST: Util[] = [
 
 const CWT_UTILS: Util[] = [
     {
-        title: 'Unlock Pro',
-        body: 'Advanced charts, balance-history graphs so you can see how your wealth evolved over time, unlimited sources and priority market sync for CWT holders.',
+        title: 'Pay for Pro in CWT',
+        body: 'Once Pro launches, paying for it in CWT costs much less than the regular price.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 2 2.4 6.9H21l-5.3 4 2 6.8L12 16l-5.7 3.7 2-6.8L3 8.9h6.6z" /></svg>,
     },
     {
-        title: 'Reduced swap fees',
-        body: 'Pay less on in-app swaps and on/off-ramps when you transact in CWT.',
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 7h10v10" /><path d="M7 17 17 7" /></svg>,
+        title: 'Or hold CWT to unlock Pro',
+        body: 'Keep the required amount of CWT in a connected wallet and Pro features unlock without a payment. The app only reads the balance.',
+        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>,
     },
     {
         title: 'Governance',
         body: 'Vote on the roadmap, new integrations and protocol parameters.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7z" /></svg>,
-    },
-    {
-        title: 'Holder rewards',
-        body: 'Earn for holding and actively using the wallet across the ecosystem.',
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8" /><path d="M12 8v8M9 11h6" /></svg>,
     },
 ];
 
@@ -290,8 +285,9 @@ export default function Landing() {
                 <div className="wrap cwt__grid">
                     <div className="reveal">
                         <p className="eyebrow"><span className="dot">●</span> The CWT utility token</p>
-                        <h2 className="cwt__title">One token that runs the wallet</h2>
-                        <p className="cwt__intro">CWT is the native ERC-20 utility token of Cold Wallet. It isn't a points scheme — holding and using CWT unlocks real capability inside the app and a real say in where it goes next. It trades freely on-chain, today.</p>
+                        <h2 className="cwt__title">What CWT unlocks in the wallet</h2>
+                        <p className="cwt__intro">CWT is the native ERC-20 utility token of Cold Wallet. It trades on-chain on SushiSwap.</p>
+                        <p className="cwt__intro">Next on the roadmap is Cold Wallet Pro, a paid plan with more features: advanced charts, balance-history graphs that show how your wealth changed over time, unlimited sources and priority market sync. CWT is how you'll get it cheaper or without paying at all.</p>
 
                         <div className="util-list">
                             {CWT_UTILS.map((u) => <UtilRow key={u.title} {...u} />)}
@@ -329,7 +325,7 @@ export default function Landing() {
                 <div className="wrap finalcta__in reveal">
                     <p className="eyebrow"><span className="dot">●</span> Private. Self-custodied. Live.</p>
                     <h2>Take your portfolio cold</h2>
-                    <p>Open the dashboard in your browser or on your phone — no download, no account. Then put CWT to work across the wallet.</p>
+                    <p>Open the dashboard in your browser or on your phone. There's nothing to download and no account to create. When Pro launches, CWT gets you in for less.</p>
                     <div className="finalcta__cta">
                         <a className="btn btn--p" href={DEMO}><IconPlay /> Try the demo</a>
                         <a className="btn" href={SUSHI} {...ext}>Buy on SushiSwap</a>
@@ -382,7 +378,7 @@ export default function Landing() {
                         </div>
                     </div>
 
-                    <p className="disclaimer">CWT is a utility token intended for use within the Cold Wallet ecosystem. Nothing on this page is financial advice or an offer to sell securities. Digital assets are volatile and carry risk. Always confirm the official contract address before transacting and read the whitepaper in full.</p>
+                    <p className="disclaimer">CWT is a utility token intended for use within the Cold Wallet app. Nothing on this page is financial advice or an offer to sell securities. Digital assets are volatile and carry risk. Always confirm the official contract address before transacting and read the whitepaper in full.</p>
                 </div>
             </footer>
         </div>
