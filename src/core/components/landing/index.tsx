@@ -66,12 +66,12 @@ type Feature = { n: string; title: string; body: string; icon: React.ReactNode }
 const FEATURES: Feature[] = [
     {
         n: '01', title: 'Anonymous by design',
-        body: 'No account, no email, no KYC. We never see your IP address, your balances, or your history. Nothing to leak, nothing to subpoena.',
+        body: "No account, no email, no KYC. We never see your balances or your history, so there's nothing to leak or subpoena.",
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" /><path d="m9 12 2 2 4-4" /></svg>,
     },
     {
         n: '02', title: 'Every asset, one view',
-        body: 'Fiat and crypto across banks, exchanges, wallets and cash — unified into a single balance you can actually read.',
+        body: 'Fiat and crypto across banks, exchanges, wallets and cash, unified into one readable balance.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18" /><path d="M8 15h3" /></svg>,
     },
     {
@@ -86,12 +86,12 @@ const FEATURES: Feature[] = [
     },
     {
         n: '05', title: 'Live market sync',
-        body: 'Real-time prices keep every holding, chart and percentage current to the second — no manual refresh, no stale numbers.',
+        body: 'Prices update live, so every holding, chart and percentage stays current without a manual refresh.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4" /></svg>,
     },
     {
         n: '06', title: 'Connect what you use',
-        body: 'MetaMask, Binance, OKX, Monobank or manual entries. Plug in your sources in seconds and watch them merge into one portfolio.',
+        body: 'MetaMask, Binance, OKX, Monobank or manual entries. Connect a source and its balances join the rest of your portfolio.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 7H6a3 3 0 0 0 0 6h3" /><path d="M15 7h3a3 3 0 0 1 0 6h-3" /><path d="M8 10h8" /></svg>,
     },
 ];
@@ -105,17 +105,17 @@ const TRUST: Util[] = [
     },
     {
         title: 'Read-only API keys',
-        body: "Everything's already local and encrypted — but if you want even more peace of mind, connect with read-only keys. It's just your balances, and all we ever do is read them.",
+        body: 'Connect exchanges with read-only API keys, so the app sees your balances and nothing else.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /><path d="M12 15v2" /></svg>,
     },
     {
         title: 'Encrypted on your device',
-        body: "Your data stays local and encrypted at rest. Lose the laptop and your portfolio still can't be read — there's nothing to steal there, either.",
+        body: "Your data stays local and encrypted at rest. Lose the laptop and your portfolio still can't be read.",
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /><circle cx="12" cy="15.5" r="1.4" /></svg>,
     },
     {
         title: 'Open source',
-        body: 'Every line is public on GitHub. Audit it, fork it, or run your own copy — trust the code, not our word.',
+        body: 'Every line is public on GitHub. Audit it, fork it, or run your own copy.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m8 6-6 6 6 6" /><path d="m16 6 6 6-6 6" /></svg>,
     },
 ];
@@ -194,7 +194,7 @@ export default function Landing() {
                     <div className="hero__copy">
                         <p className="eyebrow"><span className="dot">●</span> CWT · Ethereum · DEX-traded</p>
                         <h1>All your money.<br /><span className="g">One cold,<br />private view.</span></h1>
-                        <p className="hero__sub">The anonymous portfolio dashboard for everything you own — fiat and crypto, every source, on one screen. No sign-up. No tracking. Powered by the CWT utility token.</p>
+                        <p className="hero__sub">The anonymous portfolio dashboard for everything you own: fiat and crypto from every source on one screen. You don't need to sign up. Powered by the CWT utility token.</p>
                         <div className="hero__cta">
                             <a className="btn btn--p" href={SUSHI} {...ext}><IconArrowUpRight /> Buy on SushiSwap</a>
                             <a className="btn" href={CMC_DEX} {...ext}><IconChart /> Watch CWT on CoinMarketCap DEX</a>
@@ -249,7 +249,7 @@ export default function Landing() {
                     <div className="trust__head reveal">
                         <p className="eyebrow"><span className="dot">●</span> Read-only by design</p>
                         <h2>It runs on your device.<br /><span className="g">There's nothing<br />to steal.</span></h2>
-                        <p>Cold Wallet is a self-custodied dashboard that runs entirely on your device — there's no backend, and nowhere for your data to be sent. It only <em>reads</em> your balances through the integrations you connect, straight from where your money already lives. It never holds your keys or your coins, so there's nothing for anyone to drain.</p>
+                        <p>Cold Wallet is a self-custodied dashboard that runs entirely on your device. There's no backend and nowhere for your data to be sent. It only <em>reads</em> your balances through the integrations you connect, straight from where your money already lives. It never holds your keys or your coins.</p>
                         <a className="btn" href={GITHUB} {...ext}><IconGithub /> View source on GitHub</a>
                     </div>
                     <div className="trust__list reveal">
@@ -264,7 +264,7 @@ export default function Landing() {
                     <div className="sec-head reveal">
                         <p className="eyebrow"><span className="dot">●</span> Why Cold Wallet</p>
                         <h2>Your wealth, watched by you and nobody else</h2>
-                        <p>Most trackers want your email, your logins, and a copy of everything you own. Cold Wallet wants none of it. It runs private, stays local, and shows your whole financial picture in one calm, fast view.</p>
+                        <p>Most trackers ask for your email and your logins, then keep a copy of everything you own. Cold Wallet asks for neither and keeps your data on your device. It shows your whole financial picture on one screen.</p>
                     </div>
 
                     <div className="features">
@@ -314,7 +314,7 @@ export default function Landing() {
                             <a className="btn btn--p" href={SUSHI} {...ext}><IconArrowUpRight /> Buy on SushiSwap</a>
                             <a className="btn" href={CMC_DEX} {...ext}><IconChart /> Watch on CoinMarketCap DEX</a>
                         </div>
-                        <p className="tokencard__note">Always verify the contract address before trading. CWT involves risk — see the whitepaper.</p>
+                        <p className="tokencard__note">Always verify the contract address before trading. CWT involves risk. The whitepaper explains it.</p>
                     </aside>
                 </div>
             </section>
@@ -323,7 +323,7 @@ export default function Landing() {
             <section className="finalcta">
                 <div className="finalcta__glow" />
                 <div className="wrap finalcta__in reveal">
-                    <p className="eyebrow"><span className="dot">●</span> Private. Self-custodied. Live.</p>
+                    <p className="eyebrow"><span className="dot">●</span> Private and self-custodied</p>
                     <h2>Take your portfolio cold</h2>
                     <p>Open the dashboard in your browser or on your phone. There's nothing to download and no account to create. When Pro launches, CWT gets you in for less.</p>
                     <div className="finalcta__cta">
@@ -342,7 +342,7 @@ export default function Landing() {
                                 <img className="brand__mark" src="/cold-wallet.svg" alt="Cold Wallet" />
                                 <span className="brand__name">Cold Wallet</span>
                             </a>
-                            <p className="foot__blurb">The anonymous, self-custodied portfolio dashboard. Every asset in one private view — powered by the CWT utility token.</p>
+                            <p className="foot__blurb">The anonymous, self-custodied portfolio dashboard for every asset you own, powered by the CWT utility token.</p>
                             <div className="socials" style={{ marginTop: 18 }}>
                                 <a href="#" aria-label="X / Twitter"><IconX /></a>
                                 <a href="#" aria-label="Telegram"><IconTelegram /></a>
