@@ -175,7 +175,7 @@ export default function Landing() {
                         <a href={WHITEPAPER} {...ext}>Whitepaper</a>
                     </nav>
                     <div className="nav__cta">
-                        <span className="nav__pill"><span className="live" /> CWT live on Ethereum</span>
+                        <a className="btn btn--sm nav__pill" href={CMC_DEX} {...ext}><span className="live" /> CWT live on Ethereum</a>
                         <a className="btn btn--sm btn--p" href={SUSHI} {...ext}>Buy CWT</a>
                     </div>
                 </div>
