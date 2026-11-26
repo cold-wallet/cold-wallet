@@ -38,14 +38,17 @@ export default function ConfirmDelete({ props }: { props: Props }) {
         </div>
         <h3>Delete asset?</h3>
         <p className="confirm__text">This removes <b style={{ color: 'var(--ink)' }}>{a.normalizedName}</b> from your portfolio. This can't be undone.</p>
+        {/* Amount and USD value on two lines next to the chip, each cut with "…" (full value in the
+            tooltip), so a large amount can't push the chip out of the box or the value past it. */}
         <div className="confirm__asset">
           <CoinChip className="del-ico" code={a.currency} kind={a.type === AssetType.fiat ? 'fiat' : 'crypto'} color={color}
                     style={{ width: 30, height: 30, borderRadius: 9, display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 600, flex: 'none' }} />
-          <span className="num">
-            <AmountText amt={amt} code={a.currency} hidden={hidden} />
-          </span>
-          <span style={{ color: 'var(--ink-3)' }}>·</span>
-          <span className="num" style={{ color: 'var(--ink-2)' }}>{maskUSD(usd, hidden)}</span>
+          <div className="confirm__amounts">
+            <span className="num confirm__amt" title={hidden ? undefined : `${a.amount} ${a.currency}`}>
+              <AmountText amt={amt} code={a.currency} hidden={hidden} />
+            </span>
+            <span className="num confirm__usd" title={hidden ? undefined : maskUSD(usd, false)}>{maskUSD(usd, hidden)}</span>
+          </div>
         </div>
         <div className="dialog__actions">
           <button className="btn" onClick={cancel}>Cancel</button>

@@ -546,9 +546,12 @@ body {
 .confirm__ico { width: 48px; height: 48px; border-radius: 14px; margin: 0 auto 16px; display: grid; place-items: center; background: color-mix(in oklab, var(--danger) 16%, transparent); color: var(--danger); }
 .confirm__ico svg { width: 24px; height: 24px; }
 .confirm h3 { text-align: center; margin: 0 0 8px; }
-.confirm__text { text-align: center; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 4px; }
+.confirm__text { text-align: center; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 4px; overflow-wrap: anywhere; }
 .confirm__asset { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 16px 0 4px; padding: 12px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md); }
 .confirm__asset .num { font-family: var(--mono); }
+.confirm__amounts { display: flex; flex-direction: column; min-width: 0; text-align: left; }
+.confirm__amt, .confirm__usd { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.confirm__usd { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
 
 /* treemap chart */
 .treemap { position: relative; width: 100%; height: 100%; min-height: 312px; border-radius: var(--r-md); overflow: hidden; background: var(--bg); }
