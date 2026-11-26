@@ -4,9 +4,9 @@ import {Dispatch, SetStateAction, useMemo} from "react";
 import useInterval from "../utils/useInterval";
 import cypherService from "./CypherService";
 import UserDataStorageFactory from "../domain/UserDataStorageFactory";
-import {DEFAULT_PIN_CODE} from "./defaultPin";
-import {sanitizeUserData} from "./userDataValidation";
+import {normalizeAmount} from "../utils/amount";
 
+export const DEFAULT_PIN_CODE = "0123456789"
 export const DELAY_BEFORE_RELOGIN = 5 * 60_000;
 const unauthorizedId = "unauthorized";
 
@@ -14,6 +14,25 @@ function getPinCode(userData: UserData) {
     const userPinCode = userData.settings.pinCode;
     const pinCode = userPinCode ? userPinCode : DEFAULT_PIN_CODE;
     return {pinCode, pinCodeEncrypted: !!userPinCode}
+}
+
+/**
+ * Bring decrypted user data up to today's rules without dropping anything: amounts are put in
+ * canonical form (trailing zeros / exponents removed); values that can't be parsed are kept as-is
+ * so nothing a user stored silently disappears. A missing assets list becomes empty.
+ */
+export function sanitizeUserData(data: UserData): UserData {
+    if (!data || typeof data !== 'object') return data;
+    if (!Array.isArray(data.assets)) return { ...data, assets: [] } as UserData;
+    let changed = false;
+    const assets = data.assets.map((a) => {
+        if (!a || (typeof a.amount !== 'string' && typeof a.amount !== 'number')) return a;
+        const canonical = normalizeAmount(a.amount);
+        if (canonical === null || canonical === a.amount) return a;
+        changed = true;
+        return { ...a, amount: canonical };
+    });
+    return changed ? ({ ...data, assets } as UserData) : data;
 }
 
 export function initUserDataHolder(userData: UserData, demo: boolean = false): UserDataHolder {

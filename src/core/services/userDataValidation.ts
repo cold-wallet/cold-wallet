@@ -1,12 +1,10 @@
-// services/userDataValidation.ts — checks data that comes from outside the running app before it
-// can replace what's stored: backup tokens pasted into Import, and the user data decrypted from
-// localStorage (which may predate today's rules, e.g. "1012.0000000000000000000").
+// services/userDataValidation.ts — checks a pasted backup token before it can replace what's stored.
+// (Data decrypted from localStorage is canonicalised in UserDataService.sanitizeUserData.)
 import { z } from 'zod';
-import UserData from '../domain/UserData';
 import UserDataHolder from '../domain/UserDataHolder';
 import cypherService from './CypherService';
-import { DEFAULT_PIN_CODE } from './defaultPin';
-import { normalizeAmount, validateAmount } from '../utils/amount';
+import { DEFAULT_PIN_CODE } from './UserDataService';
+import { validateAmount } from '../utils/amount';
 
 const holderSchema = z.object({
   pinCodeEncrypted: z.boolean(),
@@ -42,7 +40,7 @@ export const BACKUP_ERROR_TEXT: Record<BackupError, string> = {
 /**
  * Decode and check a backup token. The holder's shape is always checked; when the backup has no
  * PIN its payload can be decrypted here too, so the holdings themselves are validated before
- * anything is replaced. (PIN-protected payloads are checked after unlock — see sanitizeUserData.)
+ * anything is replaced. (PIN-protected payloads are canonicalised after unlock — see UserDataService.sanitizeUserData.)
  */
 export function parseBackupToken(token: string): BackupResult {
   let parsed: unknown;
@@ -66,23 +64,4 @@ export function parseBackupToken(token: string): BackupResult {
     if (!userDataSchema.safeParse(payload).success) return { ok: false, error: 'damaged' };
   }
   return { ok: true, holder: new UserDataHolder(holder.data.pinCodeEncrypted, holder.data.encryptedData, false) };
-}
-
-/**
- * Bring decrypted user data up to today's rules without dropping anything: amounts are put in
- * canonical form (trailing zeros / exponents removed); values that can't be parsed are kept as-is
- * so nothing a user stored silently disappears. A missing assets list becomes empty.
- */
-export function sanitizeUserData(data: UserData): UserData {
-  if (!data || typeof data !== 'object') return data;
-  if (!Array.isArray(data.assets)) return { ...data, assets: [] } as UserData;
-  let changed = false;
-  const assets = data.assets.map((a) => {
-    if (!a || (typeof a.amount !== 'string' && typeof a.amount !== 'number')) return a;
-    const canonical = normalizeAmount(a.amount);
-    if (canonical === null || canonical === a.amount) return a;
-    changed = true;
-    return { ...a, amount: canonical };
-  });
-  return changed ? ({ ...data, assets } as UserData) : data;
 }

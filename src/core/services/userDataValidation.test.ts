@@ -1,9 +1,9 @@
 import UserData, { UserSettings } from '../domain/UserData';
 import AssetDTO, { AssetType } from '../domain/AssetDTO';
-import { initUserDataHolder } from './UserDataService';
+import { initUserDataHolder, sanitizeUserData } from './UserDataService';
 import cypherService from './CypherService';
 import { dataImporter } from '../components/settings/ImportData';
-import { parseBackupToken, sanitizeUserData } from './userDataValidation';
+import { parseBackupToken } from './userDataValidation';
 
 const asset = (amount: string) => new AssetDTO('id-1', 'EUR', amount, 'Savings', 2, AssetType.fiat);
 const toToken = (obj: unknown) => Buffer.from(encodeURIComponent(JSON.stringify(obj)), 'ascii').toString('base64');
