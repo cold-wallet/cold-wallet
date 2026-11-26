@@ -171,6 +171,8 @@ body {
 .total__val { font-size: 32px; font-weight: 600; line-height: 1; }
 .total__val .cents { color: var(--ink-3); font-size: 0.66em; }
 .total__delta {
+  /* Never let a wide balance squeeze the pill: its label used to wrap out of it (▲ / 2.41%). */
+  white-space: nowrap; flex: none;
   font-size: 12px; font-weight: 600; padding: 5px 9px; border-radius: 999px;
   background: var(--accent-dim); color: var(--accent);
 }
