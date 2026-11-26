@@ -242,7 +242,9 @@ export default function MetaMaskLoader(
                 true,
             )
         })
-    }, [metaMaskUserData])
+        // All inputs the memo reads: with only metaMaskUserData here, it froze on the first render
+        // (demo mode not on yet / binanceCurrencies still null) and stayed [] until balances changed.
+    }, [isDemoMode, binanceCurrencies, userData.settings?.metaMask?.enabled, metaMaskUserData])
 
     const fetchAllBalances = async (requests: BalanceRequest[]) => {
         const tokenRequests = requests
