@@ -20,6 +20,7 @@ import { NumericFormat } from "react-number-format";
 import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../../ui/format";
 import { shortenAddresses } from "../../ui/visual";
 import { CoinChip, SourceMark } from "../dashboard/AssetIcon";
+import { amountScale, normalizeAmount } from "../../utils/amount";
 import {
     assetSlices,
     chartData,
@@ -96,7 +97,10 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     function editAsset(asset: AssetDTO) {
         props.stateReset();
         props.setAssetToEdit(asset);
-        props.setNewAssetAmount(asset.amount);
+        // Open with the canonical value (e.g. a legacy "1012.0000000000000000000" shows as "1012");
+        // fall back to the raw string if it can't be parsed, so the user still sees what's stored.
+        const scale = amountScale(asset.currency, props.binanceCurrencies?.[asset.currency]?.precision, asset.decimalScale);
+        props.setNewAssetAmount(normalizeAmount(asset.amount, scale) ?? asset.amount);
         props.setNewAssetName(asset.name);
     }
     function deleteAsset(asset: AssetDTO) {

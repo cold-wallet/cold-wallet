@@ -4,8 +4,9 @@ import {Dispatch, SetStateAction, useMemo} from "react";
 import useInterval from "../utils/useInterval";
 import cypherService from "./CypherService";
 import UserDataStorageFactory from "../domain/UserDataStorageFactory";
+import {DEFAULT_PIN_CODE} from "./defaultPin";
+import {sanitizeUserData} from "./userDataValidation";
 
-const DEFAULT_PIN_CODE = "0123456789"
 export const DELAY_BEFORE_RELOGIN = 5 * 60_000;
 const unauthorizedId = "unauthorized";
 
@@ -37,8 +38,10 @@ export default function UserDataService(
             return new UserData(unauthorizedId)
         } else {
             try {
-                return cypherService.decrypt<UserData>(userDataHolder.encryptedData,
-                    userDataHolder.pinCodeEncrypted ? pinCode || DEFAULT_PIN_CODE : DEFAULT_PIN_CODE)
+                // Stored data may predate today's rules (or come from a PIN-protected backup that
+                // could only be checked now): canonicalise amounts, never drop entries.
+                return sanitizeUserData(cypherService.decrypt<UserData>(userDataHolder.encryptedData,
+                    userDataHolder.pinCodeEncrypted ? pinCode || DEFAULT_PIN_CODE : DEFAULT_PIN_CODE))
             } catch (e: any) {
                 return new UserData(unauthorizedId)
             }

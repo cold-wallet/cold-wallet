@@ -8,6 +8,7 @@ import React, { useRef, useState } from "react";
 import Props from "../Props";
 import { onSaveSetting } from "../settings/IntegrationSettings";
 import { dataImporter } from "../settings/ImportData";
+import { BACKUP_ERROR_TEXT, type BackupError } from "../../services/userDataValidation";
 import ccxtConnector from "../../integrations/ccxt/ccxtConnector";
 import { isConfigured, persistEnabled, setTempEnabled, validateSavedCredentials } from "./integrationActions";
 import PinPad, { PIN_MAX, PIN_MIN } from "../pin/PinPad";
@@ -438,7 +439,16 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
                     placeholder={f.label}
                     className={f.invalid ? 'invalid' : ''}
                     style={{ paddingRight: f.secret ? 44 : 12 }}
-                    onChange={(e) => { f.setValue(e.target.value); f.setInvalid(false); }}
+                    // Keys/tokens: keep the browser's helpers away — no saving/autofill, no
+                    // autocorrect/capitalisation on phones (they'd silently change the key), and no
+                    // spellcheck (Chrome's enhanced spellcheck sends field text to Google).
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    // A pasted key often carries a trailing space/newline → "invalid key" with no hint.
+                    // Not for the OKX pass-phrase: the user chose it and it may legitimately hold spaces.
+                    onChange={(e) => { f.setValue(f.id === 'pass' ? e.target.value : e.target.value.trim()); f.setInvalid(false); }}
                   />
                   {f.secret && (
                     <button onClick={() => setShown((sh) => ({ ...sh, [f.id]: !sh[f.id] }))} title={shown[f.id] ? 'Hide' : 'Show'}
@@ -508,10 +518,14 @@ function ExportView({ props }: { props: Props }) {
 
 function ImportView({ props }: { props: Props }) {
   const [text, setText] = useState('');
+  const [error, setError] = useState<BackupError | null>(null);
   const valid = text.trim().length > 8;
   function doImport() {
     if (props.importDataBuffer) {
-      dataImporter.readImportedData(props.importDataBuffer, props.setUserDataHolder);
+      // Nothing is replaced unless the token decodes into a valid backup; on failure the dialog
+      // stays open with the reason instead of silently closing.
+      const result = dataImporter.readImportedData(props.importDataBuffer, props.setUserDataHolder);
+      if (!result.ok) { setError(result.error); return; }
       props.loadBinanceUserData();
       props.loadMonobankUserData();
       props.loadOkxUserData();
@@ -525,8 +539,10 @@ function ImportView({ props }: { props: Props }) {
         <div className="cfg-title"><b>Import backup</b></div>
       </div>
       <p className="data-desc">Paste a backup token exported from Cold Wallet to restore your portfolio. This replaces your current holdings.</p>
-      <textarea className={"import-area" + (text && !valid ? " bad" : "")} placeholder="Paste your backup token here…"
-        value={text} onChange={(e) => { setText(e.target.value); props.setImportDataBuffer(e.target.value); }} />
+      <textarea className={"import-area" + ((text && !valid) || error ? " bad" : "")} placeholder="Paste your backup token here…"
+        spellCheck={false} autoCorrect="off" autoCapitalize="off" aria-invalid={!!error}
+        value={text} onChange={(e) => { setText(e.target.value); setError(null); props.setImportDataBuffer(e.target.value); }} />
+      {error && <p className="import-error" role="alert">{BACKUP_ERROR_TEXT[error]}</p>}
       <div className="cfg-foot">
         <button className="btn" onClick={() => props.setImportOrExportSettingRequested(null)}>Cancel</button>
         <button className="btn btn--p" disabled={!valid} onClick={doImport}>Restore</button>

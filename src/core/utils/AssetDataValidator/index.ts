@@ -1,13 +1,14 @@
-const MAX_ASSET_NAME_LENGTH = 40;
+import { MAX_SCALE, validateAmount, validateAssetName } from "../amount";
 
+// Thin wrapper kept for existing callers; the rules live in utils/amount.ts.
 const assetDataValidator = {
 
-    isAssetAmountValid: (value: number | string | null) => {
-        return Boolean(value) && !isNaN(Number(value)) && (Number(value) > 0);
+    isAssetAmountValid: (value: number | string | null, scale: number = MAX_SCALE) => {
+        return validateAmount(value, scale).ok;
     },
 
     isAssetNameValid: (newAssetName: string | null) => {
-        return !!newAssetName && newAssetName.length <= MAX_ASSET_NAME_LENGTH;
+        return validateAssetName(newAssetName).ok;
     }
 
 }
