@@ -7,19 +7,19 @@ import MonobankUserData from "../../integrations/monobank/MonobankUserData";
 import AssetDTO from "../../domain/AssetDTO";
 import Props from "../Props";
 
-import EditDialog from "../redesign/EditDialog";
-import ConfirmDelete from "../redesign/ConfirmDelete";
-import SettingsDialog from "../redesign/SettingsDialog";
-import LoadingView from "../redesign/LoadingView";
-import ChartModal from "../redesign/ChartModal";
-import FitText from "../redesign/FitText";
-import DonutChart from "../redesign/DonutChart";
-import TreemapChart from "../redesign/TreemapChart";
-import HoldingRow from "../redesign/HoldingRow";
+import EditDialog from "../dialogs/EditDialog";
+import ConfirmDelete from "../dialogs/ConfirmDelete";
+import SettingsDialog from "../dialogs/SettingsDialog";
+import LoadingView from "../dashboard/LoadingView";
+import ChartModal from "../dashboard/ChartModal";
+import FitText from "../dashboard/FitText";
+import DonutChart from "../dashboard/DonutChart";
+import TreemapChart from "../dashboard/TreemapChart";
+import HoldingRow from "../dashboard/HoldingRow";
 import { NumericFormat } from "react-number-format";
-import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../redesign/format";
-import { shortenAddresses } from "../redesign/visual";
-import { CoinChip, SourceMark } from "../redesign/AssetIcon";
+import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../../ui/format";
+import { shortenAddresses } from "../../ui/visual";
+import { CoinChip, SourceMark } from "../dashboard/AssetIcon";
 import {
     assetSlices,
     chartData,
@@ -28,7 +28,7 @@ import {
     sourceBreakdown,
     totalUsd,
     valueAssets,
-} from "../redesign/portfolio";
+} from "../../ui/portfolio";
 
 export default function AssetsDashboard({ props }: { props: Props }) {
     const [q, setQ] = useState("");

@@ -1,6 +1,6 @@
 // PinCodeOnLogin — app-unlock PIN screen, reskinned to the new keypad. Same mechanics.
 import React, { Dispatch, SetStateAction } from "react";
-import PinPad from "../../redesign/PinPad";
+import PinPad from "../../pin/PinPad";
 
 export default function PinCodeOnLogin(
     { props }: {

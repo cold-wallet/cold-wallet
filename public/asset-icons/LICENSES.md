@@ -13,7 +13,7 @@ the folder from the exact package versions below.
 
 **Fiat currencies have no image files.** They are drawn at runtime as a tile with the currency
 symbol (₴ € £ $ zł …), taken from the browser's built-in `Intl` data. See
-`src/core/components/redesign/fiatGlyph.ts`.
+`src/core/ui/fiatGlyph.ts`.
 
 ## Trademarks
 

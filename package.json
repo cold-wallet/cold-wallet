@@ -10,8 +10,6 @@
     "binance-api-node": "^0.12.9",
     "ccxt": "^4.4.100",
     "crypto-js": "^4.2.0",
-    "highcharts": "^10.3.3",
-    "highcharts-react-official": "^3.2.2",
     "okx-api": "^2.0.8",
     "protobufjs": "^7.5.4",
     "react": "^18.2.0",
