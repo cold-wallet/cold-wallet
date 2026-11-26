@@ -56,9 +56,17 @@ export function CoinChip({ code, kind, color, className, text, style, children }
       </span>
     );
   }
+  // Text fallback: the ticker shrinks with its length (data-len, see .coin-text in design.css) so
+  // 3–4 letter tickers (WETH, USDC) stay whole inside every chip size instead of overflowing.
+  const label = text ?? assetSym(code);
+  const len = Array.from(label).length;
   return (
-    <span className={className} style={{ background: color + '22', color, border: '1px solid ' + color + '55', ...style }}>
-      {text ?? assetSym(code)}
+    <span
+      className={className + ' coin-text'}
+      data-len={len > 4 ? 4 : len}
+      style={{ background: color + '22', color, border: '1px solid ' + color + '55', ...style }}
+    >
+      <span className="coin-text__sym">{label}</span>
       {children}
     </span>
   );
