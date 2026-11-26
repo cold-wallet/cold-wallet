@@ -118,15 +118,19 @@
 }
 .landing .hero__sub{font-size:clamp(16px,1.5vw,19px);color:var(--ink-2);margin:24px 0 0;max-width:34ch;text-wrap:pretty;}
 .landing .hero__cta{display:flex;flex-wrap:wrap;gap:13px;margin-top:32px;}
-.landing .hero__meta{display:flex;flex-wrap:wrap;align-items:center;gap:22px;margin-top:24px;}
-.landing .hero__meta .linkarrow{font-size:14px;}
+/* Whitepaper link continues the sentence about the token instead of a third row under the CTAs. */
+.landing .hero__sublink{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  color:var(--accent);font-weight:600;transition:gap .14s;}
+.landing .hero__sublink svg{width:15px;height:15px;}
+.landing .hero__sublink:hover{gap:9px;}
 
 /* product frame */
 .landing .shot{position:relative;}
 .landing .shot__glow{position:absolute;inset:-12% -8% -18% -8%;z-index:0;
   background:radial-gradient(60% 60% at 60% 35%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 70%);
   filter:blur(34px);opacity:var(--glow-op,.55);pointer-events:none;}
-.landing .window{position:relative;z-index:1;border-radius:16px;overflow:hidden;
+.landing .window{display:block;position:relative;z-index:1;border-radius:16px;overflow:hidden;
+  transition:transform .2s ease, border-color .2s ease;
   border:1px solid var(--line-2);background:var(--panel-2);
   box-shadow:0 40px 90px -34px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.03) inset;}
 .landing .window__bar{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);
@@ -137,6 +141,7 @@
   color:var(--ink-3);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 14px;}
 .landing .window__url svg{width:12px;height:12px;color:var(--accent);}
 .landing .window img{display:block;width:100%;height:auto;}
+.landing a.window:hover{transform:translateY(-3px);border-color:var(--accent-dim);}
 .landing .shot__try{position:absolute;z-index:2;right:16px;bottom:16px;}
 
 /* ===== ticker / token strip ===== */
@@ -287,7 +292,6 @@
   .landing .hero__sub{max-width:none;}
   .landing .hero__cta{flex-direction:column;gap:11px;}
   .landing .hero__cta .btn{width:100%;}
-  .landing .hero__meta{gap:16px 22px;margin-top:22px;}
 
   /* let long CTA labels wrap instead of overflowing */
   .landing .btn{white-space:normal;text-align:center;line-height:1.25;min-height:52px;height:auto;padding-top:13px;padding-bottom:13px;}

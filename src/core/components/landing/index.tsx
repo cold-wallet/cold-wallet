@@ -189,26 +189,23 @@ export default function Landing() {
                     <div className="hero__copy">
                         <p className="eyebrow"><span className="dot">●</span> CWT · Ethereum · DEX-traded</p>
                         <h1>All your money.<br /><span className="g">One cold,<br />private view.</span></h1>
-                        <p className="hero__sub">The anonymous portfolio dashboard for everything you own: fiat and crypto from every source on one screen. You don't need to sign up. Powered by the CWT utility token.</p>
+                        <p className="hero__sub">The anonymous portfolio dashboard for everything you own: fiat and crypto from every source on one screen. You don't need to sign up. Powered by the CWT utility token. <a className="hero__sublink" href={WHITEPAPER} {...ext}>Read the whitepaper <IconArrowRight /></a></p>
                         <div className="hero__cta">
                             <a className="btn btn--p" href={SUSHI} {...ext}><IconArrowUpRight /> Buy on SushiSwap</a>
                             <a className="btn" href={CMC_DEX} {...ext}><IconChart /> Watch on CoinMarketCap DEX</a>
                         </div>
-                        <div className="hero__meta">
-                            <a className="linkarrow" href={WHITEPAPER} {...ext}>Read the whitepaper <IconArrowRight /></a>
-                            <a className="linkarrow" href={DEMO} style={{ color: 'var(--ink-2)' }}>Try the live demo <IconArrowRight /></a>
-                        </div>
                     </div>
 
+                    {/* The demo CTA lives on the screenshot itself (button + the whole window links to /demo). */}
                     <div className="shot reveal">
                         <div className="shot__glow" />
-                        <div className="window">
+                        <a className="window" href={DEMO} aria-label="Open the live demo">
                             <div className="window__bar">
                                 <div className="window__dots"><i /><i /><i /></div>
                                 <span className="window__url"><IconLock /> cold-wallet.app</span>
                             </div>
                             <img src="/hero-demo.png" alt="Cold Wallet portfolio dashboard" loading="eager" />
-                        </div>
+                        </a>
                         <a className="btn btn--sm btn--p shot__try" href={DEMO}><IconPlay /> Try the demo</a>
                     </div>
                 </div>
