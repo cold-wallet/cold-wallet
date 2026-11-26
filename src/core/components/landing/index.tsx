@@ -166,7 +166,7 @@ export default function Landing() {
             <header className="nav">
                 <div className="wrap nav__in">
                     <a className="brand" href="#top">
-                        <img className="brand__mark" src="/cold-wallet.svg" alt="Cold Wallet" />
+                        <img className="brand__mark" src="/favicon.svg" alt="Cold Wallet" />
                         <span className="brand__name">Cold Wallet</span>
                     </a>
                     <nav className="nav__links">
@@ -335,7 +335,7 @@ export default function Landing() {
                     <div className="foot__grid">
                         <div className="foot__brand">
                             <a className="brand" href="#top">
-                                <img className="brand__mark" src="/cold-wallet.svg" alt="Cold Wallet" />
+                                <img className="brand__mark" src="/favicon.svg" alt="Cold Wallet" />
                                 <span className="brand__name">Cold Wallet</span>
                             </a>
                             <p className="foot__blurb">The anonymous, self-custodied portfolio dashboard for every asset you own, powered by the CWT utility token.</p>

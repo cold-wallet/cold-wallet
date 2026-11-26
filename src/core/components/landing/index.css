@@ -87,12 +87,16 @@
   border-bottom:1px solid var(--line);
 }
 .landing .nav__in{display:flex;align-items:center;gap:18px;height:68px;}
-.landing .brand{display:flex;align-items:center;gap:11px;}
+/* The app shell's design.css also defines .brand / .brand__mark / .brand__name (sidebar header):
+   margin-bottom:18px lifted the logo 9px above the nav's centre line, and the accent gradient
+   background showed behind the image. Reset the properties that leak in. */
+.landing .brand{display:flex;align-items:center;gap:11px;margin:0;}
 .landing .brand__mark{width:34px;height:34px;border-radius:9px;flex:none;display:block;
+  background:none;position:static;
   box-shadow:0 0 0 1px var(--line-2), 0 6px 18px -8px var(--accent-dim);}
-.landing .brand__name{font-weight:600;font-size:16px;letter-spacing:.01em;}
+.landing .brand__name{font-weight:600;font-size:16px;letter-spacing:.01em;line-height:1.2;white-space:nowrap;}
 .landing .nav__links{display:flex;gap:4px;margin-left:18px;}
-.landing .nav__links a{padding:9px 13px;border-radius:var(--r-sm);font-size:14px;color:var(--ink-2);transition:.14s;}
+.landing .nav__links a{white-space:nowrap;padding:9px 13px;border-radius:var(--r-sm);font-size:14px;color:var(--ink-2);transition:.14s;}
 .landing .nav__links a:hover{color:var(--ink);background:var(--card);}
 .landing .nav__cta{margin-left:auto;display:flex;align-items:center;gap:10px;}
 .landing .nav__pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);
@@ -265,10 +269,16 @@
   .landing .features{grid-template-columns:repeat(2,1fr);}
   .landing .foot__grid{grid-template-columns:1fr 1fr;gap:32px;}
 }
+/* Nav content needs ~880px with everything, ~700px without the pill: drop items before they
+   wrap onto two lines instead of letting the row grow taller. */
+@media (max-width:900px){
+  .landing .nav__pill{display:none;}
+}
+@media (max-width:720px){
+  .landing .nav__links{display:none;}
+}
 @media (max-width:680px){
   .landing .wrap{padding:0 18px;}
-  .landing .nav__links{display:none;}
-  .landing .nav__pill{display:none;}
   .landing .nav__in{height:60px;gap:12px;}
   .landing .nav__cta{gap:8px;}
 
