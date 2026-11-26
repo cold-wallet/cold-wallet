@@ -55,10 +55,11 @@
 - **Мертвий код видалено:** 60 файлів старого презентаційного шару (недосяжні від `src/index.tsx`),
   `utils/numberFormat`, `utils/highChartTheme.js`, залежності `highcharts*` і їхній Vite-чанк.
 - **`redesign/` розкладено за роллю** (назва описувала етап міграції, а не вміст — тепер це весь UI):
-  - `src/core/ui/` — логіка без React: `format`, `geometry`, `palette`, `portfolio`, `visual`,
-    `assetIcons` (+ `.data`), `fiatGlyph`, `integrationActions`;
+  - `src/core/ui/` — логіка без React і без залежностей від `components/`: `format`, `geometry`,
+    `palette`, `portfolio`, `visual`, `assetIcons` (+ `.data`), `fiatGlyph`;
   - `src/core/components/dashboard/` — `HoldingRow`, `ChartModal`, `DonutChart`, `TreemapChart`,
     `AmountText`, `FitText`, `AssetIcon`, `LoadingView`;
-  - `src/core/components/dialogs/` — `EditDialog`, `ConfirmDelete`, `SettingsDialog`;
+  - `src/core/components/dialogs/` — `EditDialog`, `ConfirmDelete`, `SettingsDialog` +
+    `integrationActions` (API-валідація й запис налаштувань через `Props`, єдиний споживач — `SettingsDialog`);
   - `src/core/components/pin/` — `PinPad`.
   Шляхи в журналі вище — історичні.

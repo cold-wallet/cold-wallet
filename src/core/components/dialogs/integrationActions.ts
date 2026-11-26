@@ -1,13 +1,15 @@
-// ui/integrationActions.ts — quick enable/disable from the integrations LIST.
+// components/dialogs/integrationActions.ts — quick enable/disable from the integrations LIST.
 // Unlike the per-integration config Save (which validates the typed inputs and then
 // stateReset-closes the window), the list toggle is a shortcut for ALREADY-configured
 // integrations: it validates the SAVED credentials and persists only the enabled flag,
 // keeping the settings window open. Reuses the real service api-clients for validation.
-import binanceApiClient from '../integrations/binance/binanceApiClient';
-import okxApiClient from '../integrations/okx/okxApiClient';
-import monobankApiClient from '../integrations/monobank/monobankApiClient';
-import ccxtConnector from '../integrations/ccxt/ccxtConnector';
-import Props from '../components/Props';
+// Lives next to SettingsDialog (its only caller): it calls APIs and writes settings via
+// Props, so it doesn't belong in the React-free, components-independent src/core/ui/.
+import binanceApiClient from '../../integrations/binance/binanceApiClient';
+import okxApiClient from '../../integrations/okx/okxApiClient';
+import monobankApiClient from '../../integrations/monobank/monobankApiClient';
+import ccxtConnector from '../../integrations/ccxt/ccxtConnector';
+import Props from '../Props';
 
 /** True when an integration already has saved credentials, so a quick toggle is meaningful. */
 export function isConfigured(props: Props, key: string): boolean {

@@ -9,7 +9,7 @@ import Props from "../Props";
 import { onSaveSetting } from "../settings/IntegrationSettings";
 import { dataImporter } from "../settings/ImportData";
 import ccxtConnector from "../../integrations/ccxt/ccxtConnector";
-import { isConfigured, persistEnabled, setTempEnabled, validateSavedCredentials } from "../../ui/integrationActions";
+import { isConfigured, persistEnabled, setTempEnabled, validateSavedCredentials } from "./integrationActions";
 import PinPad, { PIN_MAX, PIN_MIN } from "../pin/PinPad";
 import { SourceMark } from "../dashboard/AssetIcon";
 import { sourceIconUrl } from "../../ui/assetIcons";
