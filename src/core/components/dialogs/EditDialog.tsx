@@ -175,6 +175,7 @@ export default function EditDialog({ props }: { props: Props }) {
               <AmountInput
                 value={props.newAssetAmount ?? ''}
                 scale={scale}
+                currencyScale={currencyScale}
                 currency={cur}
                 placeholder={(scale ? '0.' + '0'.repeat(Math.min(scale, 2)) : '0') + ' ' + cur}
                 className={props.isNewAssetAmountInvalid ? 'invalid' : ''}

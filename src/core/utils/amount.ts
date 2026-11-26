@@ -73,23 +73,29 @@ export function isAmountInputAllowed(value: string): boolean {
   return intPart.length <= MAX_INTEGER_DIGITS;
 }
 
-export type AmountInputNotice = 'comma' | 'two-dots' | 'no-decimals' | 'too-many-decimals' | 'too-large';
+export type AmountInputNotice = 'comma' | 'not-a-number' | 'two-dots' | 'no-decimals' | 'too-many-decimals' | 'too-large';
 export type AmountInputResult = { value: string | null; notice: AmountInputNotice | null };
+
+// Letters (an exponent "1.5e-7", a suffix "1.5k" / "2M", a ticker) and signs ("-100", "\u22125", "+5")
+// change what a number means; dropping them would silently give a different amount.
+const NOT_A_PLAIN_NUMBER = /[\p{L}\-\u2212\u2013\u2014+]/u;
 
 /**
  * Parse what was typed or pasted into the amount field. Only "." separates the fraction; this
  * works on the input value itself (not key events), so paste and phone keyboards behave the same.
  *   - commas are never decimals: they are dropped and reported ('comma'), so "1,234.56" pastes as
  *     1234.56 and a typed "1,5" visibly becomes 15 with a hint to use a dot;
- *   - spaces / apostrophes are grouping and are dropped; any other non-digit is ignored;
+ *   - spaces / apostrophes are grouping and are dropped, as are currency symbols ("$1,234.56");
  *   - a change that would make an invalid number is REJECTED (`value: null`) instead of being
- *     "repaired", so the field never silently changes what is already there: a second dot
- *     ("12.34" → "1.2.34" would otherwise move the point), more decimals than `scale`
- *     ("1.23" → "1.923" would otherwise drop a digit), any decimals when `scale` is 0, or more
+ *     "repaired", so the field never silently changes what is already there: any letter or sign
+ *     ("1.5e-7" would otherwise read as 1.57, "1.5k" as 1.5, "-100" as 100), a second dot
+ *     ("12.34" -> "1.2.34" would otherwise move the point), more decimals than `scale`
+ *     ("1.23" -> "1.923" would otherwise drop a digit), any decimals when `scale` is 0, or more
  *     than MAX_INTEGER_DIGITS before the point.
  */
 export function sanitizeAmountInput(raw: string, scale: number): AmountInputResult {
   let s = (raw || '').replace(/[\s'\u2019\u00A0\u202F]/g, '');
+  if (NOT_A_PLAIN_NUMBER.test(s)) return { value: null, notice: 'not-a-number' };
   const hadComma = s.includes(',');
   s = s.replace(/[^\d.]/g, '');
   const dots = (s.match(/\./g) || []).length;
@@ -106,12 +112,21 @@ export function sanitizeAmountInput(raw: string, scale: number): AmountInputResu
   return { value: frac === null ? intPart : `${intPart}.${frac}`, notice: hadComma ? 'comma' : null };
 }
 
-export function amountInputNoticeText(notice: AmountInputNotice, currency: string, scale: number): string {
+/**
+ * `scale` is the limit in force; `currencyScale` the currency's own precision. They differ only
+ * for a legacy holding that already stores more decimals (EditDialog keeps them), and then the
+ * notice must not attribute the wider limit to the currency.
+ */
+export function amountInputNoticeText(notice: AmountInputNotice, currency: string, scale: number, currencyScale: number = scale): string {
+  const decimals = (n: number) => `${n} decimal${n === 1 ? '' : 's'}`;
   switch (notice) {
     case 'comma': return 'Commas are ignored here: use a dot (.) for decimals.';
+    case 'not-a-number': return 'Use digits and one dot (.) only: no letters, exponents or signs.';
     case 'two-dots': return 'An amount has only one decimal point.';
     case 'no-decimals': return `${currency} has no decimals.`;
-    case 'too-many-decimals': return `${currency} allows up to ${scale} decimal${scale === 1 ? '' : 's'}.`;
+    case 'too-many-decimals': return scale > currencyScale
+      ? `At most ${decimals(scale)} for this holding.`
+      : `${currency} allows up to ${decimals(scale)}.`;
     case 'too-large': return `At most ${MAX_INTEGER_DIGITS} digits before the point.`;
   }
 }

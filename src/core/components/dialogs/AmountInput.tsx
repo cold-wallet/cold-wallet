@@ -9,7 +9,10 @@ import { amountInputNoticeText, sanitizeAmountInput, type AmountInputNotice } fr
 
 interface AmountInputProps {
   value: string;
+  /** decimals allowed in this field (may exceed the currency's for a legacy holding) */
   scale: number;
+  /** the currency's own precision, for wording the notice */
+  currencyScale?: number;
   currency: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -18,7 +21,7 @@ interface AmountInputProps {
   autoFocus?: boolean;
 }
 
-export default function AmountInput({ value, scale, currency, onChange, placeholder, className, invalid, autoFocus }: AmountInputProps) {
+export default function AmountInput({ value, scale, currencyScale, currency, onChange, placeholder, className, invalid, autoFocus }: AmountInputProps) {
   const [notice, setNotice] = useState<AmountInputNotice | null>(null);
   // Bumped on every change so a rejected edit (value unchanged) still re-renders and the layout
   // effect below can put the caret back after React restores the controlled value.
@@ -68,7 +71,7 @@ export default function AmountInput({ value, scale, currency, onChange, placehol
       />
       {notice && (
         <small id="amount-notice" className="hint hint--notice" role="status">
-          {amountInputNoticeText(notice, currency, scale)}
+          {amountInputNoticeText(notice, currency, scale, currencyScale ?? scale)}
         </small>
       )}
       {intDigits > 4 && (

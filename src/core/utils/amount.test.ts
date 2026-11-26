@@ -118,6 +118,24 @@ describe('sanitizeAmountInput', () => {
     expect(await run('1,000', 8)).toEqual({ value: '1000', notice: 'comma' });
   });
 
+  it('rejects letters, exponents and signs instead of silently dropping them', async () => {
+    const NAN = { value: null, notice: 'not-a-number' };
+    expect(await run('1.5e-7', 8)).toEqual(NAN);   // would otherwise read as 1.57
+    expect(await run('2E3', 2)).toEqual(NAN);      // would otherwise read as 23
+    expect(await run('1.5k', 2)).toEqual(NAN);     // would otherwise read as 1.5
+    expect(await run('2M', 2)).toEqual(NAN);
+    expect(await run('-100', 2)).toEqual(NAN);     // would otherwise lose the sign
+    expect(await run('\u22125', 2)).toEqual(NAN);   // Unicode minus
+    expect(await run('\u20135', 2)).toEqual(NAN);   // en dash pasted from text
+    expect(await run('+5', 2)).toEqual(NAN);
+    expect(await run('0.25 BTC', 8)).toEqual(NAN); // a ticker is letters too
+  });
+
+  it('still drops currency symbols and grouping silently', async () => {
+    expect(await run('$1234.56', 2)).toEqual({ value: '1234.56', notice: null });
+    expect(await run('\u20ac 12.5', 2)).toEqual({ value: '12.5', notice: null });
+  });
+
   it('rejects a second dot wherever it is typed, so the point never moves', async () => {
     expect(await run('1.2.34', 2)).toEqual({ value: null, notice: 'two-dots' });   // 12.34, dot between 1 and 2
     expect(await run('12.3.4', 2)).toEqual({ value: null, notice: 'two-dots' });   // 12.34, dot between 3 and 4
@@ -138,11 +156,19 @@ describe('sanitizeAmountInput', () => {
     expect(await run('1 234.5', 2)).toEqual({ value: '1234.5', notice: null });
     expect(await run("1'234", 2)).toEqual({ value: '1234', notice: null });
     expect(await run('1\u00A0234', 2)).toEqual({ value: '1234', notice: null });
-    expect(await run('abc12x.3', 8)).toEqual({ value: '12.3', notice: null });
   });
 
   it('rejects a change that would exceed the digit cap', async () => {
     expect(await run('9'.repeat(30), 2)).toEqual({ value: '9'.repeat(30), notice: null });
     expect(await run('9'.repeat(31), 2)).toEqual({ value: null, notice: 'too-large' });
+  });
+});
+
+describe('amountInputNoticeText', () => {
+  it("names the currency's limit, but not for a legacy holding with more decimals", async () => {
+    const { amountInputNoticeText } = await import('./amount');
+    expect(amountInputNoticeText('too-many-decimals', 'EUR', 2, 2)).toBe('EUR allows up to 2 decimals.');
+    expect(amountInputNoticeText('too-many-decimals', 'EUR', 4, 2)).toBe('At most 4 decimals for this holding.');
+    expect(amountInputNoticeText('too-many-decimals', 'BTC', 1)).toBe('BTC allows up to 1 decimal.');
   });
 });
