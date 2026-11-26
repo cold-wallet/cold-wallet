@@ -25,12 +25,15 @@ describe('AmountInput', () => {
     expect(screen.getByRole('status').textContent).toMatch(/up to 2 decimals/);
   });
 
-  it('drops a comma and tells the user to use a dot', () => {
+  it('rejects a comma, letter or sign and says only digits and a dot are allowed', () => {
     const onValue = vi.fn();
-    render(<Harness onValue={onValue} />);
-    fireEvent.change(input(), { target: { value: '1,5' } });
-    expect(onValue).toHaveBeenCalledWith('15');
-    expect(screen.getByRole('status').textContent).toMatch(/use a dot/);
+    render(<Harness initial="1" onValue={onValue} />);
+    for (const bad of ['1,5', '1e5', '1-', '1k']) {
+      fireEvent.change(input(), { target: { value: bad } });
+      expect(input().value).toBe('1');
+    }
+    expect(onValue).not.toHaveBeenCalled();
+    expect(screen.getByRole('status').textContent).toMatch(/Only digits and a dot/);
   });
 
   it('clears the notice on the next clean edit and shows a grouped read-back for large numbers', () => {

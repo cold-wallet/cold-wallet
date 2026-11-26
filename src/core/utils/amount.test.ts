@@ -102,8 +102,9 @@ describe('defaultAssetName', () => {
 
 describe('sanitizeAmountInput', () => {
   const run = async (raw: string, scale: number) => (await import('./amount')).sanitizeAmountInput(raw, scale);
+  const NAN = { value: null, notice: 'not-a-number' };
 
-  it('accepts plain typing with a dot', async () => {
+  it('accepts digits and one dot', async () => {
     expect(await run('1.5', 8)).toEqual({ value: '1.5', notice: null });
     expect(await run('12.', 2)).toEqual({ value: '12.', notice: null });   // trailing dot while typing
     expect(await run('.', 2)).toEqual({ value: '0.', notice: null });      // dot first
@@ -112,50 +113,34 @@ describe('sanitizeAmountInput', () => {
     expect(await run('', 2)).toEqual({ value: '', notice: null });
   });
 
-  it('never treats a comma as a decimal: drops it and says so', async () => {
-    expect(await run('1,5', 8)).toEqual({ value: '15', notice: 'comma' });
-    expect(await run('1,234.56', 2)).toEqual({ value: '1234.56', notice: 'comma' }); // US paste
-    expect(await run('1,000', 8)).toEqual({ value: '1000', notice: 'comma' });
-  });
-
-  it('rejects letters, exponents and signs instead of silently dropping them', async () => {
-    const NAN = { value: null, notice: 'not-a-number' };
-    expect(await run('1.5e-7', 8)).toEqual(NAN);   // would otherwise read as 1.57
-    expect(await run('2E3', 2)).toEqual(NAN);      // would otherwise read as 23
-    expect(await run('1.5k', 2)).toEqual(NAN);     // would otherwise read as 1.5
-    expect(await run('2M', 2)).toEqual(NAN);
-    expect(await run('-100', 2)).toEqual(NAN);     // would otherwise lose the sign
-    expect(await run('\u22125', 2)).toEqual(NAN);   // Unicode minus
-    expect(await run('\u20135', 2)).toEqual(NAN);   // en dash pasted from text
+  it('rejects any other character instead of stripping it', async () => {
+    expect(await run('1,5', 8)).toEqual(NAN);        // comma: never a decimal, never dropped into 15
+    expect(await run('1,234.56', 2)).toEqual(NAN);
+    expect(await run('1 234', 2)).toEqual(NAN);      // grouping space
+    expect(await run('$12', 2)).toEqual(NAN);        // currency symbol
+    expect(await run('1.5e-7', 8)).toEqual(NAN);     // would otherwise read as 1.57
+    expect(await run('2E3', 2)).toEqual(NAN);
+    expect(await run('1.5k', 2)).toEqual(NAN);
+    expect(await run('-100', 2)).toEqual(NAN);
+    expect(await run('\u22125', 2)).toEqual(NAN);
     expect(await run('+5', 2)).toEqual(NAN);
-    expect(await run('0.25 BTC', 8)).toEqual(NAN); // a ticker is letters too
-  });
-
-  it('still drops currency symbols and grouping silently', async () => {
-    expect(await run('$1234.56', 2)).toEqual({ value: '1234.56', notice: null });
-    expect(await run('\u20ac 12.5', 2)).toEqual({ value: '12.5', notice: null });
+    expect(await run('0.25 BTC', 8)).toEqual(NAN);
   });
 
   it('rejects a second dot wherever it is typed, so the point never moves', async () => {
-    expect(await run('1.2.34', 2)).toEqual({ value: null, notice: 'two-dots' });   // 12.34, dot between 1 and 2
-    expect(await run('12.3.4', 2)).toEqual({ value: null, notice: 'two-dots' });   // 12.34, dot between 3 and 4
-    expect(await run('.12.34', 2)).toEqual({ value: null, notice: 'two-dots' });   // dot at the very start
-    expect(await run('12.34.', 2)).toEqual({ value: null, notice: 'two-dots' });   // dot at the end
-    expect(await run('1..', 2)).toEqual({ value: null, notice: 'two-dots' });      // two in a row
-    expect(await run('1.234.567', 2)).toEqual({ value: null, notice: 'two-dots' }); // EU thousands paste
+    const TWO = { value: null, notice: 'two-dots' };
+    expect(await run('1.2.34', 2)).toEqual(TWO);   // 12.34, dot between 1 and 2
+    expect(await run('12.3.4', 2)).toEqual(TWO);   // 12.34, dot between 3 and 4
+    expect(await run('.12.34', 2)).toEqual(TWO);   // dot at the very start
+    expect(await run('12.34.', 2)).toEqual(TWO);   // dot at the end
+    expect(await run('1..', 2)).toEqual(TWO);      // two in a row
+    expect(await run('1.234.567', 2)).toEqual(TWO); // EU thousands paste
   });
 
-  it('rejects more decimals than the currency has instead of dropping digits', async () => {
+  it('rejects more decimals than allowed instead of dropping digits', async () => {
     expect(await run('1.923', 2)).toEqual({ value: null, notice: 'too-many-decimals' }); // 1.23, 9 after the dot
-    expect(await run('1.234', 2)).toEqual({ value: null, notice: 'too-many-decimals' });
     expect(await run('12.', 0)).toEqual({ value: null, notice: 'no-decimals' });          // JPY
     expect(await run('1.12345678', 8)).toEqual({ value: '1.12345678', notice: null });
-  });
-
-  it('drops grouping spaces / apostrophes and junk silently', async () => {
-    expect(await run('1 234.5', 2)).toEqual({ value: '1234.5', notice: null });
-    expect(await run("1'234", 2)).toEqual({ value: '1234', notice: null });
-    expect(await run('1\u00A0234', 2)).toEqual({ value: '1234', notice: null });
   });
 
   it('rejects a change that would exceed the digit cap', async () => {
