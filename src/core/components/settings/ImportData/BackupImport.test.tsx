@@ -22,6 +22,7 @@ function makeProps() {
   return {
     setImportDataBuffer: vi.fn(),
     setUserDataHolder: vi.fn(),
+    setPinCode: vi.fn(),
     loadBinanceUserData: vi.fn(),
     loadMonobankUserData: vi.fn(),
     loadOkxUserData: vi.fn(),
@@ -72,6 +73,8 @@ describe('backup import with a PIN', () => {
     fireEvent.click(restore());
     expect(props.setUserDataHolder).toHaveBeenCalledTimes(1);
     expect(onImported).toHaveBeenCalledTimes(1);
+    // unlocked with the PIN just typed, so the lock screen doesn't ask for it again
+    expect(props.setPinCode).toHaveBeenCalledWith('4321');
   });
 
   it('forgets the PIN prompt when a different token is pasted', () => {

@@ -172,8 +172,8 @@ export default interface Props {
     setInvalidPinCode: Dispatch<SetStateAction<boolean>>,
     currentPinCodeConfirmed: boolean,
     setCurrentPinCodeConfirmed: Dispatch<SetStateAction<boolean>>,
-    deletePinCodeRequested: boolean,
-    setDeletePinCodeRequested: Dispatch<SetStateAction<boolean>>,
+    /** Create a new empty wallet locked with `pin` (replaces whatever is stored on this device). */
+    createWallet: (pin: string) => void,
 
     priceService: PriceService,
     currencyService: CurrencyService,

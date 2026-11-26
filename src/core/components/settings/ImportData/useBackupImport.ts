@@ -37,6 +37,9 @@ export function useBackupImport(props: Props, onImported: () => void) {
             setError(result.error);
             return;
         }
+        // The backup's PIN was just typed in, so unlock with it instead of asking again. A backup
+        // without a PIN lands on the "Set a PIN-code" screen (see ColdWallet).
+        if (needsPin) props.setPinCode(pin);
         props.loadBinanceUserData();
         props.loadMonobankUserData();
         props.loadOkxUserData();
