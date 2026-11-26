@@ -250,6 +250,27 @@ body {
   font-size: 9px; font-weight: 800; color: #0b0f0e;
   border: 2px solid var(--panel);
 }
+/* Bundled icon (coin logo / flag / brand mark) in place of the text glyph — AssetIcon.tsx.
+   The chip keeps its box (size, radius, badge position); the image fills it. A faint ring
+   keeps black brand tiles (OKX, Binance, ETH…) from melting into the dark panel. */
+.has-icon { background: none; }
+.asset-icon {
+  display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover;
+  user-select: none; -webkit-user-drag: none; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+/* Fiat: drawn symbol tile (fiatGlyph.ts). The symbol scales with its length, relative to each
+   chip's own font-size, so the same markup fits the 40px row coin and the 18px legend chip. */
+.fiat-glyph {
+  border: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -1px 0 rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.fiat-glyph__sym { font-weight: 700; line-height: 1; letter-spacing: -0.02em; white-space: nowrap; }
+.fiat-glyph[data-len="1"] .fiat-glyph__sym { font-size: 1.3em; }
+.fiat-glyph[data-len="2"] .fiat-glyph__sym { font-size: 1em; }
+.fiat-glyph[data-len="3"] .fiat-glyph__sym { font-size: 0.78em; letter-spacing: -0.04em; }
+.fiat-glyph[data-len="4"] .fiat-glyph__sym { font-size: 0.62em; letter-spacing: -0.04em; }
+.coin__src.has-icon { background: var(--panel); }
+.coin__src.has-icon .asset-icon { border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.14); }
 .row__main { min-width: 0; }
 .row__top { display: flex; align-items: center; gap: 8px; }
 .row__asset { font-weight: 600; font-size: 14px; }

@@ -8,7 +8,8 @@ import AssetDTO, { crypto, fiat } from '../../domain/AssetDTO';
 import fiatCurrencies from '../../fiatCurrencies';
 import uuidGenerator from '../../utils/uuidGenerator';
 import assetDataValidator from '../../utils/AssetDataValidator';
-import { assetColor, assetSym } from './visual';
+import { assetColor } from './visual';
+import { CoinChip } from './AssetIcon';
 
 const POPULAR = ['USD', 'EUR', 'UAH', 'USDT', 'BTC', 'ETH'];
 
@@ -92,7 +93,7 @@ export default function EditDialog({ props }: { props: Props }) {
                   const c = assetColor(o.value);
                   return (
                     <div className="asset-li" key={o.value} onClick={() => pick(o.value)}>
-                      <span className="asset-li__ico" style={{ background: c + '22', color: c, border: '1px solid ' + c + '55' }}>{assetSym(o.value)}</span>
+                      <CoinChip className="asset-li__ico" code={o.value} color={c} />
                       <div className="asset-li__main">
                         <div className="asset-li__code">{o.value}</div>
                         <div className="asset-li__name">{o.label}</div>
@@ -111,7 +112,7 @@ export default function EditDialog({ props }: { props: Props }) {
                     const c = assetColor(a);
                     return (
                       <div className="asset-card" key={a} onClick={() => pick(a)}>
-                        <span className="asset-card__ico" style={{ background: c + '22', color: c, border: '1px solid ' + c + '55' }}>{assetSym(a)}</span>
+                        <CoinChip className="asset-card__ico" code={a} color={c} />
                         <span className="asset-card__code">{a}</span>
                         <span className="asset-card__name">{fiatCurrencies.getByStringCode(a) ? 'Fiat' : 'Crypto'}</span>
                       </div>
@@ -135,7 +136,7 @@ export default function EditDialog({ props }: { props: Props }) {
           <>
             <h3>{editing ? 'Edit holding' : 'New asset'}</h3>
             <div className="sel-chip">
-              <span className="sel-chip__ico" style={{ background: color + '22', color, border: '1px solid ' + color + '55' }}>{assetSym(cur)}</span>
+              <CoinChip className="sel-chip__ico" code={cur} kind={isFiat ? 'fiat' : 'crypto'} color={color} />
               <div className="sel-chip__main">
                 <div className="sel-chip__code">{cur} <span style={{ color: 'var(--ink-3)', fontWeight: 400, fontSize: 12 }}>· {isFiat ? 'fiat' : 'crypto'}</span></div>
                 <div className="sel-chip__name">{props.newAssetName || cur + ' amount'}</div>
