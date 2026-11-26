@@ -61,6 +61,10 @@
   border:1px solid var(--line-2);background:var(--card);color:var(--ink);
   transition:transform .14s, filter .14s, border-color .14s, background .14s;
   white-space:nowrap;
+  /* The app shell's global `.btn{flex:1 1 0%}` leaks in here: in the column-flex token card a
+     0% basis overrides height and squashes buttons to the label height, and in the hero / final
+     CTA rows it stretches every button to the full line. Reset it. */
+  flex:none;
 }
 .landing .btn svg{width:18px;height:18px;flex:none;}
 .landing .btn:hover{transform:translateY(-1px);border-color:var(--line-2);background:var(--card-hi);}
@@ -183,15 +187,18 @@
 
 /* token card */
 .landing .tokencard{background:linear-gradient(180deg, var(--panel-2), var(--panel));border:1px solid var(--line-2);
-  border-radius:var(--r-lg);padding:30px;box-shadow:0 30px 70px -30px #000;position:sticky;top:90px;}
+  border-radius:var(--r-lg);padding:30px;box-shadow:0 30px 70px -30px #000;
+  /* Two-column layout: stretch to the left column's height so both blocks end on one line;
+     the rows share the spare height and the CTAs sit on the bottom edge. */
+  align-self:stretch;display:flex;flex-direction:column;}
 .landing .tokencard__top{display:flex;align-items:center;gap:14px;}
 .landing .tokencard__mark{width:52px;height:52px;border-radius:14px;flex:none;}
 .landing .tokencard__name{font-size:19px;font-weight:700;}
 .landing .tokencard__sym{font-family:var(--mono);font-size:13px;color:var(--accent);}
-.landing .tokencard__rows{margin:24px 0 6px;border-top:1px solid var(--line);}
-.landing .trow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);}
-.landing .trow__k{font-size:13px;color:var(--ink-3);letter-spacing:.04em;}
-.landing .trow__v{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.landing .tokencard__rows{margin:24px 0 6px;border-top:1px solid var(--line);flex:1;display:flex;flex-direction:column;}
+.landing .trow{flex:1;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);}
+.landing .trow__k{font-size:13.5px;color:var(--ink-3);letter-spacing:.04em;}
+.landing .trow__v{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
 .landing .tokencard__cta{display:flex;flex-direction:column;gap:11px;margin-top:24px;}
 .landing .tokencard__cta .btn{width:100%;}
 .landing .tokencard__note{font-size:11.5px;color:var(--ink-3);text-align:center;margin-top:16px;line-height:1.5;}
@@ -255,7 +262,6 @@
   .landing .hero__grid{grid-template-columns:1fr;gap:40px;}
   .landing .shot{max-width:560px;}
   .landing .cwt__grid, .landing .trust__grid{grid-template-columns:1fr;gap:36px;}
-  .landing .tokencard{position:static;}
   .landing .features{grid-template-columns:repeat(2,1fr);}
   .landing .foot__grid{grid-template-columns:1fr 1fr;gap:32px;}
 }

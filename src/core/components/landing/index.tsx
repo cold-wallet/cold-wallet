@@ -197,7 +197,7 @@ export default function Landing() {
                         <p className="hero__sub">The anonymous portfolio dashboard for everything you own: fiat and crypto from every source on one screen. You don't need to sign up. Powered by the CWT utility token.</p>
                         <div className="hero__cta">
                             <a className="btn btn--p" href={SUSHI} {...ext}><IconArrowUpRight /> Buy on SushiSwap</a>
-                            <a className="btn" href={CMC_DEX} {...ext}><IconChart /> Watch CWT on CoinMarketCap DEX</a>
+                            <a className="btn" href={CMC_DEX} {...ext}><IconChart /> Watch on CoinMarketCap DEX</a>
                         </div>
                         <div className="hero__meta">
                             <a className="linkarrow" href={WHITEPAPER} {...ext}>Read the whitepaper <IconArrowRight /></a>
@@ -305,6 +305,7 @@ export default function Landing() {
                         <div className="tokencard__rows">
                             <div className="trow"><span className="trow__k">Network</span><span className="trow__v">Ethereum <span className="chainbadge">ERC-20</span></span></div>
                             <div className="trow"><span className="trow__k">Symbol</span><span className="trow__v num">CWT</span></div>
+                            <div className="trow"><span className="trow__k">Total supply</span><span className="trow__v num">1,000,000,000</span></div>
                             <div className="trow"><span className="trow__k">Trade on</span><span className="trow__v">SushiSwap · CMC DEX</span></div>
                             <div className="trow"><span className="trow__k">Contract</span><span className="trow__v">
                                 <span className="addr"><code className="num" style={{ fontSize: 13 }}>{CONTRACT_SHORT}</code><CopyButton /></span>
