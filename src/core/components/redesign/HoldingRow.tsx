@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { maskUSD, amountDisplay } from './format';
 import AmountText from './AmountText';
 import { shortenAddresses } from './visual';
+import { CoinChip, SourceMark } from './AssetIcon';
 import type { Valued } from './portfolio';
 
 interface HoldingRowProps {
@@ -33,10 +34,9 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
       onClick={() => onSelect(h.id)}
       title={a.normalizedName}
     >
-      <div className="coin" style={{ background: h.color + '22', color: h.color, border: '1px solid ' + h.color + '55' }}>
-        {h.sym}
-        <span className="coin__src" style={{ background: h.source.tint }}>{h.source.mark}</span>
-      </div>
+      <CoinChip className="coin" code={h.code} kind={h.kind} color={h.color} text={h.sym}>
+        <SourceMark className="coin__src" icon={h.source.icon} mark={h.source.mark} tint={h.source.tint} title={h.source.label} />
+      </CoinChip>
       <div className="row__main">
         <div className="row__top">
           <span className="row__asset">{h.code}</span>

@@ -2,6 +2,8 @@
 // loader flags from Props (Binance / OKX / CoinGecko / Monobank). Shown until `loaded`.
 import React from 'react';
 import Props from '../Props';
+import { SourceMark } from './AssetIcon';
+import { sourceIconUrl } from './assetIcons';
 
 interface Step {
   key: string;
@@ -63,7 +65,7 @@ export default function LoadingView({ props }: { props: Props }) {
         <div className="loading__steps">
           {steps.map((s) => (
             <div className={"lstep" + (s.done ? " lstep--done" : " lstep--active")} key={s.key}>
-              <span className="lstep__chip" style={{ background: s.tint }}>{s.mark}</span>
+              <SourceMark className="lstep__chip" icon={sourceIconUrl(s.key)} mark={s.mark} tint={s.tint} />
               <div className="lstep__main">
                 <div className="lstep__row">
                   <span className="lstep__label">{s.label}</span>

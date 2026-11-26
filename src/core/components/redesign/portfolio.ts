@@ -28,8 +28,8 @@ export interface ArcSeg {
   [k: string]: unknown;
 }
 export interface ChartData { leafSegs: ArcSeg[]; curSegs: ArcSeg[]; typeSegs: ArcSeg[]; }
-export interface SidebarGroup { k: string; label: string; mark: string; tint: string; items: Valued[]; sum: number; }
-export interface SourceBar { key: string; usd: number; pct: number; label: string; mark: string; tint: string; }
+export interface SidebarGroup { k: string; label: string; mark: string; tint: string; icon: string | null; items: Valued[]; sum: number; }
+export interface SourceBar { key: string; usd: number; pct: number; label: string; mark: string; tint: string; icon: string | null; }
 
 function usdOf(ps: PriceService, a: AssetDTO): number {
   const v = ps.transform(a.currency, +a.amount, 'USD');
@@ -168,7 +168,7 @@ export function sidebarGroups(v: Valued[], query: string): SidebarGroup[] {
     items.sort((a, b) => b.usd - a.usd);
     const sum = items.reduce((s, h) => s + h.usd, 0);
     const s = items[0].source;
-    return { k, label: s.label, mark: s.mark, tint: s.tint, items, sum };
+    return { k, label: s.label, mark: s.mark, tint: s.tint, icon: s.icon, items, sum };
   });
   out.sort((a, b) => b.sum - a.sum);
   return out;
@@ -182,6 +182,6 @@ export function sourceBreakdown(v: Valued[], total: number): SourceBar[] {
     by[h.source.key].usd += h.usd;
   });
   return Object.entries(by)
-    .map(([key, { usd, s }]) => ({ key, usd, pct: total ? (usd / total) * 100 : 0, label: s.label, mark: s.mark, tint: s.tint }))
+    .map(([key, { usd, s }]) => ({ key, usd, pct: total ? (usd / total) * 100 : 0, label: s.label, mark: s.mark, tint: s.tint, icon: s.icon }))
     .sort((a, b) => b.usd - a.usd);
 }

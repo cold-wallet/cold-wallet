@@ -1,10 +1,12 @@
 // redesign/ConfirmDelete.tsx — delete-confirm modal (new look, old delete mechanics).
 import React from 'react';
 import Props from '../Props';
+import { AssetType } from '../../domain/AssetDTO';
 import { maskUSD, amountDisplay } from './format';
 import AmountText from './AmountText';
 import { displayScale, unitUsdOf } from './portfolio';
-import { assetColor, assetSym } from './visual';
+import { assetColor } from './visual';
+import { CoinChip } from './AssetIcon';
 
 export default function ConfirmDelete({ props }: { props: Props }) {
   const a = props.assetToDelete!;
@@ -37,7 +39,8 @@ export default function ConfirmDelete({ props }: { props: Props }) {
         <h3>Delete asset?</h3>
         <p className="confirm__text">This removes <b style={{ color: 'var(--ink)' }}>{a.normalizedName}</b> from your portfolio. This can't be undone.</p>
         <div className="confirm__asset">
-          <span style={{ width: 30, height: 30, borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 600, background: color + '22', color, border: '1px solid ' + color + '55' }}>{assetSym(a.currency)}</span>
+          <CoinChip className="del-ico" code={a.currency} kind={a.type === AssetType.fiat ? 'fiat' : 'crypto'} color={color}
+                    style={{ width: 30, height: 30, borderRadius: 9, display: 'grid', placeItems: 'center', fontSize: 14, fontWeight: 600, flex: 'none' }} />
           <span className="num">
             <AmountText amt={amt} code={a.currency} hidden={hidden} />
           </span>
