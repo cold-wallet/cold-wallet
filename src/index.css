@@ -45,7 +45,8 @@ input[disabled] {
 }
 
 @media only screen and (min-width: 2400px) {
-  input, a {
+  /* App-only: the marketing landing sizes its own links and buttons. */
+  input:not(.landing *), a:not(.landing *) {
     font-size: xx-large !important;
   }
 }

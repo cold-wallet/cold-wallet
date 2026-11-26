@@ -66,12 +66,12 @@ type Feature = { n: string; title: string; body: string; icon: React.ReactNode }
 const FEATURES: Feature[] = [
     {
         n: '01', title: 'Anonymous by design',
-        body: 'No account, no email, no KYC. We never see your IP address, your balances, or your history. Nothing to leak, nothing to subpoena.',
+        body: "No account, no email, no KYC. We never see your balances or your history, so we can't leak them or hand them over.",
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6z" /><path d="m9 12 2 2 4-4" /></svg>,
     },
     {
         n: '02', title: 'Every asset, one view',
-        body: 'Fiat and crypto across banks, exchanges, wallets and cash — unified into a single balance you can actually read.',
+        body: 'Fiat and crypto across banks, exchanges, wallets and cash, unified into one readable balance.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18" /><path d="M8 15h3" /></svg>,
     },
     {
@@ -86,12 +86,12 @@ const FEATURES: Feature[] = [
     },
     {
         n: '05', title: 'Live market sync',
-        body: 'Real-time prices keep every holding, chart and percentage current to the second — no manual refresh, no stale numbers.',
+        body: 'Prices update live, so every holding, chart and percentage stays current without a manual refresh.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4" /></svg>,
     },
     {
         n: '06', title: 'Connect what you use',
-        body: 'MetaMask, Binance, OKX, Monobank or manual entries. Plug in your sources in seconds and watch them merge into one portfolio.',
+        body: 'MetaMask, Binance, OKX, Monobank or manual entries. Connect a source and its balances join the rest of your portfolio.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 7H6a3 3 0 0 0 0 6h3" /><path d="M15 7h3a3 3 0 0 1 0 6h-3" /><path d="M8 10h8" /></svg>,
     },
 ];
@@ -100,46 +100,36 @@ type Util = { title: string; body: string; icon: React.ReactNode };
 const TRUST: Util[] = [
     {
         title: 'Reads, never moves',
-        body: "Integrations only pull balances. Cold Wallet can't send, swap, or spend a single thing.",
+        body: "Integrations only pull balances. Cold Wallet can't send, swap, or spend your funds.",
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>,
     },
     {
         title: 'Read-only API keys',
-        body: "Everything's already local and encrypted — but if you want even more peace of mind, connect with read-only keys. It's just your balances, and all we ever do is read them.",
+        body: 'Connect exchanges with read-only API keys, so the app sees your balances and nothing else.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /><path d="M12 15v2" /></svg>,
     },
     {
         title: 'Encrypted on your device',
-        body: "Your data stays local and encrypted at rest. Lose the laptop and your portfolio still can't be read — there's nothing to steal there, either.",
+        body: "Your data stays local and encrypted at rest. Lose the laptop and your portfolio still can't be read.",
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /><circle cx="12" cy="15.5" r="1.4" /></svg>,
     },
     {
         title: 'Open source',
-        body: 'Every line is public on GitHub. Audit it, fork it, or run your own copy — trust the code, not our word.',
+        body: 'Every line is public on GitHub. Audit it, fork it, or run your own copy.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m8 6-6 6 6 6" /><path d="m16 6 6 6-6 6" /></svg>,
     },
 ];
 
 const CWT_UTILS: Util[] = [
     {
-        title: 'Unlock Pro',
-        body: 'Advanced charts, balance-history graphs so you can see how your wealth evolved over time, unlimited sources and priority market sync for CWT holders.',
+        title: 'Pay for Pro in CWT',
+        body: 'Once Pro launches, paying for it in CWT costs much less than the regular price.',
         icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 2 2.4 6.9H21l-5.3 4 2 6.8L12 16l-5.7 3.7 2-6.8L3 8.9h6.6z" /></svg>,
     },
     {
-        title: 'Reduced swap fees',
-        body: 'Pay less on in-app swaps and on/off-ramps when you transact in CWT.',
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 7h10v10" /><path d="M7 17 17 7" /></svg>,
-    },
-    {
-        title: 'Governance',
-        body: 'Vote on the roadmap, new integrations and protocol parameters.',
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7z" /></svg>,
-    },
-    {
-        title: 'Holder rewards',
-        body: 'Earn for holding and actively using the wallet across the ecosystem.',
-        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8" /><path d="M12 8v8M9 11h6" /></svg>,
+        title: 'Or hold CWT to unlock Pro',
+        body: 'Keep the required amount of CWT in a connected wallet and Pro features unlock without a payment. The app only reads the balance.',
+        icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>,
     },
 ];
 
@@ -176,7 +166,7 @@ export default function Landing() {
             <header className="nav">
                 <div className="wrap nav__in">
                     <a className="brand" href="#top">
-                        <img className="brand__mark" src="/cold-wallet.svg" alt="Cold Wallet" />
+                        <img className="brand__mark" src="/favicon.svg" alt="Cold Wallet" />
                         <span className="brand__name">Cold Wallet</span>
                     </a>
                     <nav className="nav__links">
@@ -185,7 +175,7 @@ export default function Landing() {
                         <a href={WHITEPAPER} {...ext}>Whitepaper</a>
                     </nav>
                     <div className="nav__cta">
-                        <span className="nav__pill"><span className="live" /> CWT live on Ethereum</span>
+                        <a className="btn btn--sm nav__pill" href={CMC_DEX} {...ext}><span className="live" /> CWT live on Ethereum</a>
                         <a className="btn btn--sm btn--p" href={SUSHI} {...ext}>Buy CWT</a>
                     </div>
                 </div>
@@ -199,26 +189,23 @@ export default function Landing() {
                     <div className="hero__copy">
                         <p className="eyebrow"><span className="dot">●</span> CWT · Ethereum · DEX-traded</p>
                         <h1>All your money.<br /><span className="g">One cold,<br />private view.</span></h1>
-                        <p className="hero__sub">The anonymous portfolio dashboard for everything you own — fiat and crypto, every source, on one screen. No sign-up. No tracking. Powered by the CWT utility token.</p>
+                        <p className="hero__sub">The anonymous portfolio dashboard for everything you own: fiat and crypto from every source on one screen. You don't need to sign up. Powered by the CWT utility token. <a className="hero__sublink" href={WHITEPAPER} {...ext}>Read the whitepaper <IconArrowRight /></a></p>
                         <div className="hero__cta">
                             <a className="btn btn--p" href={SUSHI} {...ext}><IconArrowUpRight /> Buy on SushiSwap</a>
-                            <a className="btn" href={CMC_DEX} {...ext}><IconChart /> Watch CWT on CoinMarketCap DEX</a>
-                        </div>
-                        <div className="hero__meta">
-                            <a className="linkarrow" href={WHITEPAPER} {...ext}>Read the whitepaper <IconArrowRight /></a>
-                            <a className="linkarrow" href={DEMO} style={{ color: 'var(--ink-2)' }}>Try the live demo <IconArrowRight /></a>
+                            <a className="btn" href={CMC_DEX} {...ext}><IconChart /> Watch on CoinMarketCap DEX</a>
                         </div>
                     </div>
 
+                    {/* The demo CTA lives on the screenshot itself (button + the whole window links to /demo). */}
                     <div className="shot reveal">
                         <div className="shot__glow" />
-                        <div className="window">
+                        <a className="window" href={DEMO} aria-label="Open the live demo">
                             <div className="window__bar">
                                 <div className="window__dots"><i /><i /><i /></div>
                                 <span className="window__url"><IconLock /> cold-wallet.app</span>
                             </div>
                             <img src="/hero-demo.png" alt="Cold Wallet portfolio dashboard" loading="eager" />
-                        </div>
+                        </a>
                         <a className="btn btn--sm btn--p shot__try" href={DEMO}><IconPlay /> Try the demo</a>
                     </div>
                 </div>
@@ -254,7 +241,7 @@ export default function Landing() {
                     <div className="trust__head reveal">
                         <p className="eyebrow"><span className="dot">●</span> Read-only by design</p>
                         <h2>It runs on your device.<br /><span className="g">There's nothing<br />to steal.</span></h2>
-                        <p>Cold Wallet is a self-custodied dashboard that runs entirely on your device — there's no backend, and nowhere for your data to be sent. It only <em>reads</em> your balances through the integrations you connect, straight from where your money already lives. It never holds your keys or your coins, so there's nothing for anyone to drain.</p>
+                        <p>Cold Wallet is a non-custodial dashboard. There's no backend and nowhere for your data to be sent. It only reads your balances through the integrations you connect, straight from your bank, exchanges and wallets. It never asks for your seed phrase or private keys.</p>
                         <a className="btn" href={GITHUB} {...ext}><IconGithub /> View source on GitHub</a>
                     </div>
                     <div className="trust__list reveal">
@@ -269,7 +256,7 @@ export default function Landing() {
                     <div className="sec-head reveal">
                         <p className="eyebrow"><span className="dot">●</span> Why Cold Wallet</p>
                         <h2>Your wealth, watched by you and nobody else</h2>
-                        <p>Most trackers want your email, your logins, and a copy of everything you own. Cold Wallet wants none of it. It runs private, stays local, and shows your whole financial picture in one calm, fast view.</p>
+                        <p>Most trackers ask for your email and your logins, then keep a copy of everything you own. Cold Wallet asks for neither and keeps your data on your device. It shows your whole financial picture on one screen.</p>
                     </div>
 
                     <div className="features">
@@ -290,8 +277,9 @@ export default function Landing() {
                 <div className="wrap cwt__grid">
                     <div className="reveal">
                         <p className="eyebrow"><span className="dot">●</span> The CWT utility token</p>
-                        <h2 className="cwt__title">One token that runs the wallet</h2>
-                        <p className="cwt__intro">CWT is the native ERC-20 utility token of Cold Wallet. It isn't a points scheme — holding and using CWT unlocks real capability inside the app and a real say in where it goes next. It trades freely on-chain, today.</p>
+                        <h2 className="cwt__title">What CWT unlocks in the wallet</h2>
+                        <p className="cwt__intro">CWT is the native ERC-20 utility token of Cold Wallet. It trades on-chain on SushiSwap.</p>
+                        <p className="cwt__intro">Next on the roadmap is Cold Wallet Pro, a paid plan with more features: advanced charts, balance-history graphs that show how your wealth changed over time, unlimited sources and priority market sync. CWT is how you'll get it cheaper or without paying at all.</p>
 
                         <div className="util-list">
                             {CWT_UTILS.map((u) => <UtilRow key={u.title} {...u} />)}
@@ -309,6 +297,7 @@ export default function Landing() {
                         <div className="tokencard__rows">
                             <div className="trow"><span className="trow__k">Network</span><span className="trow__v">Ethereum <span className="chainbadge">ERC-20</span></span></div>
                             <div className="trow"><span className="trow__k">Symbol</span><span className="trow__v num">CWT</span></div>
+                            <div className="trow"><span className="trow__k">Total supply</span><span className="trow__v num">1,000,000,000</span></div>
                             <div className="trow"><span className="trow__k">Trade on</span><span className="trow__v">SushiSwap · CMC DEX</span></div>
                             <div className="trow"><span className="trow__k">Contract</span><span className="trow__v">
                                 <span className="addr"><code className="num" style={{ fontSize: 13 }}>{CONTRACT_SHORT}</code><CopyButton /></span>
@@ -318,7 +307,7 @@ export default function Landing() {
                             <a className="btn btn--p" href={SUSHI} {...ext}><IconArrowUpRight /> Buy on SushiSwap</a>
                             <a className="btn" href={CMC_DEX} {...ext}><IconChart /> Watch on CoinMarketCap DEX</a>
                         </div>
-                        <p className="tokencard__note">Always verify the contract address before trading. CWT involves risk — see the whitepaper.</p>
+                        <p className="tokencard__note">Always verify the contract address before trading. CWT involves risk. The whitepaper explains it.</p>
                     </aside>
                 </div>
             </section>
@@ -327,9 +316,9 @@ export default function Landing() {
             <section className="finalcta">
                 <div className="finalcta__glow" />
                 <div className="wrap finalcta__in reveal">
-                    <p className="eyebrow"><span className="dot">●</span> Private. Self-custodied. Live.</p>
+                    <p className="eyebrow"><span className="dot">●</span> Private and self-custodied</p>
                     <h2>Take your portfolio cold</h2>
-                    <p>Open the dashboard in your browser or on your phone — no download, no account. Then put CWT to work across the wallet.</p>
+                    <p>Open the dashboard in your browser or on your phone. There's nothing to download and no account to create. When Pro launches, CWT gets you in for less.</p>
                     <div className="finalcta__cta">
                         <a className="btn btn--p" href={DEMO}><IconPlay /> Try the demo</a>
                         <a className="btn" href={SUSHI} {...ext}>Buy on SushiSwap</a>
@@ -343,10 +332,10 @@ export default function Landing() {
                     <div className="foot__grid">
                         <div className="foot__brand">
                             <a className="brand" href="#top">
-                                <img className="brand__mark" src="/cold-wallet.svg" alt="Cold Wallet" />
+                                <img className="brand__mark" src="/favicon.svg" alt="Cold Wallet" />
                                 <span className="brand__name">Cold Wallet</span>
                             </a>
-                            <p className="foot__blurb">The anonymous, self-custodied portfolio dashboard. Every asset in one private view — powered by the CWT utility token.</p>
+                            <p className="foot__blurb">The anonymous, self-custodied portfolio dashboard for every asset you own, powered by the CWT utility token.</p>
                             <div className="socials" style={{ marginTop: 18 }}>
                                 <a href="#" aria-label="X / Twitter"><IconX /></a>
                                 <a href="#" aria-label="Telegram"><IconTelegram /></a>
@@ -382,7 +371,7 @@ export default function Landing() {
                         </div>
                     </div>
 
-                    <p className="disclaimer">CWT is a utility token intended for use within the Cold Wallet ecosystem. Nothing on this page is financial advice or an offer to sell securities. Digital assets are volatile and carry risk. Always confirm the official contract address before transacting and read the whitepaper in full.</p>
+                    <p className="disclaimer">CWT is a utility token intended for use within the Cold Wallet app. Nothing on this page is financial advice or an offer to sell securities. Digital assets are volatile and carry risk. Always confirm the official contract address before transacting and read the whitepaper in full.</p>
                 </div>
             </footer>
         </div>

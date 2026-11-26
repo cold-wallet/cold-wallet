@@ -50,7 +50,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          wagmi: ['wagmi', 'viem', '@wagmi/core'],
+          wagmi: ['viem', '@wagmi/core'],
           charts: ['highcharts', 'highcharts-react-official'],
         },
       },

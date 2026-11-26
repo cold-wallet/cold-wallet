@@ -61,6 +61,10 @@
   border:1px solid var(--line-2);background:var(--card);color:var(--ink);
   transition:transform .14s, filter .14s, border-color .14s, background .14s;
   white-space:nowrap;
+  /* The app shell's global `.btn{flex:1 1 0%}` leaks in here: in the column-flex token card a
+     0% basis overrides height and squashes buttons to the label height, and in the hero / final
+     CTA rows it stretches every button to the full line. Reset it. */
+  flex:none;
 }
 .landing .btn svg{width:18px;height:18px;flex:none;}
 .landing .btn:hover{transform:translateY(-1px);border-color:var(--line-2);background:var(--card-hi);}
@@ -83,17 +87,23 @@
   border-bottom:1px solid var(--line);
 }
 .landing .nav__in{display:flex;align-items:center;gap:18px;height:68px;}
-.landing .brand{display:flex;align-items:center;gap:11px;}
+/* The app shell's design.css also defines .brand / .brand__mark / .brand__name (sidebar header):
+   margin-bottom:18px lifted the logo 9px above the nav's centre line, and the accent gradient
+   background showed behind the image. Reset the properties that leak in. */
+.landing .brand{display:flex;align-items:center;gap:11px;margin:0;}
 .landing .brand__mark{width:34px;height:34px;border-radius:9px;flex:none;display:block;
+  background:none;position:static;
   box-shadow:0 0 0 1px var(--line-2), 0 6px 18px -8px var(--accent-dim);}
-.landing .brand__name{font-weight:600;font-size:16px;letter-spacing:.01em;}
+.landing .brand__name{font-weight:600;font-size:16px;letter-spacing:.01em;line-height:1.2;white-space:nowrap;}
 .landing .nav__links{display:flex;gap:4px;margin-left:18px;}
-.landing .nav__links a{padding:9px 13px;border-radius:var(--r-sm);font-size:14px;color:var(--ink-2);transition:.14s;}
+.landing .nav__links a{white-space:nowrap;padding:9px 13px;border-radius:var(--r-sm);font-size:14px;color:var(--ink-2);transition:.14s;}
 .landing .nav__links a:hover{color:var(--ink);background:var(--card);}
 .landing .nav__cta{margin-left:auto;display:flex;align-items:center;gap:10px;}
-.landing .nav__pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);
-  border:1px solid var(--line-2);background:var(--card);border-radius:999px;padding:6px 12px;}
-.landing .nav__pill .live{width:7px;height:7px;border-radius:50%;background:var(--accent);
+/* Live-status button (→ CMC DEX chart): sized as .btn--sm so it lines up with "Buy CWT",
+   muted label so the primary CTA keeps the weight. */
+.landing .nav__pill{color:var(--ink-2);}
+.landing .nav__pill:hover{color:var(--ink);}
+.landing .nav__pill .live{flex:none;width:7px;height:7px;border-radius:50%;background:var(--accent);
   box-shadow:0 0 0 3px var(--accent-dim);animation:cw-pulse 2.4s ease-in-out infinite;}
 @keyframes cw-pulse{0%,100%{opacity:1}50%{opacity:.45}}
 
@@ -110,15 +120,19 @@
 }
 .landing .hero__sub{font-size:clamp(16px,1.5vw,19px);color:var(--ink-2);margin:24px 0 0;max-width:34ch;text-wrap:pretty;}
 .landing .hero__cta{display:flex;flex-wrap:wrap;gap:13px;margin-top:32px;}
-.landing .hero__meta{display:flex;flex-wrap:wrap;align-items:center;gap:22px;margin-top:24px;}
-.landing .hero__meta .linkarrow{font-size:14px;}
+/* Whitepaper link continues the sentence about the token instead of a third row under the CTAs. */
+.landing .hero__sublink{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  color:var(--accent);font-weight:600;transition:gap .14s;}
+.landing .hero__sublink svg{width:15px;height:15px;}
+.landing .hero__sublink:hover{gap:9px;}
 
 /* product frame */
 .landing .shot{position:relative;}
 .landing .shot__glow{position:absolute;inset:-12% -8% -18% -8%;z-index:0;
   background:radial-gradient(60% 60% at 60% 35%, color-mix(in oklab, var(--accent) 38%, transparent), transparent 70%);
   filter:blur(34px);opacity:var(--glow-op,.55);pointer-events:none;}
-.landing .window{position:relative;z-index:1;border-radius:16px;overflow:hidden;
+.landing .window{display:block;position:relative;z-index:1;border-radius:16px;overflow:hidden;
+  transition:transform .2s ease, border-color .2s ease;
   border:1px solid var(--line-2);background:var(--panel-2);
   box-shadow:0 40px 90px -34px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.03) inset;}
 .landing .window__bar{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);
@@ -129,6 +143,7 @@
   color:var(--ink-3);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 14px;}
 .landing .window__url svg{width:12px;height:12px;color:var(--accent);}
 .landing .window img{display:block;width:100%;height:auto;}
+.landing a.window:hover{transform:translateY(-3px);border-color:var(--accent-dim);}
 .landing .shot__try{position:absolute;z-index:2;right:16px;bottom:16px;}
 
 /* ===== ticker / token strip ===== */
@@ -183,15 +198,18 @@
 
 /* token card */
 .landing .tokencard{background:linear-gradient(180deg, var(--panel-2), var(--panel));border:1px solid var(--line-2);
-  border-radius:var(--r-lg);padding:30px;box-shadow:0 30px 70px -30px #000;position:sticky;top:90px;}
+  border-radius:var(--r-lg);padding:30px;box-shadow:0 30px 70px -30px #000;
+  /* Two-column layout: stretch to the left column's height so both blocks end on one line;
+     the rows share the spare height and the CTAs sit on the bottom edge. */
+  align-self:stretch;display:flex;flex-direction:column;}
 .landing .tokencard__top{display:flex;align-items:center;gap:14px;}
 .landing .tokencard__mark{width:52px;height:52px;border-radius:14px;flex:none;}
 .landing .tokencard__name{font-size:19px;font-weight:700;}
 .landing .tokencard__sym{font-family:var(--mono);font-size:13px;color:var(--accent);}
-.landing .tokencard__rows{margin:24px 0 6px;border-top:1px solid var(--line);}
-.landing .trow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);}
-.landing .trow__k{font-size:13px;color:var(--ink-3);letter-spacing:.04em;}
-.landing .trow__v{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.landing .tokencard__rows{margin:24px 0 6px;border-top:1px solid var(--line);flex:1;display:flex;flex-direction:column;}
+.landing .trow{flex:1;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);}
+.landing .trow__k{font-size:13.5px;color:var(--ink-3);letter-spacing:.04em;}
+.landing .trow__v{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
 .landing .tokencard__cta{display:flex;flex-direction:column;gap:11px;margin-top:24px;}
 .landing .tokencard__cta .btn{width:100%;}
 .landing .tokencard__note{font-size:11.5px;color:var(--ink-3);text-align:center;margin-top:16px;line-height:1.5;}
@@ -255,14 +273,19 @@
   .landing .hero__grid{grid-template-columns:1fr;gap:40px;}
   .landing .shot{max-width:560px;}
   .landing .cwt__grid, .landing .trust__grid{grid-template-columns:1fr;gap:36px;}
-  .landing .tokencard{position:static;}
   .landing .features{grid-template-columns:repeat(2,1fr);}
   .landing .foot__grid{grid-template-columns:1fr 1fr;gap:32px;}
 }
+/* Nav content needs ~880px with everything, ~700px without the pill: drop items before they
+   wrap onto two lines instead of letting the row grow taller. */
+@media (max-width:900px){
+  .landing .nav__pill{display:none;}
+}
+@media (max-width:720px){
+  .landing .nav__links{display:none;}
+}
 @media (max-width:680px){
   .landing .wrap{padding:0 18px;}
-  .landing .nav__links{display:none;}
-  .landing .nav__pill{display:none;}
   .landing .nav__in{height:60px;gap:12px;}
   .landing .nav__cta{gap:8px;}
 
@@ -271,7 +294,6 @@
   .landing .hero__sub{max-width:none;}
   .landing .hero__cta{flex-direction:column;gap:11px;}
   .landing .hero__cta .btn{width:100%;}
-  .landing .hero__meta{gap:16px 22px;margin-top:22px;}
 
   /* let long CTA labels wrap instead of overflowing */
   .landing .btn{white-space:normal;text-align:center;line-height:1.25;min-height:52px;height:auto;padding-top:13px;padding-bottom:13px;}

@@ -126,8 +126,8 @@ export default function AssetsDashboard({ props }: { props: Props }) {
             <aside className="side">
                 <div className="side__head">
                     <div className="brand">
-                        <div className="brand__mark">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z" /></svg>
+                        <div className="brand__mark brand__mark--logo">
+                            <img src="/favicon.svg" alt="" />
                         </div>
                         <div>
                             <div className="brand__name">Cold Wallet</div>
