@@ -1,6 +1,6 @@
-// redesign/visual.ts — bridges the real AssetDTO to the new design's visual needs
+// ui/visual.ts — bridges the real AssetDTO to the new design's visual needs
 // (source chip metadata + deterministic per-currency color/glyph). Presentational only.
-import AssetDTO from '../../domain/AssetDTO';
+import AssetDTO from '../domain/AssetDTO';
 import { sourceIconUrl } from './assetIcons';
 
 export interface SourceMeta {

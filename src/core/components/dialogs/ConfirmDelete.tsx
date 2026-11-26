@@ -1,12 +1,12 @@
-// redesign/ConfirmDelete.tsx — delete-confirm modal (new look, old delete mechanics).
+// components/dialogs/ConfirmDelete.tsx — delete-confirm modal (new look, old delete mechanics).
 import React from 'react';
 import Props from '../Props';
 import { AssetType } from '../../domain/AssetDTO';
-import { maskUSD, amountDisplay } from './format';
-import AmountText from './AmountText';
-import { displayScale, unitUsdOf } from './portfolio';
-import { assetColor } from './visual';
-import { CoinChip } from './AssetIcon';
+import { maskUSD, amountDisplay } from '../../ui/format';
+import AmountText from '../dashboard/AmountText';
+import { displayScale, unitUsdOf } from '../../ui/portfolio';
+import { assetColor } from '../../ui/visual';
+import { CoinChip } from '../dashboard/AssetIcon';
 
 export default function ConfirmDelete({ props }: { props: Props }) {
   const a = props.assetToDelete!;

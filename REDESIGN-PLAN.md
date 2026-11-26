@@ -49,4 +49,16 @@
 - Гліфи монет = тикер (BTC), не символ. Можна додати мапу символів для популярних валют.
 - Інтеграції перевірені лише на demo; e2e з живими API-ключами не тестувалось (валідації
   збережені без змін).
-- Старий код лишається мертвим у дереві (tree-shaking прибирає з бандла); чистити пізніше.
+- ~~Старий код лишається мертвим у дереві (tree-shaking прибирає з бандла); чистити пізніше.~~
+
+## Після редизайну (2026-11-26)
+- **Мертвий код видалено:** 60 файлів старого презентаційного шару (недосяжні від `src/index.tsx`),
+  `utils/numberFormat`, `utils/highChartTheme.js`, залежності `highcharts*` і їхній Vite-чанк.
+- **`redesign/` розкладено за роллю** (назва описувала етап міграції, а не вміст — тепер це весь UI):
+  - `src/core/ui/` — логіка без React: `format`, `geometry`, `palette`, `portfolio`, `visual`,
+    `assetIcons` (+ `.data`), `fiatGlyph`, `integrationActions`;
+  - `src/core/components/dashboard/` — `HoldingRow`, `ChartModal`, `DonutChart`, `TreemapChart`,
+    `AmountText`, `FitText`, `AssetIcon`, `LoadingView`;
+  - `src/core/components/dialogs/` — `EditDialog`, `ConfirmDelete`, `SettingsDialog`;
+  - `src/core/components/pin/` — `PinPad`.
+  Шляхи в журналі вище — історичні.

@@ -1,4 +1,4 @@
-// redesign/PinPad.tsx — reusable PIN keypad (new look) wired to the same
+// components/pin/PinPad.tsx — reusable PIN keypad (new look) wired to the same
 // pinCode / setPinCode / acceptPinCode interface the legacy PinCode used.
 import React from 'react';
 

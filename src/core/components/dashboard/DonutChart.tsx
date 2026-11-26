@@ -1,12 +1,12 @@
-// redesign/DonutChart.tsx — adaptive concentric donut: Holding → Currency → Type (fiat/crypto).
+// components/dashboard/DonutChart.tsx — adaptive concentric donut: Holding → Currency → Type (fiat/crypto).
 // Each ring is shown only when it actually merges something the finer ring outside it doesn't —
 // i.e. it has ≥2 segments AND fewer than the ring just outside it. The leaf (per-holding) ring is
 // always present; with a single holding it's simply one full ring. The portfolio total lives in
 // the center (it replaces the old innermost "total" ring).
 import React from 'react';
-import { maskUSD } from './format';
-import { arcPath } from './geometry';
-import type { ArcSeg } from './portfolio';
+import { maskUSD } from '../../ui/format';
+import { arcPath } from '../../ui/geometry';
+import type { ArcSeg } from '../../ui/portfolio';
 
 interface DonutChartProps {
   typeSegs: ArcSeg[];

@@ -15,10 +15,10 @@
 //   public/asset-icons/crypto/<code>.svg   coin logos (web3icons "background" tiles, else
 //                                          cryptocurrency-icons colour icons)
 //   public/asset-icons/source/<key>.svg    integration / exchange marks
-//   src/core/components/redesign/assetIcons.data.ts   the code lists the app looks up
+//   src/core/ui/assetIcons.data.ts   the code lists the app looks up
 //
 // Fiat currencies have no image files: they are drawn as a currency-symbol tile at runtime
-// (src/core/components/redesign/fiatGlyph.ts).
+// (src/core/ui/fiatGlyph.ts).
 //
 // Sources and licences: public/asset-icons/LICENSES.md
 import fs from 'node:fs';
@@ -40,7 +40,7 @@ const W3 = path.join(pkgDir('web3icons-core-'), 'dist/svgs');
 const CI = pkgDir('cryptocurrency-icons-');
 
 const OUT = path.join(ROOT, 'public/asset-icons');
-const DATA = path.join(ROOT, 'src/core/components/redesign/assetIcons.data.ts');
+const DATA = path.join(ROOT, 'src/core/ui/assetIcons.data.ts');
 
 /** Pull the SVG markup out of a web3icons `var X = '<svg …>'` module without executing it. */
 function w3svg(file) {

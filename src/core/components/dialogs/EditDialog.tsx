@@ -1,4 +1,4 @@
-// redesign/EditDialog.tsx — add / edit a manual asset (new look, old mechanics).
+// components/dialogs/EditDialog.tsx — add / edit a manual asset (new look, old mechanics).
 // Drives the real ColdWallet new-asset state (Props) + setUserData. Two add stages:
 // pick currency → details; edit jumps straight to details.
 import React, { useEffect, useState } from 'react';
@@ -8,8 +8,8 @@ import AssetDTO, { crypto, fiat } from '../../domain/AssetDTO';
 import fiatCurrencies from '../../fiatCurrencies';
 import uuidGenerator from '../../utils/uuidGenerator';
 import assetDataValidator from '../../utils/AssetDataValidator';
-import { assetColor } from './visual';
-import { CoinChip } from './AssetIcon';
+import { assetColor } from '../../ui/visual';
+import { CoinChip } from '../dashboard/AssetIcon';
 
 const POPULAR = ['USD', 'EUR', 'UAH', 'USDT', 'BTC', 'ETH'];
 

@@ -1,4 +1,4 @@
-// redesign/SettingsDialog.tsx — settings modal (new look, real mechanics).
+// components/dialogs/SettingsDialog.tsx — settings modal (new look, real mechanics).
 // Routes the same Props sub-state the legacy SettingsWindow used:
 //   integrationWindowNameSelected → IntegrationConfig (real *Settings field bindings + validation)
 //   importOrExportSettingRequested → Export / Import (dataImporter)
@@ -9,10 +9,10 @@ import Props from "../Props";
 import { onSaveSetting } from "../settings/IntegrationSettings";
 import { dataImporter } from "../settings/ImportData";
 import ccxtConnector from "../../integrations/ccxt/ccxtConnector";
-import { isConfigured, persistEnabled, setTempEnabled, validateSavedCredentials } from "./integrationActions";
-import PinPad, { PIN_MAX, PIN_MIN } from "./PinPad";
-import { SourceMark } from "./AssetIcon";
-import { sourceIconUrl } from "./assetIcons";
+import { isConfigured, persistEnabled, setTempEnabled, validateSavedCredentials } from "../../ui/integrationActions";
+import PinPad, { PIN_MAX, PIN_MIN } from "../pin/PinPad";
+import { SourceMark } from "../dashboard/AssetIcon";
+import { sourceIconUrl } from "../../ui/assetIcons";
 
 const GearIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" fillRule="evenodd" clipRule="evenodd" style={{ width: 15, height: 15 }}><path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1a7.3 7.3 0 0 0-1.69-.98l-.38-2.65A.49.49 0 0 0 14.13 2h-4a.49.49 0 0 0-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1a.5.5 0 0 0-.61.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.32-.07.66-.07.98s.03.66.07.98l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46c.14.24.42.32.61.22l2.49-1c.52.39 1.08.73 1.69.98l.38 2.65c.04.24.25.42.49.42h4c.24 0 .45-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.19.1.47.02.61-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z" /></svg>

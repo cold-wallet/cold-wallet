@@ -1,4 +1,4 @@
-/* styles.css — Cold Wallet redesign, dark fintech */
+/* design.css — Cold Wallet app design system (dark fintech) */
 :root {
   --accent: #34d39a;          /* emerald, overridable by tweaks */
   --accent-dim: color-mix(in oklab, var(--accent) 24%, transparent);

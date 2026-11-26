@@ -1,9 +1,9 @@
-// redesign/AmountText.tsx — renders a native holding amount (value + nbsp + ticker), honouring
+// components/dashboard/AmountText.tsx — renders a native holding amount (value + nbsp + ticker), honouring
 // the privacy mask and the "<0.01 TICKER" sub-value floor. Shared by the sidebar row, the
 // chart-expand list and the delete dialog so all three stay consistent.
 import React from 'react';
 import { NumericFormat } from 'react-number-format';
-import { AMOUNT_MASK, type AmountParts } from './format';
+import { AMOUNT_MASK, type AmountParts } from '../../ui/format';
 
 const NBSP = ' ';
 

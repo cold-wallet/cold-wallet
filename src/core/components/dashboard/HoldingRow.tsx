@@ -1,12 +1,12 @@
-// redesign/HoldingRow.tsx — one holding in the sidebar list (new design .row/.coin).
+// components/dashboard/HoldingRow.tsx — one holding in the sidebar list (new design .row/.coin).
 // Manual holdings get edit/delete; integration (synced) holdings get a lock, plus a
 // targeted refresh button when the source supports it (MetaMask).
 import React, { useState } from 'react';
-import { maskUSD, amountDisplay } from './format';
+import { maskUSD, amountDisplay } from '../../ui/format';
 import AmountText from './AmountText';
-import { shortenAddresses } from './visual';
+import { shortenAddresses } from '../../ui/visual';
 import { CoinChip, SourceMark } from './AssetIcon';
-import type { Valued } from './portfolio';
+import type { Valued } from '../../ui/portfolio';
 
 interface HoldingRowProps {
   h: Valued;

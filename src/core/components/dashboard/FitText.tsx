@@ -1,4 +1,4 @@
-// redesign/FitText.tsx — shrinks the font-size of an amount so it always fits its
+// components/dashboard/FitText.tsx — shrinks the font-size of an amount so it always fits its
 // container width (down to a min). Measurement-based, so any value length — even
 // millions — auto-fits. Re-fits on content change and on container resize.
 import React, { useLayoutEffect, useRef } from 'react';

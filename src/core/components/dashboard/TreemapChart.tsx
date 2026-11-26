@@ -1,7 +1,7 @@
-// redesign/TreemapChart.tsx — squarified treemap allocation view (Type → Holding).
+// components/dashboard/TreemapChart.tsx — squarified treemap allocation view (Type → Holding).
 import React from 'react';
-import { squarify, type SquarifyCell } from './geometry';
-import type { ArcSeg, ClassSlice } from './portfolio';
+import { squarify, type SquarifyCell } from '../../ui/geometry';
+import type { ArcSeg, ClassSlice } from '../../ui/portfolio';
 
 interface TreemapChartProps {
   classes: ClassSlice[];

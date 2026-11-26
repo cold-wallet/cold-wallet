@@ -1,9 +1,9 @@
-// redesign/LoadingView.tsx — market-data sync screen (new look) driven by the REAL
+// components/dashboard/LoadingView.tsx — market-data sync screen (new look) driven by the REAL
 // loader flags from Props (Binance / OKX / CoinGecko / Monobank). Shown until `loaded`.
 import React from 'react';
 import Props from '../Props';
 import { SourceMark } from './AssetIcon';
-import { sourceIconUrl } from './assetIcons';
+import { sourceIconUrl } from '../../ui/assetIcons';
 
 interface Step {
   key: string;

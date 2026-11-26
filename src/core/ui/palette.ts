@@ -1,4 +1,4 @@
-// redesign/palette.ts — allocation color logic. Default 'emerald' single-hue ramp.
+// ui/palette.ts — allocation color logic. Default 'emerald' single-hue ramp.
 export type PaletteKey = 'token' | 'emerald' | string;
 
 const GRAD: Record<string, string[]> = {

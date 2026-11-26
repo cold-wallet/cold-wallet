@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import { cryptoIconUrl, sourceIconUrl } from './assetIcons';
-import { CRYPTO_ICON_CODES, SOURCE_ICON_KEYS } from './assetIcons.data';
-import { fiatSymbol, fiatTint } from './fiatGlyph';
+import { cryptoIconUrl, sourceIconUrl } from '../../ui/assetIcons';
+import { CRYPTO_ICON_CODES, SOURCE_ICON_KEYS } from '../../ui/assetIcons.data';
+import { fiatSymbol, fiatTint } from '../../ui/fiatGlyph';
 import { CoinChip, SourceMark } from './AssetIcon';
 
 // file lists via Vite's glob (node:fs is polyfilled away in this browser-targeted config)

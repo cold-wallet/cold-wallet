@@ -1,5 +1,5 @@
-// redesign/format.ts — lightweight USD formatter for chart/labels.
-import noExponents from '../../utils/noExponents';
+// ui/format.ts — lightweight USD formatter for chart/labels.
+import noExponents from '../utils/noExponents';
 
 export function fmtUSD(v: number, opts: { cents?: boolean } = {}): string {
   const n = isFinite(v) ? v : 0;

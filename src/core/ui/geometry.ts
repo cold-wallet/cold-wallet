@@ -1,4 +1,4 @@
-// redesign/geometry.ts — SVG arc + squarified-treemap geometry (hand-rolled, no chart lib).
+// ui/geometry.ts — SVG arc + squarified-treemap geometry (hand-rolled, no chart lib).
 
 /** Point on a circle, with 0° = 12 o'clock (screen-up). */
 export function polar(cx: number, cy: number, r: number, deg: number): [number, number] {

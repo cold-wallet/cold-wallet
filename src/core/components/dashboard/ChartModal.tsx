@@ -1,12 +1,12 @@
-// redesign/ChartModal.tsx — full-screen portfolio breakdown (Expand). Sunburst
+// components/dashboard/ChartModal.tsx — full-screen portfolio breakdown (Expand). Sunburst
 // (Total→Type→Currency→Holding) + treemap + live detail list, on real Valued data.
 import React, { useMemo, useState } from 'react';
-import { arcPath, shade, squarify, type SquarifyCell } from './geometry';
-import { maskUSD, amountDisplay } from './format';
+import { arcPath, shade, squarify, type SquarifyCell } from '../../ui/geometry';
+import { maskUSD, amountDisplay } from '../../ui/format';
 import AmountText from './AmountText';
-import { shortenAddresses } from './visual';
+import { shortenAddresses } from '../../ui/visual';
 import { CoinChip } from './AssetIcon';
-import type { Valued } from './portfolio';
+import type { Valued } from '../../ui/portfolio';
 
 interface ClassColor { fiat: string; crypto: string; }
 interface ChartModalProps {

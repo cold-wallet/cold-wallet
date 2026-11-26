@@ -1,7 +1,7 @@
-// redesign/portfolio.ts — pure selectors deriving the new dashboard's view models from
+// ui/portfolio.ts — pure selectors deriving the new dashboard's view models from
 // the real AssetDTO[] + PriceService (USD via priceService.transform). No mechanics here.
-import AssetDTO, { AssetType } from '../../domain/AssetDTO';
-import PriceService from '../../services/PriceService';
+import AssetDTO, { AssetType } from '../domain/AssetDTO';
+import PriceService from '../services/PriceService';
 import { assetColor, assetSource, assetSym, isManual, type SourceMeta } from './visual';
 import { applyAssetPalette, classPalette, type PaletteKey } from './palette';
 

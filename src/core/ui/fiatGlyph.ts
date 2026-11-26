@@ -1,4 +1,4 @@
-// redesign/fiatGlyph.ts — the currency SYMBOL (₴ € £ $ zł …) and tile colours for fiat chips.
+// ui/fiatGlyph.ts — the currency SYMBOL (₴ € £ $ zł …) and tile colours for fiat chips.
 // Fiat is drawn, not imaged: free icon sets carry only a handful of currency-symbol images, so
 // every fiat code gets the same tile (gradient + symbol) and nothing is fetched. Symbols come
 // from the browser's built-in Intl data (offline).

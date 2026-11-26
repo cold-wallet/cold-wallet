@@ -1,10 +1,10 @@
-// redesign/AssetIcon.tsx — the coin chip and source mark. Crypto: bundled coin logo. Fiat: a
+// components/dashboard/AssetIcon.tsx — the coin chip and source mark. Crypto: bundled coin logo. Fiat: a
 // drawn tile with the currency symbol (₴ € £ …). Anything without an icon — or whose icon fails
 // to load — keeps the original coloured ticker chip / tinted letter.
 import React, { useEffect, useState } from 'react';
-import { cryptoIconUrl, isRoundCryptoIcon } from './assetIcons';
-import { assetSym } from './visual';
-import { fiatSymbol, fiatTint } from './fiatGlyph';
+import { cryptoIconUrl, isRoundCryptoIcon } from '../../ui/assetIcons';
+import { assetSym } from '../../ui/visual';
+import { fiatSymbol, fiatTint } from '../../ui/fiatGlyph';
 import fiatCurrencies from '../../fiatCurrencies';
 
 function useIcon(url: string | null): [string | null, () => void] {

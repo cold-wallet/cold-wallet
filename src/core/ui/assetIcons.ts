@@ -1,4 +1,4 @@
-// redesign/assetIcons.ts — currency / source → bundled icon URL lookup.
+// ui/assetIcons.ts — currency / source → bundled icon URL lookup.
 // Icons live in public/asset-icons/ (same origin, never a CDN — see LICENSES.md there) and are
 // fetched by <img> only when shown. A null result means "no icon": callers keep the coloured
 // text chip / letter mark, so unknown currencies and exchanges render exactly as before.
