@@ -48,7 +48,7 @@ export default function ColdWallet(
     ] = properties.sessionStorageFactory.createStorageNullable<string>("pinCode");
     const [pinCodeEntered, setPinCodeEntered] = useState<string | null>(null);
     const {
-        userData, setUserData,
+        userData, setUserData, setUserDataPin,
         userDataHolder, setUserDataHolder,
         shouldEnterPinCode,
         isDemoMode,
@@ -280,21 +280,21 @@ export default function ColdWallet(
     // wallet") are dropped so none of them leak into the new one.
     function createWallet(pin: string) {
         const newUserData = new UserData(uuidGenerator.generateUUID());
-        newUserData.settings.pinCode = pin;
         setBinanceUserData(null);
         setOkxUserData(null);
         setMonobankUserData(null);
         setCcxtUserData({} as CcxtAccountsData);
         clearMetaMaskData();
         setPinCode(pin);
-        setUserDataHolder(initUserDataHolder(newUserData));
+        setUserDataHolder(initUserDataHolder(newUserData, false, pin));
     }
 
     // Every real wallet must have a PIN: an older wallet created without one, or one restored from
     // a backup that had none, has to set it before the dashboard opens. The demo never needs one.
-    const pinSetupRequired = loggedIn && !isDemoMode && !userData.settings.pinCode;
-    function setRequiredPin(pin: string) {
-        setUserData({...userData, settings: {...userData.settings, pinCode: pin}});
+    const pinSetupRequired = loggedIn && !isDemoMode && !userDataHolder.pinCodeEncrypted;
+    // Set or change the wallet's PIN: re-encrypt with it and keep the session unlocked with it.
+    function setWalletPin(pin: string) {
+        setUserDataPin(pin);
         setPinCode(pin);
     }
 
@@ -463,7 +463,7 @@ export default function ColdWallet(
         importDataBuffer, setImportDataBuffer,
 
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
-        setPinCode,
+        pinCode, setPinCode, setWalletPin,
         pinCodeEntered, setPinCodeEntered,
         createWallet,
         currencyService,
@@ -479,7 +479,7 @@ export default function ColdWallet(
             }}/> : pinSetupRequired
                 ? <PinSetup title="Set a PIN-code"
                             intro="This wallet has no PIN yet. Set one to lock it on this device."
-                            onDone={setRequiredPin}/>
+                            onDone={setWalletPin}/>
                 : loggedIn
                     ? <AssetsDashboard props={props}/>
                     : <NotLoggedIn props={props}/>

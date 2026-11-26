@@ -24,9 +24,7 @@ describe('parseBackupToken', () => {
   });
 
   describe('PIN-protected backups are decrypted and checked before anything is replaced', () => {
-    const settings = new UserSettings();
-    settings.pinCode = '4321';
-    const holder = initUserDataHolder(new UserData('u1', settings, [asset('100')]));
+    const holder = initUserDataHolder(new UserData('u1', new UserSettings(), [asset('100')]), false, '4321');
     const token = dataImporter.generateExportData(holder);
 
     it('asks for the PIN first', () => {

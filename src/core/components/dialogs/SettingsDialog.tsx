@@ -200,7 +200,7 @@ function DefaultView({ props }: { props: Props }) {
     ...ccxtKeys.map((k) => ({ key: k, name: k.charAt(0).toUpperCase() + k.slice(1), mark: (k[0] || 'C').toUpperCase(), tint: '#9aa7b8' })),
   ];
 
-  const hasPin = !!props.userData.settings.pinCode;
+  const hasPin = props.userDataHolder.pinCodeEncrypted;
 
   return (
     <div className="dlg__body">

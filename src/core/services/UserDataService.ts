@@ -10,10 +10,21 @@ export const DEFAULT_PIN_CODE = "0123456789"
 export const DELAY_BEFORE_RELOGIN = 5 * 60_000;
 const unauthorizedId = "unauthorized";
 
-function getPinCode(userData: UserData) {
-    const userPinCode = userData.settings.pinCode;
-    const pinCode = userPinCode ? userPinCode : DEFAULT_PIN_CODE;
-    return {pinCode, pinCodeEncrypted: !!userPinCode}
+/**
+ * The PIN is the encryption key, so it is never stored inside the data it encrypts: whoever can
+ * decrypt the data already knows it. Older wallets kept a copy in `settings.pinCode`; it is dropped
+ * on the next save.
+ */
+function withoutStoredPin(userData: UserData): UserData {
+    const settings = userData?.settings as (UserData["settings"] & { pinCode?: unknown }) | undefined;
+    if (!settings || !("pinCode" in settings)) return userData;
+    const rest = { ...settings };
+    delete rest.pinCode;
+    return { ...userData, settings: rest };
+}
+
+function encryptUserData(userData: UserData, pin: string | null): UserDataHolder["encryptedData"] {
+    return cypherService.encrypt(withoutStoredPin(userData), pin || DEFAULT_PIN_CODE);
 }
 
 /**
@@ -35,10 +46,9 @@ export function sanitizeUserData(data: UserData): UserData {
     return changed ? ({ ...data, assets } as UserData) : data;
 }
 
-export function initUserDataHolder(userData: UserData, demo: boolean = false): UserDataHolder {
-    const {pinCode, pinCodeEncrypted} = getPinCode(userData);
-    const encryptedData = cypherService.encrypt(userData, pinCode);
-    return new UserDataHolder(pinCodeEncrypted, encryptedData, demo)
+/** A new holder for `userData`, locked with `pin` (or with the built-in key when there is none). */
+export function initUserDataHolder(userData: UserData, demo: boolean = false, pin: string | null = null): UserDataHolder {
+    return new UserDataHolder(!!pin, encryptUserData(userData, pin), demo)
 }
 
 export default function UserDataService(
@@ -75,26 +85,30 @@ export default function UserDataService(
         return userDataHolder.demo
     }, [userData])
 
+    // Locked when the data is PIN-encrypted and either the session PIN didn't decrypt it (missing or
+    // wrong PIN) or the wallet has been idle longer than DELAY_BEFORE_RELOGIN.
     const shouldEnterPinCode = useMemo(() => {
         return !isDemoMode && userDataHolder.pinCodeEncrypted
-            && ((userData.lastOnline && (Date.now() > ((userData.lastOnline || 0) + DELAY_BEFORE_RELOGIN)))
-                || (!pinCode || userData.settings.pinCode !== pinCode))
-    }, [userDataHolder, userData, pinCode])
+            && (!loggedIn || (!!userData.lastOnline && Date.now() > userData.lastOnline + DELAY_BEFORE_RELOGIN))
+    }, [userDataHolder, userData, loggedIn, isDemoMode])
 
-    const pinCodeEnteredSuccessfully = useMemo(() => {
-        return (loggedIn && !userData.settings.pinCode) || !!(pinCode && (pinCode === userData.settings.pinCode))
-    }, [pinCode, userData, loggedIn])
+    // The data decrypted, so the session PIN (if the wallet has one) is the right key to save with.
+    const currentKey = userDataHolder.pinCodeEncrypted ? pinCode : null;
 
     const setUserData = ((userData: UserData) => {
-        const loggedIn = !!userData.id && userData.id !== unauthorizedId;
-        if (!loggedIn || !pinCodeEnteredSuccessfully) {
+        const loggedInNew = !!userData.id && userData.id !== unauthorizedId;
+        if (!loggedIn || !loggedInNew) {
             return
         }
-        const userDataHolderNew = {...userDataHolder}
-        userDataHolderNew.encryptedData = cypherService.encrypt(userData, userData.settings.pinCode || DEFAULT_PIN_CODE);
-        userDataHolderNew.pinCodeEncrypted = !!userData.settings.pinCode
-        setUserDataHolder(userDataHolderNew)
+        setUserDataHolder({...userDataHolder, encryptedData: encryptUserData(userData, currentKey)})
     }) as Dispatch<SetStateAction<UserData>>
+
+    /** Re-encrypt the wallet with a new PIN (setting the first one, or changing it). The caller puts
+     *  the same PIN into the session so the wallet stays unlocked. */
+    const setUserDataPin = (pin: string) => {
+        if (!loggedIn) return;
+        setUserDataHolder({...userDataHolder, pinCodeEncrypted: true, encryptedData: encryptUserData(userData, pin)})
+    }
 
     const delay = 60_000;
     const checkOnlineTimeToSave = () => {
@@ -109,7 +123,7 @@ export default function UserDataService(
     useInterval(checkOnlineTimeToSave, delay);
 
     return {
-        userData, setUserData,
+        userData, setUserData, setUserDataPin,
         userDataHolder, setUserDataHolder,
         shouldEnterPinCode,
         isDemoMode,

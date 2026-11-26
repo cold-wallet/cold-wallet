@@ -30,9 +30,7 @@ function makeProps() {
 }
 
 function pinToken(pin: string) {
-  const settings = new UserSettings();
-  settings.pinCode = pin;
-  const holder = initUserDataHolder(new UserData('u1', settings, [new AssetDTO('a', 'EUR', '100', 'Savings', 2, AssetType.fiat)]));
+  const holder = initUserDataHolder(new UserData('u1', new UserSettings(), [new AssetDTO('a', 'EUR', '100', 'Savings', 2, AssetType.fiat)]), false, pin);
   return dataImporter.generateExportData(holder);
 }
 

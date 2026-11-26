@@ -8,7 +8,8 @@ import PinSetup from './PinSetup';
 import { PIN_MIN } from './PinPad';
 
 export default function ChangePin({ props }: { props: Props }) {
-  const current = props.userData.settings.pinCode;
+  // The session PIN decrypted the wallet, so it is the current PIN (none for a wallet without one).
+  const current = props.userDataHolder.pinCodeEncrypted ? props.pinCode : null;
   const [verified, setVerified] = useState(!current);
   const [entry, setEntry] = useState<string | null>(null);
   const [wrong, setWrong] = useState(false);
@@ -26,8 +27,7 @@ export default function ChangePin({ props }: { props: Props }) {
   }
 
   function save(pin: string) {
-    props.setUserData({ ...props.userData, settings: { ...props.userData.settings, pinCode: pin } });
-    props.setPinCode(pin);
+    props.setWalletPin(pin);
     props.setPinCodeSettingsRequested(false);
   }
 

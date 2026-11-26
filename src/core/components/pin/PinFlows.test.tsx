@@ -145,9 +145,10 @@ describe('lock screen: forgot PIN', () => {
 describe('Settings: change PIN', () => {
   function open(pinCode: string | null = '2580') {
     const props = {
-      userData: { id: 'u', assets: [], settings: { pinCode } },
-      setUserData: vi.fn(),
-      setPinCode: vi.fn(),
+      userData: { id: 'u', assets: [], settings: {} },
+      userDataHolder: { pinCodeEncrypted: pinCode !== null },
+      pinCode,
+      setWalletPin: vi.fn(),
       setPinCodeSettingsRequested: vi.fn(),
     } as unknown as Props;
     render(<ChangePin props={props} />);
@@ -163,10 +164,9 @@ describe('Settings: change PIN', () => {
     expect(screen.getByText('Step 2 of 3')).toBeTruthy();
     typePin('4444');
     expect(screen.getByText('Step 3 of 3')).toBeTruthy();
-    expect(props.setUserData).not.toHaveBeenCalled();
+    expect(props.setWalletPin).not.toHaveBeenCalled();
     typePin('4444');
-    expect(props.setUserData).toHaveBeenCalledWith(expect.objectContaining({ settings: { pinCode: '4444' } }));
-    expect(props.setPinCode).toHaveBeenCalledWith('4444');
+    expect(props.setWalletPin).toHaveBeenCalledWith('4444');
     expect(props.setPinCodeSettingsRequested).toHaveBeenCalledWith(false);
   });
 
@@ -175,6 +175,6 @@ describe('Settings: change PIN', () => {
     typePin('2580');
     fireEvent.click(screen.getByText('Back'));
     expect(props.setPinCodeSettingsRequested).toHaveBeenCalledWith(false);
-    expect(props.setUserData).not.toHaveBeenCalled();
+    expect(props.setWalletPin).not.toHaveBeenCalled();
   });
 });
