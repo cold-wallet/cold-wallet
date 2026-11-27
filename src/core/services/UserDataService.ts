@@ -1,10 +1,13 @@
 import UserData from "../domain/UserData";
 import UserDataHolder from "../domain/UserDataHolder";
-import {Dispatch, SetStateAction, useCallback, useMemo, useRef, useState} from "react";
+import {Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import cypherService from "./CypherService";
 import UserDataStorageFactory from "../domain/UserDataStorageFactory";
 import {normalizeAmount} from "../utils/amount";
-import {isSealed, newPinKey, open, seal, WrongPinError, type PinKey} from "./PinVault";
+import {
+    isNewerFormat, isSealed, isWeakerThanCurrent, NewerFormatError, newPinKey, open, openWithKey, seal, WrongPinError,
+    type PinKey,
+} from "./PinVault";
 
 export const DEFAULT_PIN_CODE = "0123456789"
 const unauthorizedId = "unauthorized";
@@ -52,11 +55,12 @@ export async function sealUserDataHolder(userData: UserData, pinKey: PinKey): Pr
 
 /**
  * Open a PIN-locked holder. Data saved by older versions is read too; the caller re-saves it in
- * the current format. Throws WrongPinError on a wrong PIN or damaged data; any other error means
- * this browser couldn't do the work.
+ * the current format. Throws WrongPinError on a wrong PIN or damaged data, NewerFormatError for data
+ * saved by a newer version of the app; any other error means this browser couldn't do the work.
  */
 export async function openUserDataHolder(holder: UserDataHolder, pin: string):
     Promise<{ data: UserData, pinKey: PinKey | null }> {
+    if (isNewerFormat(holder.encryptedData)) throw new NewerFormatError();
     if (isSealed(holder.encryptedData)) {
         const {data, pinKey} = await open<UserData>(holder.encryptedData, pin);
         return {data, pinKey};
@@ -81,17 +85,44 @@ interface Session {
     data: UserData;
 }
 
+/** Why the wallet was locked while open: no activity, the user locked it, or it changed in another tab. */
+export type LockReason = 'idle' | 'manual' | 'elsewhere';
+
 export default function UserDataService({storageFactory}: { storageFactory: UserDataStorageFactory }) {
 
-    const [userDataHolder, setUserDataHolder]
+    const [userDataHolder, setStoredHolder]
         = storageFactory.createStorage(
         "userDataHolder", () => initUserDataHolder(new UserData(), true)
     );
-    // While a PIN-locked wallet is unlocked: its key and decrypted data, in memory only.
-    const [session, setSession] = useState<Session | null>(null);
+    // The holder this tab last wrote or adopted. A different one in storage was written by another tab.
+    const ownHolder = useRef(userDataHolder);
+    const writeHolder = useCallback((holder: UserDataHolder) => {
+        ownHolder.current = holder;
+        setStoredHolder(holder);
+    }, [setStoredHolder]);
 
-    // Saves are queued so they land in order; replacing the wallet (new, imported, demo) bumps the
-    // generation so a save still in flight for the previous wallet is dropped.
+    // While a PIN-locked wallet is unlocked: its key and decrypted data, in memory only. The ref is
+    // the latest value, also for callbacks created in an earlier render (e.g. a save that completes
+    // after a network request): once locked, nothing but the PIN opens the wallet again.
+    const [session, setSessionState] = useState<Session | null>(null);
+    const sessionRef = useRef<Session | null>(null);
+    const [lockReason, setLockReason] = useState<LockReason | null>(null);
+    // Bumped on every lock; work that started before it may not reopen the wallet.
+    const epoch = useRef(0);
+    const openSession = useCallback((next: Session) => {
+        sessionRef.current = next;
+        setSessionState(next);
+        setLockReason(null);
+    }, []);
+    const closeSession = useCallback((reason: LockReason | null) => {
+        epoch.current++;
+        sessionRef.current = null;
+        setSessionState(null);
+        setLockReason(reason);
+    }, []);
+
+    // Saves are queued so they land in order; replacing the wallet (new, imported, demo, or changed
+    // in another tab) bumps the generation so a save still in flight for the previous one is dropped.
     const writes = useRef<Promise<unknown>>(Promise.resolve());
     const generation = useRef(0);
     const enqueue = useCallback((write: (stillCurrent: () => boolean) => Promise<void>) => {
@@ -102,6 +133,32 @@ export default function UserDataService({storageFactory}: { storageFactory: User
             .catch((e) => console.warn("could not save the wallet", e));
         return writes.current as Promise<void>;
     }, []);
+
+    // The wallet was saved in another tab: take its data if it still opens with this tab's key,
+    // otherwise (its PIN was changed there, or it was replaced) lock this tab.
+    useEffect(() => {
+        if (userDataHolder === ownHolder.current) return;
+        ownHolder.current = userDataHolder;
+        generation.current++;
+        const current = sessionRef.current;
+        if (!current) return;
+        const since = epoch.current;
+        const adopt = async () => {
+            if (!userDataHolder.pinCodeEncrypted) throw new WrongPinError();
+            const data = sanitizeUserData(withoutStoredPin(
+                await openWithKey<UserData>(userDataHolder.encryptedData, current.pinKey)));
+            if (!data?.id) throw new WrongPinError();
+            return data;
+        };
+        adopt().then(
+            (data) => {
+                if (epoch.current === since && ownHolder.current === userDataHolder) openSession({pinKey: current.pinKey, data});
+            },
+            () => {
+                if (epoch.current === since) closeSession('elsewhere');
+            },
+        );
+    }, [userDataHolder, openSession, closeSession]);
 
     const userData: UserData = useMemo(() => {
         if (userDataHolder.pinCodeEncrypted) {
@@ -119,11 +176,11 @@ export default function UserDataService({storageFactory}: { storageFactory: User
     const isDemoMode = userDataHolder.demo;
     const shouldEnterPinCode = !isDemoMode && userDataHolder.pinCodeEncrypted && !session;
 
-    /** Unlock with `pin`; false on a wrong PIN. Throws when this browser couldn't check it (the
-     *  stored wallet is left untouched). Data from older versions is re-saved on the way. */
+    /** Unlock with `pin`; false on a wrong PIN. Throws when this browser couldn't check it, or
+     *  NewerFormatError (the stored wallet is left untouched). Data from older versions, or locked
+     *  with weaker key parameters than today's, is re-saved on the way. */
     const unlock = async (pin: string): Promise<boolean> => {
-        const holder = userDataHolder;
-        const gen = generation.current;
+        const holder = ownHolder.current;
         let opened;
         try {
             opened = await openUserDataHolder(holder, pin);
@@ -131,23 +188,34 @@ export default function UserDataService({storageFactory}: { storageFactory: User
             if (e instanceof WrongPinError) return false;
             throw e;
         }
+        // replaced meanwhile (another tab): check the PIN against what is stored now
+        if (ownHolder.current !== holder) return unlock(pin);
         const data = sanitizeUserData(withoutStoredPin(opened.data));
         if (!data?.id) return false;
         let pinKey = opened.pinKey;
-        if (!pinKey) {
-            pinKey = await newPinKey(pin);
-            const upgraded = await sealUserDataHolder(data, pinKey);
-            if (gen !== generation.current) return false;
-            setUserDataHolder(upgraded);
+        if (!pinKey || isWeakerThanCurrent(pinKey.kdf)) {
+            let upgraded: { holder: UserDataHolder, pinKey: PinKey } | null = null;
+            try {
+                const fresh = await newPinKey(pin);
+                upgraded = {holder: await sealUserDataHolder(data, fresh), pinKey: fresh};
+            } catch (e) {
+                if (!pinKey) throw e; // data in an older format can't be saved without the new key
+                // keep the current key; the next unlock tries again
+            }
+            if (ownHolder.current !== holder) return unlock(pin);
+            if (upgraded) {
+                writeHolder(upgraded.holder);
+                pinKey = upgraded.pinKey;
+            }
         }
-        setSession({pinKey, data});
+        openSession({pinKey: pinKey!, data});
         return true;
     };
 
     /** Check `pin` against the stored wallet without changing anything. Throws like `unlock`. */
     const verifyPin = async (pin: string): Promise<boolean> => {
         try {
-            await openUserDataHolder(userDataHolder, pin);
+            await openUserDataHolder(ownHolder.current, pin);
             return true;
         } catch (e) {
             if (e instanceof WrongPinError) return false;
@@ -155,36 +223,40 @@ export default function UserDataService({storageFactory}: { storageFactory: User
         }
     };
 
-    const lock = () => setSession(null);
+    const lock = (reason: LockReason = 'manual') => closeSession(reason);
 
     const setUserData = ((next: UserData) => {
         const loggedInNew = !!next.id && next.id !== unauthorizedId;
-        if (!loggedIn || !loggedInNew) {
-            return
-        }
-        if (userDataHolder.pinCodeEncrypted) {
-            if (!session) return;
-            const {pinKey} = session;
-            setSession({pinKey, data: next});
+        if (!loggedInNew) return;
+        const holder = ownHolder.current;
+        if (holder.pinCodeEncrypted) {
+            const current = sessionRef.current;
+            if (!current) return; // locked, even if this callback was made while it was open
+            const {pinKey} = current;
+            openSession({pinKey, data: next});
             void enqueue(async (stillCurrent) => {
-                const holder = await sealUserDataHolder(next, pinKey);
-                if (stillCurrent()) setUserDataHolder(holder);
+                const sealed = await sealUserDataHolder(next, pinKey);
+                if (stillCurrent()) writeHolder(sealed);
             });
-        } else {
-            setUserDataHolder(initUserDataHolder(next, userDataHolder.demo));
+        } else if (loggedIn) {
+            writeHolder(initUserDataHolder(next, holder.demo));
         }
     }) as Dispatch<SetStateAction<UserData>>
 
     /** Lock the wallet with a new PIN (setting the first one, or changing it). */
     const setUserDataPin = async (pin: string): Promise<void> => {
         if (!loggedIn) return;
-        const data = userData;
+        const since = epoch.current;
+        const dataNow = userData;
         const pinKey = await newPinKey(pin);
         await enqueue(async (stillCurrent) => {
+            if (epoch.current !== since) return; // locked meanwhile: it stays locked, PIN unchanged
+            // the latest data, including changes saved while the key was being derived
+            const data = sessionRef.current?.data ?? dataNow;
             const holder = await sealUserDataHolder(data, pinKey);
-            if (!stillCurrent()) return;
-            setUserDataHolder(holder);
-            setSession({pinKey, data});
+            if (!stillCurrent() || epoch.current !== since) return;
+            writeHolder(holder);
+            openSession({pinKey, data});
         });
     };
 
@@ -193,36 +265,46 @@ export default function UserDataService({storageFactory}: { storageFactory: User
         const pinKey = await newPinKey(pin);
         const holder = await sealUserDataHolder(data, pinKey);
         generation.current++;
-        setUserDataHolder(holder);
-        setSession({pinKey, data});
+        writeHolder(holder);
+        openSession({pinKey, data});
     };
 
-    /** Replace whatever is stored with a validated backup. A backup in an older PIN format is
-     *  re-saved in the current one with the PIN it was opened with. */
+    /** Replace whatever is stored with a validated backup. A backup in an older PIN format, or
+     *  locked with weaker key parameters, is re-saved with the PIN it was opened with. */
     const importWallet = async (imported: ImportedWallet, pin?: string): Promise<void> => {
+        const since = epoch.current;
         const data = sanitizeUserData(withoutStoredPin(imported.data));
         if (!imported.holder.pinCodeEncrypted) {
             generation.current++;
-            setUserDataHolder(new UserDataHolder(false, imported.holder.encryptedData, false));
-            setSession(null);
+            writeHolder(new UserDataHolder(false, imported.holder.encryptedData, false));
+            closeSession(null);
             return;
         }
         let {pinKey, holder} = imported;
-        if (!pinKey) {
-            if (!pin) throw new Error('PIN required');
-            pinKey = await newPinKey(pin);
-            holder = await sealUserDataHolder(data, pinKey);
+        if (!pinKey || isWeakerThanCurrent(pinKey.kdf)) {
+            if (!pin) {
+                if (!pinKey) throw new Error('PIN required');
+            } else {
+                try {
+                    const fresh = await newPinKey(pin);
+                    holder = await sealUserDataHolder(data, fresh);
+                    pinKey = fresh;
+                } catch (e) {
+                    if (!pinKey) throw e;
+                }
+            }
         }
         generation.current++;
-        setUserDataHolder(holder);
-        setSession({pinKey, data});
+        writeHolder(holder);
+        // locked while this ran: the restored wallet stays locked too
+        if (epoch.current === since) openSession({pinKey: pinKey!, data});
     };
 
     /** Switch to a demo wallet (kept in memory only). */
     const startDemo = (holder: UserDataHolder) => {
         generation.current++;
-        setUserDataHolder(holder);
-        setSession(null);
+        writeHolder(holder);
+        closeSession(null);
     };
 
     return {
@@ -231,6 +313,7 @@ export default function UserDataService({storageFactory}: { storageFactory: User
         shouldEnterPinCode,
         isDemoMode,
         loggedIn,
+        lockReason,
         unlock, verifyPin, lock,
         createWallet, importWallet, startDemo,
     }

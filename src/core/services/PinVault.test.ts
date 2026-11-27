@@ -1,4 +1,7 @@
-import { newPinKey, open, seal, isSealed, WrongPinError } from './PinVault';
+import {
+  isNewerFormat, KeyDerivationTimeoutError, newPinKey, open, openWithKey, seal, isSealed, setWorkerFactoryForTests,
+  WORKER_TIMEOUT_MS, WrongPinError,
+} from './PinVault';
 
 const toB64 = (s: string) => btoa(s);
 const envelopeOf = (sealed: string) => JSON.parse(atob(sealed.slice(4)));
@@ -47,5 +50,50 @@ describe('PinVault', () => {
     for (const kdf of [{ alg: 'argon2id', m: 4 * 1024 * 1024, t: 1, p: 1 }, { alg: 'argon2id', m: 64, t: 1000, p: 1 }, { alg: 'pbkdf2', m: 64, t: 1, p: 1 }]) {
       await expect(open(resealed(sealed, (e) => { e.kdf = kdf; }), '2580')).rejects.toBeInstanceOf(WrongPinError);
     }
+  });
+
+  it('opens data with a key already in memory, but not data sealed with another key', async () => {
+    const key = await newPinKey('2580');
+    expect(await openWithKey(await seal({ a: 1 }, key), key)).toEqual({ a: 1 });
+    const other = await seal({ a: 1 }, await newPinKey('2580'));
+    await expect(openWithKey(other, key)).rejects.toBeInstanceOf(WrongPinError);
+  });
+
+  it('recognises data saved by a newer version', () => {
+    expect(isNewerFormat('cw3.abc')).toBe(true);
+    expect(isNewerFormat('cw12.abc')).toBe(true);
+    expect(isNewerFormat('cw2.abc')).toBe(false);
+    expect(isNewerFormat('U2FsdGVkX1+abc')).toBe(false);
+  });
+});
+
+describe('PinVault worker', () => {
+  afterEach(() => {
+    setWorkerFactoryForTests(undefined);
+    vi.useRealTimers();
+  });
+
+  function fakeWorker(onPost: (w: Worker) => void = () => {}) {
+    const w = { onmessage: null, onerror: null, terminate: vi.fn(), postMessage: vi.fn() } as unknown as Worker & { terminate: ReturnType<typeof vi.fn> };
+    (w.postMessage as ReturnType<typeof vi.fn>).mockImplementation(() => onPost(w));
+    return w;
+  }
+
+  it('gives up on a worker that stops answering, so the attempt can be retried', async () => {
+    vi.useFakeTimers();
+    const w = fakeWorker();
+    setWorkerFactoryForTests(() => w);
+    const attempt = newPinKey('2580');
+    const failed = expect(attempt).rejects.toBeInstanceOf(KeyDerivationTimeoutError);
+    await vi.advanceTimersByTimeAsync(WORKER_TIMEOUT_MS);
+    await failed;
+    expect(w.terminate).toHaveBeenCalled();
+  });
+
+  it('falls back to the page when the worker cannot run', async () => {
+    const w = fakeWorker((self) => queueMicrotask(() => self.onerror?.(new Event('error') as ErrorEvent)));
+    setWorkerFactoryForTests(() => w);
+    const key = await newPinKey('2580');
+    expect((await open(await seal({ a: 1 }, key), '2580')).data).toEqual({ a: 1 });
   });
 });

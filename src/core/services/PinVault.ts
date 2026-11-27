@@ -45,6 +45,8 @@ interface Envelope {
 }
 
 const PREFIX = 'cw2.';
+// "cw<version>." — anything above 2 was written by a newer version of the app.
+const VERSIONED = /^cw(\d+)\./;
 
 /** The data can't be opened with this PIN: a wrong PIN, or altered / malformed data. Any other
  *  error from `open` means this browser couldn't derive the key (e.g. not enough memory). */
@@ -55,7 +57,28 @@ export class WrongPinError extends Error {
     }
 }
 
+/** Data written by a newer version of the app, in a format this version can't read. */
+export class NewerFormatError extends Error {
+    constructor() {
+        super('saved by a newer version');
+        this.name = 'NewerFormatError';
+    }
+}
+
+/** The key could not be derived in time (the worker stopped answering). */
+export class KeyDerivationTimeoutError extends Error {
+    constructor() {
+        super('key derivation timed out');
+        this.name = 'KeyDerivationTimeoutError';
+    }
+}
+
 export const isSealed = (encrypted: string) => typeof encrypted === 'string' && encrypted.startsWith(PREFIX);
+
+export function isNewerFormat(encrypted: string): boolean {
+    const m = typeof encrypted === 'string' ? VERSIONED.exec(encrypted) : null;
+    return !!m && Number(m[1]) > 2;
+}
 
 function toB64(bytes: Uint8Array): string {
     let s = '';
@@ -85,14 +108,36 @@ function checkKdf(kdf: unknown): KdfParams {
 
 // Argon2id runs in a Web Worker when the browser has them (the page stays responsive); otherwise,
 // or if the worker fails to start, on the main thread after letting the browser paint.
+/** A worker that answers nothing for this long is stopped, and the attempt fails (it can be retried). */
+export const WORKER_TIMEOUT_MS = 60_000;
+
+class WorkerUnavailableError extends Error {}
+
+const defaultWorker = () => (typeof Worker === 'undefined' ? null : new Argon2Worker());
+let createWorker: () => Worker | null = defaultWorker;
 let worker: Worker | null | undefined;
 let nextJob = 0;
 const jobs = new Map<number, { resolve: (raw: Uint8Array) => void; reject: (e: Error) => void }>();
 
+/** Tests only: how the worker is created (undefined: the real one). Resets the current worker. */
+export function setWorkerFactoryForTests(factory: (() => Worker | null) | undefined) {
+    stopWorker(undefined);
+    createWorker = factory ?? defaultWorker;
+}
+
+/** Stop the worker and fail its pending jobs. `next`: null = don't try workers again, undefined = start a new one next time. */
+function stopWorker(next: null | undefined, error: Error = new WorkerUnavailableError()) {
+    worker?.terminate();
+    worker = next;
+    const pending = [...jobs.values()];
+    jobs.clear();
+    pending.forEach((j) => j.reject(error));
+}
+
 function getWorker(): Worker | null {
     if (worker !== undefined) return worker;
     try {
-        worker = typeof Worker === 'undefined' ? null : new Argon2Worker();
+        worker = createWorker();
         if (worker) {
             worker.onmessage = (e: MessageEvent<{ id: number; raw?: Uint8Array; error?: string }>) => {
                 const job = jobs.get(e.data.id);
@@ -101,14 +146,8 @@ function getWorker(): Worker | null {
                 if (e.data.raw) job.resolve(e.data.raw);
                 else job.reject(new Error(e.data.error || 'key derivation failed'));
             };
-            worker.onerror = () => {
-                // the worker can't run here: fail pending jobs over to the main thread
-                worker?.terminate();
-                worker = null;
-                const pending = [...jobs.values()];
-                jobs.clear();
-                pending.forEach((j) => j.reject(new Error('worker unavailable')));
-            };
+            // the worker can't run here: pending jobs fail over to the main thread
+            worker.onerror = () => stopWorker(null);
         }
     } catch {
         worker = null;
@@ -131,11 +170,18 @@ async function argon2(pin: string, salt: Uint8Array, kdf: KdfParams): Promise<Ui
         try {
             return await new Promise<Uint8Array>((resolve, reject) => {
                 const id = ++nextJob;
-                jobs.set(id, { resolve, reject });
+                const timer = setTimeout(() => {
+                    if (jobs.has(id)) stopWorker(undefined, new KeyDerivationTimeoutError());
+                }, WORKER_TIMEOUT_MS);
+                jobs.set(id, {
+                    resolve: (raw) => { clearTimeout(timer); resolve(raw); },
+                    reject: (e) => { clearTimeout(timer); reject(e); },
+                });
                 w.postMessage({ id, pin, salt, m: kdf.m, t: kdf.t, p: kdf.p });
             });
         } catch (e) {
-            if (worker) throw e; // the worker ran and Argon2id itself failed (e.g. out of memory)
+            // the worker ran and Argon2id itself failed (e.g. out of memory), or it stopped answering
+            if (!(e instanceof WorkerUnavailableError)) throw e;
         }
     }
     return argon2OnMainThread(pin, salt, kdf);
@@ -165,28 +211,52 @@ export async function seal(data: unknown, pinKey: PinKey): Promise<string> {
     return PREFIX + toB64(new TextEncoder().encode(JSON.stringify(envelope)));
 }
 
+/** Keys made with weaker parameters than new keys get now: re-save with a new key when the PIN is at hand. */
+export function isWeakerThanCurrent(kdf: KdfParams): boolean {
+    return kdf.m < kdfForNewKeys.m || kdf.t < kdfForNewKeys.t;
+}
+
+function readEnvelope(sealed: string): { envelope: Envelope; kdf: KdfParams; salt: Uint8Array } {
+    try {
+        if (!isSealed(sealed)) throw new Error('not sealed data');
+        const envelope = JSON.parse(new TextDecoder().decode(fromB64(sealed.slice(PREFIX.length)))) as Envelope;
+        const kdf = checkKdf(envelope.kdf);
+        const salt = fromB64(envelope.salt);
+        if (salt.length < 8) throw new Error('bad salt');
+        return { envelope, kdf, salt };
+    } catch {
+        throw new WrongPinError();
+    }
+}
+
+async function decrypt<T>(envelope: Envelope, key: CryptoKey): Promise<T> {
+    try {
+        const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(envelope.iv) }, key, fromB64(envelope.ct));
+        return JSON.parse(new TextDecoder().decode(plain)) as T;
+    } catch {
+        throw new WrongPinError();
+    }
+}
+
 /**
  * Open sealed data with `pin`. Throws on a wrong PIN or damaged data. Also returns the key, so
  * later saves don't need the PIN again.
  */
 export async function open<T>(sealed: string, pin: string): Promise<{ data: T; pinKey: PinKey }> {
-    let envelope: Envelope, kdf: KdfParams, salt: Uint8Array;
-    try {
-        if (!isSealed(sealed)) throw new Error('not sealed data');
-        envelope = JSON.parse(new TextDecoder().decode(fromB64(sealed.slice(PREFIX.length)))) as Envelope;
-        kdf = checkKdf(envelope.kdf);
-        salt = fromB64(envelope.salt);
-        if (salt.length < 8) throw new Error('bad salt');
-    } catch {
-        throw new WrongPinError();
-    }
+    const { envelope, kdf, salt } = readEnvelope(sealed);
     const key = await deriveKey(pin, salt, kdf);
-    let data: T;
-    try {
-        const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(envelope.iv) }, key, fromB64(envelope.ct));
-        data = JSON.parse(new TextDecoder().decode(plain)) as T;
-    } catch {
-        throw new WrongPinError();
-    }
+    const data = await decrypt<T>(envelope, key);
     return { data, pinKey: { key, kdf, salt: envelope.salt } };
+}
+
+/**
+ * Open sealed data with a key already in memory (no PIN, no key derivation). Throws WrongPinError
+ * when the data was sealed with another key, e.g. after the PIN was changed elsewhere.
+ */
+export async function openWithKey<T>(sealed: string, pinKey: PinKey): Promise<T> {
+    const { envelope, kdf } = readEnvelope(sealed);
+    const sameKey = envelope.salt === pinKey.salt
+        && kdf.m === pinKey.kdf.m && kdf.t === pinKey.kdf.t && kdf.p === pinKey.kdf.p;
+    if (!sameKey) throw new WrongPinError();
+    return decrypt<T>(envelope, pinKey.key);
 }
