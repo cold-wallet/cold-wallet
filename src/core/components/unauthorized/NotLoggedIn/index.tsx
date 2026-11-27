@@ -1,10 +1,10 @@
 // NotLoggedIn — first-run gate, reskinned to the new WelcomeView design.
 // Create wallet (PIN first: nothing is stored until the PIN is chosen and confirmed) / demo mode /
-// import-from-token + terms checkbox.
+// import-from-token + terms checkbox. Also shown over a locked wallet whose PIN was forgotten
+// (`replacing`): a note says that creating or importing replaces it, with a way back to the PIN.
 import React, { useState, type ReactNode } from "react";
 import PinSetup from "../../pin/PinSetup";
-import { useBackupImport } from "../../settings/ImportData/useBackupImport";
-import BackupImportFields from "../../settings/ImportData/BackupImportFields";
+import BackupImportDialog from "../../settings/ImportData/BackupImportDialog";
 import Props from "../../Props";
 
 interface Option {
@@ -17,7 +17,11 @@ interface Option {
     icon: ReactNode;
 }
 
-export default function NotLoggedIn({ props }: { props: Props }) {
+export default function NotLoggedIn({ props, replacing }: {
+    props: Props,
+    /** a locked wallet is on this device; `onBack` returns to its PIN screen */
+    replacing?: { onBack: () => void },
+}) {
     const accepted = props.termsAndPolicyAgreed;
     const [choosingPin, setChoosingPin] = useState(false);
 
@@ -35,11 +39,13 @@ export default function NotLoggedIn({ props }: { props: Props }) {
     }
 
     if (props.importOrExportSettingRequested === 'import') {
-        return <WelcomeImport props={props} />;
+        return <WelcomeImport props={props} replacing={!!replacing} />;
     }
     if (choosingPin) {
         return <PinSetup title="Create new wallet"
-                         intro="First, choose a PIN-code. It locks your wallet on this device."
+                         intro={replacing
+                             ? "First, choose a PIN-code for the new wallet. The locked wallet is replaced once you confirm it."
+                             : "First, choose a PIN-code. It locks your wallet on this device."}
                          onBack={() => setChoosingPin(false)}
                          onDone={props.createWallet} />;
     }
@@ -73,6 +79,13 @@ export default function NotLoggedIn({ props }: { props: Props }) {
                     <div className="welcome__tag">Your private, self-custodied portfolio</div>
                 </div>
 
+                {replacing && (
+                    <div className="welcome__replace" role="note">
+                        A locked wallet is on this device. Creating or importing a wallet replaces it for good.{' '}
+                        <button className="welcome__back" onClick={replacing.onBack}>Back to unlock</button>
+                    </div>
+                )}
+
                 <div className="welcome__opts">
                     {OPTIONS.map((o) => (
                         <button key={o.key} className={"wopt" + (o.primary ? " wopt--p" : "")} disabled={o.disabled} onClick={o.onClick}>
@@ -100,41 +113,19 @@ export default function NotLoggedIn({ props }: { props: Props }) {
     );
 }
 
-function WelcomeImport({ props }: { props: Props }) {
+function WelcomeImport({ props, replacing }: { props: Props, replacing: boolean }) {
     // Same flow as Settings → Import: the token (and its PIN, if it has one) is decrypted and
     // validated before anything is replaced; a rejected token keeps the dialog open with the reason.
-    const state = useBackupImport(props, () => {
-        props.stateReset();
-        props.setShowCreateNewAssetWindow(false);
-        props.setCreatingNewAsset(false);
-    });
-    const { text, setText } = state;
-
-    async function paste() {
-        try {
-            const t = await navigator.clipboard.readText();
-            if (t) setText(t);
-        } catch { /* clipboard unavailable */ }
-    }
-
-    return (
-        <div className="scrim" onClick={() => props.stateReset()}>
-            <div className="dialog" style={{ width: 520 }} onClick={(e) => e.stopPropagation()}>
-                <h3>Import wallet</h3>
-                <p className="data-desc">Paste a backup token exported from Cold Wallet to restore your portfolio.</p>
-                <BackupImportFields state={state} autoFocus />
-                <div className="data-actbar">
-                    <button className="ghostbtn" onClick={paste}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /></svg>
-                        Paste
-                    </button>
-                    <span className="meta num">{text.trim().length.toLocaleString()} characters</span>
-                </div>
-                <div className="dialog__actions">
-                    <button className="btn" onClick={() => props.stateReset()}>Cancel</button>
-                    <button className="btn btn--p" disabled={!state.canSubmit} onClick={state.submit}>Import</button>
-                </div>
-            </div>
-        </div>
-    );
+    return <BackupImportDialog props={props}
+                               title="Import wallet"
+                               intro={replacing
+                                   ? "Paste a token exported from Cold Wallet and enter its PIN. It replaces the locked wallet once both check out."
+                                   : "Paste a backup token exported from Cold Wallet to restore your portfolio."}
+                               submitLabel="Import"
+                               onCancel={() => props.stateReset()}
+                               onImported={() => {
+                                   props.stateReset();
+                                   props.setShowCreateNewAssetWindow(false);
+                                   props.setCreatingNewAsset(false);
+                               }} />;
 }

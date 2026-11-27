@@ -1,6 +1,7 @@
 import {Dispatch, SetStateAction} from "react";
 import UserData from "../domain/UserData";
 import UserDataHolder from "../domain/UserDataHolder";
+import type {ImportedWallet} from "../services/UserDataService";
 import AssetDTO from "../domain/AssetDTO";
 import MonobankUserData from "../integrations/monobank/MonobankUserData";
 import BinanceCurrencyResponse from "../integrations/binance/BinanceCurrencyResponse";
@@ -26,7 +27,8 @@ export default interface Props {
     userData: UserData,
     setUserData: Dispatch<SetStateAction<UserData>>,
     userDataHolder: UserDataHolder,
-    setUserDataHolder: Dispatch<SetStateAction<UserDataHolder>>,
+    /** replace the stored wallet with a validated backup (`pin`: the one it was opened with) */
+    importWallet: (imported: ImportedWallet, pin?: string) => Promise<void>,
     isDemoMode: boolean,
     getAnyAssetExist: (
         userData: UserData,
@@ -161,16 +163,17 @@ export default interface Props {
 
     pinCodeSettingsRequested: boolean,
     setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,
-    /** the PIN this session unlocked the wallet with (null for a wallet without one) */
-    pinCode: string | null,
-    /** unlock this session with a PIN (does not change the stored data) */
-    setPinCode: Dispatch<SetStateAction<string | null>>,
-    /** set or change the wallet's PIN: re-encrypts the data with it and keeps the session unlocked */
-    setWalletPin: (pin: string) => void,
-    pinCodeEntered: string | null,
-    setPinCodeEntered: Dispatch<SetStateAction<string | null>>,
+    /** the PIN was just changed: Settings notes that older backups keep the old PIN */
+    pinChanged: boolean,
+    setPinChanged: Dispatch<SetStateAction<boolean>>,
+    /** check a PIN against the stored wallet without changing anything */
+    verifyPin: (pin: string) => Promise<boolean>,
+    /** set or change the wallet's PIN: the data is locked with it and stays unlocked */
+    setWalletPin: (pin: string) => Promise<void>,
     /** Create a new empty wallet locked with `pin` (replaces whatever is stored on this device). */
-    createWallet: (pin: string) => void,
+    createWallet: (pin: string) => Promise<void>,
+    /** Lock the wallet now (it has a PIN): open dialogs close, the PIN screen shows. */
+    lockWallet: () => void,
 
     priceService: PriceService,
     currencyService: CurrencyService,

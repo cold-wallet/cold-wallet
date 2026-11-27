@@ -26,8 +26,9 @@ export default function BackupImportFields({ state, autoFocus }: { state: Import
                     title="Enter backup PIN"
                     intro="This backup is protected with the PIN the wallet had when it was exported. After restoring, the same PIN unlocks it on this device."
                     onBack={state.cancelPin}
-                    status={state.wrongPin ? BACKUP_ERROR_TEXT['wrong-pin'] : "Enter the backup's PIN."}
-                    statusError={state.wrongPin}
+                    busy={state.busy}
+                    status={state.busy ? 'Checking…' : state.pinError ? BACKUP_ERROR_TEXT[state.pinError] : "Enter the backup's PIN."}
+                    statusError={!!state.pinError && !state.busy}
                     pin={state.pin}
                     setPin={state.setPin}
                     onAccept={state.submitPin}

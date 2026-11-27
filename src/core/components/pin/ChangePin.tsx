@@ -1,33 +1,45 @@
 // components/pin/ChangePin.tsx — Settings → Change PIN, in the same compact dialog as every other
 // PIN screen: current PIN first (step 1 of 3), then the new one twice (PinSetup). The wallet is
-// re-encrypted only after the new PIN is confirmed; Back on any step returns to Settings unchanged.
-import React, { useState } from 'react';
+// locked with the new PIN only after it is confirmed; Back on any step returns to Settings unchanged.
+import React, { useEffect, useRef, useState } from 'react';
 import Props from '../Props';
-import PinDialog from './PinDialog';
+import PinDialog, { BROWSER_PIN_ERROR, NEWER_VERSION_PIN_ERROR } from './PinDialog';
+import { NewerFormatError } from '../../services/PinVault';
 import PinSetup from './PinSetup';
 import { PIN_MIN } from './PinPad';
 
 export default function ChangePin({ props }: { props: Props }) {
-  // The session PIN decrypted the wallet, so it is the current PIN (none for a wallet without one).
-  const current = props.userDataHolder.pinCodeEncrypted ? props.pinCode : null;
-  const [verified, setVerified] = useState(!current);
+  const hasPin = props.userDataHolder.pinCodeEncrypted;
+  const [verified, setVerified] = useState(!hasPin);
   const [entry, setEntry] = useState<string | null>(null);
   const [wrong, setWrong] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [failed, setFailed] = useState<'browser' | 'newer' | null>(null);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const back = () => props.setPinCodeSettingsRequested(false);
-  const title = current ? 'Change PIN-code' : 'Set PIN-code';
+  const title = hasPin ? 'Change PIN-code' : 'Set PIN-code';
 
-  function checkCurrent() {
-    if (!entry || entry.length < PIN_MIN) return;
-    if (entry === current) {
-      setVerified(true);
-    } else {
-      setWrong(true);
+  async function checkCurrent() {
+    if (checking || !entry || entry.length < PIN_MIN) return;
+    setChecking(true);
+    let ok = false, error: 'browser' | 'newer' | null = null;
+    try {
+      ok = await props.verifyPin(entry);
+    } catch (e) {
+      error = e instanceof NewerFormatError ? 'newer' : 'browser';
     }
+    if (!mounted.current) return;
+    setChecking(false);
     setEntry(null);
+    if (ok) setVerified(true);
+    else if (error) setFailed(error);
+    else setWrong(true);
   }
 
-  function save(pin: string) {
-    props.setWalletPin(pin);
+  async function save(pin: string) {
+    await props.setWalletPin(pin);
+    if (hasPin) props.setPinChanged(true); // Settings then says what this means for older backups
     props.setPinCodeSettingsRequested(false);
   }
 
@@ -37,13 +49,14 @@ export default function ChangePin({ props }: { props: Props }) {
         title={title}
         step="Step 1 of 3"
         onBack={back}
-        status={wrong ? 'Wrong PIN. Try again.' : 'Enter your current PIN.'}
-        statusError={wrong}
+        busy={checking}
+        status={checking ? 'Checking…' : wrong ? 'Wrong PIN. Try again.' : failed === 'newer' ? NEWER_VERSION_PIN_ERROR : failed ? BROWSER_PIN_ERROR : 'Enter your current PIN.'}
+        statusError={(wrong || !!failed) && !checking}
         pin={entry}
-        setPin={(v) => { setEntry(v); if (v) setWrong(false); }}
+        setPin={(v) => { setEntry(v); if (v) { setWrong(false); setFailed(null); } }}
         onAccept={checkCurrent}
       />
     );
   }
-  return <PinSetup title={title} onBack={back} onDone={save} stepOffset={current ? 1 : 0} />;
+  return <PinSetup title={title} onBack={back} onDone={save} stepOffset={hasPin ? 1 : 0} />;
 }

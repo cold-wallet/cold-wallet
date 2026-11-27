@@ -9,7 +9,8 @@ import MonobankUserData from "../integrations/monobank/MonobankUserData";
 import PinCodeOnLogin from "./unauthorized/PinCodeOnLogin";
 import OkxLoader from "../integrations/okx/OkxLoader";
 import {OkxAccount} from "../integrations/okx/okxApiClient";
-import UserDataService, {initUserDataHolder} from "../services/UserDataService";
+import UserDataService from "../services/UserDataService";
+import useIdleLock, {AUTO_LOCK_AFTER} from "../utils/useIdleLock";
 import UserData from "../domain/UserData";
 import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 import AssetDTO from "../domain/AssetDTO";
@@ -25,12 +26,12 @@ import UserDataStorageFactory from "../domain/UserDataStorageFactory";
 import {buildDemoUserDataHolder} from "../utils/DemoAssetsGenerator";
 import uuidGenerator from "../utils/uuidGenerator";
 import PinSetup from "./pin/PinSetup";
+import type {ImportedWallet} from "../services/UserDataService";
 
 export default function ColdWallet(
     {properties, startInDemoMode = false}: {
         properties: {
             storageFactory: StorageFactory,
-            sessionStorageFactory: StorageFactory,
             userDataStorageFactory: UserDataStorageFactory,
             // Store for integration *UserData (binance/okx/monobank). In-memory during a demo
             // session so injected demo assets never persist; the plain localStorage factory
@@ -42,21 +43,24 @@ export default function ColdWallet(
 ) {
     const [termsAndPolicyAgreed, setTermsAndPolicyAgreed] = useState<boolean>(false);
 
-    const [
-        pinCode,
-        setPinCode
-    ] = properties.sessionStorageFactory.createStorageNullable<string>("pinCode");
-    const [pinCodeEntered, setPinCodeEntered] = useState<string | null>(null);
     const {
         userData, setUserData, setUserDataPin,
-        userDataHolder, setUserDataHolder,
+        userDataHolder,
         shouldEnterPinCode,
         isDemoMode,
         loggedIn,
+        lockReason,
+        unlock, verifyPin, lock,
+        createWallet: createStoredWallet, importWallet, startDemo,
     } = UserDataService({
         storageFactory: properties.userDataStorageFactory,
-        pinCode,
     });
+
+    function lockWallet(reason: 'idle' | 'manual') {
+        lock(reason);
+    }
+    // An unlocked wallet locks itself after a while without any user activity.
+    useIdleLock(loggedIn && !isDemoMode && userDataHolder.pinCodeEncrypted, () => lockWallet('idle'), AUTO_LOCK_AFTER);
 
     // `/demo` route: drop straight into demo mode, bypassing the startup login screen.
     // Runs once on mount. Skips only if an active demo session is already logged in — the
@@ -66,9 +70,9 @@ export default function ColdWallet(
     useEffect(() => {
         if (startInDemoMode && !demoModeStarted.current && !(loggedIn && isDemoMode)) {
             demoModeStarted.current = true;
-            setUserDataHolder(buildDemoUserDataHolder());
+            startDemo(buildDemoUserDataHolder());
         }
-    }, [startInDemoMode, loggedIn, isDemoMode, setUserDataHolder]);
+    }, [startInDemoMode, loggedIn, isDemoMode, startDemo]);
 
     // Crypto symbols whose prices the UI actually needs (held assets across all sources);
     // collected by an effect below, AFTER every integration loader has produced its data.
@@ -273,30 +277,53 @@ export default function ColdWallet(
     const [importDataBuffer, setImportDataBuffer] = useState<string | null>(null);
 
     const [pinCodeSettingsRequested, setPinCodeSettingsRequested] = useState(false);
+    const [pinChanged, setPinChanged] = useState(false);
 
-    // A new wallet is always created with a PIN: the data is encrypted with it from the first save,
-    // and the PIN goes to the session too so the lock screen doesn't ask for it right away. Cached
-    // integration balances of a wallet this one replaces (lock screen → "start a new empty
-    // wallet") are dropped so none of them leak into the new one.
-    function createWallet(pin: string) {
-        const newUserData = new UserData(uuidGenerator.generateUUID());
+    // Cached integration balances belong to the wallet they were fetched for; they are dropped when
+    // another wallet takes its place, so none of them show up in the new one.
+    function dropIntegrationBalances() {
         setBinanceUserData(null);
         setOkxUserData(null);
         setMonobankUserData(null);
         setCcxtUserData({} as CcxtAccountsData);
         clearMetaMaskData();
-        setPinCode(pin);
-        setUserDataHolder(initUserDataHolder(newUserData, false, pin));
     }
+
+    // A new wallet is always created locked with a PIN and opens unlocked.
+    async function createWallet(pin: string) {
+        const newUserData = new UserData(uuidGenerator.generateUUID());
+        await createStoredWallet(newUserData, pin);
+        dropIntegrationBalances();
+    }
+
+    // Exchange balances are fetched with the settings of the wallet that is open. After an unlock or
+    // an import those settings change, so the next render (which has them) fetches once more.
+    const [integrationsReload, setIntegrationsReload] = useState(0);
+    useEffect(() => {
+        if (!integrationsReload) return;
+        loadBinanceUserData();
+        loadOkxUserData();
+        loadMonobankUserData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [integrationsReload]);
+
+    // An imported backup replaces the wallet: the previous one's cached balances go, and the
+    // restored one's are fetched with its own settings.
+    async function importReplacing(imported: ImportedWallet, pin?: string) {
+        await importWallet(imported, pin);
+        dropIntegrationBalances();
+        setIntegrationsReload((n) => n + 1);
+    }
+
+    // "Forgot PIN?" → the start screen over the locked wallet: creating or importing a wallet there
+    // replaces it; until then it stays, and "Back to unlock" (or a reload) returns to its PIN.
+    const [startingOver, setStartingOver] = useState(false);
 
     // Every real wallet must have a PIN: an older wallet created without one, or one restored from
     // a backup that had none, has to set it before the dashboard opens. The demo never needs one.
     const pinSetupRequired = loggedIn && !isDemoMode && !userDataHolder.pinCodeEncrypted;
-    // Set or change the wallet's PIN: re-encrypt with it and keep the session unlocked with it.
-    function setWalletPin(pin: string) {
-        setUserDataPin(pin);
-        setPinCode(pin);
-    }
+    // Set or change the wallet's PIN: the data is locked with the new one and stays unlocked.
+    const setWalletPin = setUserDataPin;
 
     function stateReset() {
         setShowCreateNewAssetWindow(!getAnyAssetExist(
@@ -338,7 +365,7 @@ export default function ColdWallet(
         setImportDataBuffer(null);
 
         setPinCodeSettingsRequested(false);
-        setPinCodeEntered(null);
+        setPinChanged(false);
 
         setEnabledCcxtIntegrations(getEnabledCcxtIntegrations())
         setLoadingUserDataFromResource(null)
@@ -348,6 +375,18 @@ export default function ColdWallet(
         setCurrentIntegrationApiPassword(null)
         setCurrentIntegrationApiAdditionalSetting(null)
     }
+
+    // Every lock (idle, the Lock button, a PIN changed in another tab) closes whatever was open:
+    // settings, a backup token on screen, half-typed keys or amounts. Nothing typed survives it.
+    // Unlocking resets once more, from the data just opened, so the dashboard starts clean.
+    const wasLocked = useRef(shouldEnterPinCode);
+    useEffect(() => {
+        if (wasLocked.current === shouldEnterPinCode) return;
+        wasLocked.current = shouldEnterPinCode;
+        stateReset();
+        setStartingOver(false);
+        if (!shouldEnterPinCode) setIntegrationsReload((n) => n + 1);
+    });
 
     const currencyService = useMemo(() => new CurrencyService(
         binanceCurrencies || {},
@@ -389,7 +428,7 @@ export default function ColdWallet(
         showCreateNewAssetWindow, setShowCreateNewAssetWindow,
         creatingNewAsset, setCreatingNewAsset,
         userData, setUserData,
-        userDataHolder, setUserDataHolder,
+        userDataHolder, importWallet: importReplacing,
         isDemoMode,
         newAssetAmount, setNewAssetAmount,
         newAssetCurrency, setNewAssetCurrency,
@@ -463,20 +502,25 @@ export default function ColdWallet(
         importDataBuffer, setImportDataBuffer,
 
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
-        pinCode, setPinCode, setWalletPin,
-        pinCodeEntered, setPinCodeEntered,
+        pinChanged, setPinChanged,
+        verifyPin, setWalletPin,
         createWallet,
+        lockWallet: () => lockWallet('manual'),
         currencyService,
         priceService,
         currencyOptions,
     };
     return (
         <div className={"app-root"}>
-            {shouldEnterPinCode ? <PinCodeOnLogin props={{
-                pinCodeEntered, setPinCodeEntered,
-                setPinCode,
-                createWallet,
-            }}/> : pinSetupRequired
+            {shouldEnterPinCode ? (startingOver
+                ? <NotLoggedIn props={props}
+                               replacing={{ onBack: () => { stateReset(); setStartingOver(false); } }}/>
+                : <PinCodeOnLogin props={{
+                    unlock,
+                    lockReason,
+                    startOver: () => { stateReset(); setStartingOver(true); },
+                }}/>
+            ) : pinSetupRequired
                 ? <PinSetup title="Set a PIN-code"
                             intro="This wallet has no PIN yet. Set one to lock it on this device."
                             onDone={setWalletPin}/>

@@ -258,6 +258,12 @@ function DefaultView({ props }: { props: Props }) {
 
       <div className="sect">
         <div className="sect__label">Security</div>
+        {props.pinChanged && (
+          <p className="pin-changed" role="status">
+            PIN changed. Backup tokens exported earlier still open only with the old PIN.{' '}
+            <button className="pin-changed__link" onClick={() => props.setImportOrExportSettingRequested('export')}>Export a new backup</button>
+          </p>
+        )}
         <button className="optbtn" style={{ marginBottom: 10 }} onClick={() => props.setPinCodeSettingsRequested(true)}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
           <span>{hasPin ? 'Change' : 'Add'} PIN-code<small>Lock the app with a 4–8 digit code</small></span>
@@ -496,7 +502,7 @@ function ExportView({ props }: { props: Props }) {
         <Back onClick={() => props.setImportOrExportSettingRequested(null)} />
         <div className="cfg-title"><b>Export backup</b></div>
       </div>
-      <p className="data-desc">This token is an encrypted backup of all your holdings and integration settings. Store it somewhere safe — anyone with this token can restore your portfolio.</p>
+      <p className="data-desc">This token is an encrypted backup of all your holdings and integration settings. Restoring it asks for the PIN this wallet has now. Keep the token and the PIN in different places, and share neither.</p>
       <div className="token-box"><code>{token}</code></div>
       <div className="data-actbar">
         <button className={"ghostbtn" + (copied ? " copied" : "")} onClick={copy}>
