@@ -493,8 +493,9 @@ function ExportView({ props }: { props: Props }) {
   const token = dataImporter.generateExportData(props.userDataHolder);
   // The clipboard API is missing or refused in some places (in-app browsers such as MetaMask's,
   // pages not served over https), so the token is then selected and copied the old way. 'failed':
-  // that didn't work either; the token stays selected so it can be copied by hand.
+  // that didn't work either; the token is left selected, where the browser allows it, to copy by hand.
   const [copied, setCopied] = useState<'yes' | 'failed' | null>(null);
+  const [tokenSelected, setTokenSelected] = useState(false);
   const tokenBox = useRef<HTMLElement>(null);
   const resetCopied = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(resetCopied.current), []);
@@ -502,6 +503,8 @@ function ExportView({ props }: { props: Props }) {
     const selection = window.getSelection();
     if (!tokenBox.current || !selection) return false;
     selection.selectAllChildren(tokenBox.current);
+    // the browser may not select it (a CSS rule it doesn't read): copying would copy nothing
+    if (selection.toString() !== token) return false;
     let done = false;
     try { done = document.execCommand('copy'); } catch { /* not supported */ }
     if (done) selection.removeAllRanges();
@@ -517,6 +520,7 @@ function ExportView({ props }: { props: Props }) {
       done = copyBySelection();
     }
     setCopied(done ? 'yes' : 'failed');
+    setTokenSelected(!done && window.getSelection()?.toString() === token);
     if (done) resetCopied.current = setTimeout(() => setCopied(null), 1600);
   }
   return (
@@ -538,7 +542,9 @@ function ExportView({ props }: { props: Props }) {
       {copied === 'failed' && (
         <div className="import-err" role="alert">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 8v5M12 16h.01" /></svg>
-          This browser didn't allow copying. The token is selected above, so you can copy it yourself.
+          {tokenSelected
+            ? "This browser didn't allow copying. The token is selected above, so you can copy it yourself."
+            : "This browser didn't allow copying. Select the token above and copy it yourself."}
         </div>
       )}
       <div className="cfg-foot">

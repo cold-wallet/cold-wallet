@@ -176,6 +176,17 @@ describe('copying the backup token', () => {
     expect(document.execCommand).toHaveBeenCalledWith('copy');
   });
 
+  it('does not claim a copy when the token could not be selected', async () => {
+    execCommand(true);
+    const select = vi.spyOn(Selection.prototype, 'selectAllChildren').mockImplementation(() => {});
+    await start();
+    await openExport();
+    fireEvent.click(screen.getByText('Copy token'));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/Select the token above/);
+    expect(document.execCommand).not.toHaveBeenCalled();
+    select.mockRestore();
+  });
+
   it('says so and selects the token when the browser refuses both ways', async () => {
     clipboard(() => Promise.reject(new Error('denied')));
     execCommand(false);

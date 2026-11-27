@@ -262,7 +262,7 @@ body {
 .has-icon { background: none; }
 .asset-icon {
   display: block; width: 100%; height: 100%; border-radius: inherit; object-fit: cover;
-  user-select: none; -webkit-user-drag: none; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  -webkit-user-select: none; user-select: none; -webkit-user-drag: none; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 /* Round coin logos (cryptocurrency-icons): clip to the chip's shape and scale up 1.2× so the
    circle's fill reaches the rounded corners (×1.17 is the minimum at radius 0.3 × side). */
@@ -517,7 +517,7 @@ body {
 
 .wterms {
   display: flex; align-items: flex-start; gap: 10px; margin-top: 22px; padding: 0 4px;
-  font-size: 12.5px; line-height: 1.5; color: var(--ink-2); cursor: pointer; user-select: none;
+  font-size: 12.5px; line-height: 1.5; color: var(--ink-2); cursor: pointer; -webkit-user-select: none; user-select: none;
 }
 .wterms input { position: absolute; opacity: 0; width: 0; height: 0; }
 .wterms__box {
@@ -763,7 +763,9 @@ body {
 .token-box::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
 .token-box code {
   font-family: var(--mono); font-size: 12px; line-height: 1.65; color: var(--ink-2);
-  word-break: break-all; display: block; user-select: all;
+  /* Safari reads only the -webkit- form; without it the global div rule (App.css) keeps the token
+     unselectable there, by hand and for Copy token's fallback. */
+  word-break: break-all; display: block; -webkit-user-select: all; user-select: all;
 }
 .import-area {
   width: 100%; min-height: 150px; resize: vertical; padding: 14px 16px;
@@ -798,7 +800,7 @@ body {
   height: 64px; border-radius: var(--r-md); cursor: pointer;
   border: 1px solid var(--line); background: var(--card); color: var(--ink);
   font-family: var(--ui); font-size: 24px; font-weight: 500; transition: .1s;
-  display: grid; place-items: center; user-select: none;
+  display: grid; place-items: center; -webkit-user-select: none; user-select: none;
 }
 .key:hover { background: var(--card-hi); border-color: var(--line-2); }
 .key:active, .key.is-pressed { transform: scale(.96); background: var(--accent-dim); }
