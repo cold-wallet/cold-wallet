@@ -5,6 +5,7 @@ import PinCodeOnLogin from '../unauthorized/PinCodeOnLogin';
 import NotLoggedIn from '../unauthorized/NotLoggedIn';
 import ChangePin from './ChangePin';
 import type Props from '../Props';
+import { NewerFormatError } from '../../services/PinVault';
 
 function typePin(pin: string) {
   for (const d of pin) fireEvent.click(screen.getByRole('button', { name: d }));
@@ -133,6 +134,18 @@ describe('lock screen', () => {
     typePin('2580');
     await waitFor(() => expect(status()).toMatch(/This browser couldn't check the PIN/));
     expect(status()).not.toMatch(/Wrong PIN/);
+  });
+
+  it('says why an open wallet was locked', () => {
+    render(<PinCodeOnLogin props={{ unlock: vi.fn(), createWallet: vi.fn(), lockReason: 'idle' }} />);
+    expect(screen.getByText(/Locked after 5 minutes without activity/)).toBeTruthy();
+  });
+
+  it('tells a wallet from a newer version apart from a wrong PIN', async () => {
+    const p = { unlock: vi.fn(async () => { throw new NewerFormatError(); }), createWallet: vi.fn() };
+    render(<PinCodeOnLogin props={p} />);
+    typePin('2580');
+    await waitFor(() => expect(status()).toMatch(/saved by a newer version/));
   });
 
   it('says when the PIN is wrong and passes the right one on', async () => {

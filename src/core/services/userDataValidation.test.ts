@@ -25,6 +25,11 @@ describe('parseBackupToken', () => {
     expect((await parseBackupToken(dataImporter.generateExportData(holder))).ok).toBe(true);
   });
 
+  it('says a backup from a newer version is one, without asking for its PIN', async () => {
+    const token = toToken({ pinCodeEncrypted: true, encryptedData: 'cw3.' + btoa('{"v":3,"data":{}}'), demo: false });
+    expect(await parseBackupToken(token)).toEqual({ ok: false, error: 'newer-version' });
+  });
+
   describe('PIN-protected backups are decrypted and checked before anything is replaced', () => {
     let holder: UserDataHolder;
     let token: string;

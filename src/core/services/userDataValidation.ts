@@ -5,7 +5,7 @@ import UserDataHolder from '../domain/UserDataHolder';
 import cypherService from './CypherService';
 import UserData from '../domain/UserData';
 import { DEFAULT_PIN_CODE, openUserDataHolder, type ImportedWallet } from './UserDataService';
-import { WrongPinError } from './PinVault';
+import { isNewerFormat, WrongPinError } from './PinVault';
 import { validateAmount } from '../utils/amount';
 
 const holderSchema = z.object({
@@ -30,13 +30,14 @@ const userDataSchema = z.object({
   lastOnline: z.number().optional(),
 }).passthrough();
 
-export type BackupError = 'not-a-backup' | 'damaged' | 'demo' | 'pin-required' | 'wrong-pin' | 'browser';
+export type BackupError = 'not-a-backup' | 'damaged' | 'demo' | 'newer-version' | 'pin-required' | 'wrong-pin' | 'browser';
 export type BackupResult = { ok: true; wallet: ImportedWallet } | { ok: false; error: BackupError };
 
 export const BACKUP_ERROR_TEXT: Record<BackupError, string> = {
   'not-a-backup': "This isn't a Cold Wallet backup token. Copy it again from Export.",
   damaged: 'This backup is damaged or incomplete, so nothing was changed.',
   demo: 'This backup was made in demo mode and has no real portfolio to restore.',
+  'newer-version': 'This backup was made by a newer version of Cold Wallet. Reload the page to update, then try again.',
   'pin-required': 'This backup is protected with a PIN. Enter it so the backup can be checked before restoring.',
   'wrong-pin': 'Wrong PIN, or the backup is damaged. Nothing was changed.',
   browser: "This browser couldn't check the backup (it may be short on memory). Nothing was changed. Try again, or use another browser.",
@@ -59,6 +60,7 @@ export async function parseBackupToken(token: string, pin?: string): Promise<Bac
   const holder = holderSchema.safeParse(parsed);
   if (!holder.success) return { ok: false, error: 'not-a-backup' };
   if (holder.data.demo) return { ok: false, error: 'demo' };
+  if (isNewerFormat(holder.data.encryptedData)) return { ok: false, error: 'newer-version' };
 
   const pinProtected = holder.data.pinCodeEncrypted;
   if (pinProtected && !pin) return { ok: false, error: 'pin-required' };

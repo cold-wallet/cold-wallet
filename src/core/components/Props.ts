@@ -169,6 +169,8 @@ export default interface Props {
     setWalletPin: (pin: string) => Promise<void>,
     /** Create a new empty wallet locked with `pin` (replaces whatever is stored on this device). */
     createWallet: (pin: string) => Promise<void>,
+    /** Lock the wallet now (it has a PIN): open dialogs close, the PIN screen shows. */
+    lockWallet: () => void,
 
     priceService: PriceService,
     currencyService: CurrencyService,

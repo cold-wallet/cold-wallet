@@ -3,10 +3,19 @@
 // is chosen and confirmed, and only then is the locked wallet replaced. Backing out at any step
 // leaves the locked wallet untouched.
 import React, { useEffect, useRef, useState } from "react";
-import PinDialog, { BROWSER_PIN_ERROR } from "../../pin/PinDialog";
+import PinDialog, { BROWSER_PIN_ERROR, NEWER_VERSION_PIN_ERROR } from "../../pin/PinDialog";
+import { NewerFormatError } from "../../../services/PinVault";
+import type { LockReason } from "../../../services/UserDataService";
+import { AUTO_LOCK_AFTER } from "../../../utils/useIdleLock";
 import PinSetup from "../../pin/PinSetup";
 
 type Step = 'unlock' | 'confirm-reset' | 'new-pin';
+
+const LOCK_INTRO: Record<LockReason, string> = {
+    manual: 'Your portfolio is locked. Enter your PIN to unlock.',
+    idle: `Locked after ${Math.round(AUTO_LOCK_AFTER / 60_000)} minutes without activity. Enter your PIN to unlock.`,
+    elsewhere: 'The wallet was changed in another tab. Enter its current PIN to unlock.',
+};
 
 export default function PinCodeOnLogin(
     { props }: {
@@ -14,6 +23,8 @@ export default function PinCodeOnLogin(
             /** resolves false on a wrong PIN */
             unlock: (pin: string) => Promise<boolean>,
             createWallet: (pin: string) => void | Promise<void>,
+            /** why an open wallet was locked; none after a reload */
+            lockReason?: LockReason | null,
         }
     }
 ) {
@@ -21,18 +32,19 @@ export default function PinCodeOnLogin(
     const [entry, setEntry] = useState<string | null>(null);
     const [checking, setChecking] = useState(false);
     const [wrong, setWrong] = useState(false);
-    const [failed, setFailed] = useState(false);
+    // why the last attempt couldn't be checked: this browser failed, or the data is from a newer version
+    const [failed, setFailed] = useState<'browser' | 'newer' | null>(null);
     const mounted = useRef(true);
     useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
     async function acceptPinCode() {
         if (checking || !entry) return;
         setChecking(true);
-        let ok = false, error = false;
+        let ok = false, error: 'browser' | 'newer' | null = null;
         try {
             ok = await props.unlock(entry);
-        } catch {
-            error = true;
+        } catch (e) {
+            error = e instanceof NewerFormatError ? 'newer' : 'browser';
         }
         if (!mounted.current) return; // unlocked: this screen is gone
         setChecking(false);
@@ -50,12 +62,12 @@ export default function PinCodeOnLogin(
 
     if (step === 'unlock') {
         return <PinDialog title="Enter PIN-code"
-                          intro="Your portfolio is locked. Enter your PIN to unlock."
+                          intro={LOCK_INTRO[props.lockReason ?? 'manual']}
                           busy={checking}
-                          status={checking ? 'Unlocking…' : wrong ? 'Wrong PIN. Try again.' : failed ? BROWSER_PIN_ERROR : undefined}
-                          statusError={(wrong || failed) && !checking}
+                          status={checking ? 'Unlocking…' : wrong ? 'Wrong PIN. Try again.' : failed === 'newer' ? NEWER_VERSION_PIN_ERROR : failed ? BROWSER_PIN_ERROR : undefined}
+                          statusError={(wrong || !!failed) && !checking}
                           pin={entry}
-                          setPin={(v) => { setEntry(v); if (v) { setWrong(false); setFailed(false); } }}
+                          setPin={(v) => { setEntry(v); if (v) { setWrong(false); setFailed(null); } }}
                           onAccept={acceptPinCode}
                           footer={
                               <button className="pin-reset" disabled={checking} onClick={() => { setEntry(null); setWrong(false); setStep('confirm-reset'); }}>

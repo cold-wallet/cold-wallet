@@ -48,14 +48,21 @@ export default function ColdWallet(
         shouldEnterPinCode,
         isDemoMode,
         loggedIn,
+        lockReason,
         unlock, verifyPin, lock,
         createWallet: createStoredWallet, importWallet, startDemo,
     } = UserDataService({
         storageFactory: properties.userDataStorageFactory,
     });
 
+    // Locking closes whatever was open (settings, a backup token on screen, half-typed keys), so
+    // the next unlock starts from the dashboard.
+    function lockWallet(reason: 'idle' | 'manual') {
+        lock(reason);
+        stateReset();
+    }
     // An unlocked wallet locks itself after a while without any user activity.
-    useIdleLock(loggedIn && !isDemoMode && userDataHolder.pinCodeEncrypted, lock, AUTO_LOCK_AFTER);
+    useIdleLock(loggedIn && !isDemoMode && userDataHolder.pinCodeEncrypted, () => lockWallet('idle'), AUTO_LOCK_AFTER);
 
     // `/demo` route: drop straight into demo mode, bypassing the startup login screen.
     // Runs once on mount. Skips only if an active demo session is already logged in — the
@@ -458,6 +465,7 @@ export default function ColdWallet(
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
         verifyPin, setWalletPin,
         createWallet,
+        lockWallet: () => lockWallet('manual'),
         currencyService,
         priceService,
         currencyOptions,
@@ -467,6 +475,7 @@ export default function ColdWallet(
             {shouldEnterPinCode ? <PinCodeOnLogin props={{
                 unlock,
                 createWallet,
+                lockReason,
             }}/> : pinSetupRequired
                 ? <PinSetup title="Set a PIN-code"
                             intro="This wallet has no PIN yet. Set one to lock it on this device."

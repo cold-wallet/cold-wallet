@@ -59,6 +59,9 @@ export default function PinDialog({ title, intro, status, statusError, step, onB
  *  "wrong PIN", so nobody gives up a wallet over a browser problem. */
 export const BROWSER_PIN_ERROR = "This browser couldn't check the PIN (it may be short on memory). Nothing was changed. Try again, or open the wallet in another browser.";
 
+/** The stored wallet was saved by a newer version of the app (an older copy of the page is open). */
+export const NEWER_VERSION_PIN_ERROR = "This wallet was saved by a newer version of Cold Wallet. Reload the page to update it, then unlock.";
+
 /** The warning every "choose a PIN" step carries. */
 export function ForgetPinWarning() {
   return (

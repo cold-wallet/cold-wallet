@@ -3,7 +3,8 @@
 // locked with the new PIN only after it is confirmed; Back on any step returns to Settings unchanged.
 import React, { useEffect, useRef, useState } from 'react';
 import Props from '../Props';
-import PinDialog, { BROWSER_PIN_ERROR } from './PinDialog';
+import PinDialog, { BROWSER_PIN_ERROR, NEWER_VERSION_PIN_ERROR } from './PinDialog';
+import { NewerFormatError } from '../../services/PinVault';
 import PinSetup from './PinSetup';
 import { PIN_MIN } from './PinPad';
 
@@ -13,7 +14,7 @@ export default function ChangePin({ props }: { props: Props }) {
   const [entry, setEntry] = useState<string | null>(null);
   const [wrong, setWrong] = useState(false);
   const [checking, setChecking] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<'browser' | 'newer' | null>(null);
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const back = () => props.setPinCodeSettingsRequested(false);
@@ -22,17 +23,17 @@ export default function ChangePin({ props }: { props: Props }) {
   async function checkCurrent() {
     if (checking || !entry || entry.length < PIN_MIN) return;
     setChecking(true);
-    let ok = false, error = false;
+    let ok = false, error: 'browser' | 'newer' | null = null;
     try {
       ok = await props.verifyPin(entry);
-    } catch {
-      error = true;
+    } catch (e) {
+      error = e instanceof NewerFormatError ? 'newer' : 'browser';
     }
     if (!mounted.current) return;
     setChecking(false);
     setEntry(null);
     if (ok) setVerified(true);
-    else if (error) setFailed(true);
+    else if (error) setFailed(error);
     else setWrong(true);
   }
 
@@ -48,10 +49,10 @@ export default function ChangePin({ props }: { props: Props }) {
         step="Step 1 of 3"
         onBack={back}
         busy={checking}
-        status={checking ? 'Checking…' : wrong ? 'Wrong PIN. Try again.' : failed ? BROWSER_PIN_ERROR : 'Enter your current PIN.'}
-        statusError={(wrong || failed) && !checking}
+        status={checking ? 'Checking…' : wrong ? 'Wrong PIN. Try again.' : failed === 'newer' ? NEWER_VERSION_PIN_ERROR : failed ? BROWSER_PIN_ERROR : 'Enter your current PIN.'}
+        statusError={(wrong || !!failed) && !checking}
         pin={entry}
-        setPin={(v) => { setEntry(v); if (v) { setWrong(false); setFailed(false); } }}
+        setPin={(v) => { setEntry(v); if (v) { setWrong(false); setFailed(null); } }}
         onAccept={checkCurrent}
       />
     );
