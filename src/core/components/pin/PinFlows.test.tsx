@@ -123,13 +123,13 @@ describe('creating a wallet', () => {
 
 describe('lock screen', () => {
   function lock(correct = '2580') {
-    const p = { unlock: vi.fn(async (pin: string) => pin === correct), createWallet: vi.fn() };
+    const p = { unlock: vi.fn(async (pin: string) => pin === correct), startOver: vi.fn() };
     render(<PinCodeOnLogin props={p} />);
     return p;
   }
 
   it('never calls a browser failure a wrong PIN', async () => {
-    const p = { unlock: vi.fn(async () => { throw new Error('out of memory'); }), createWallet: vi.fn() };
+    const p = { unlock: vi.fn(async () => { throw new Error('out of memory'); }), startOver: vi.fn() };
     render(<PinCodeOnLogin props={p} />);
     typePin('2580');
     await waitFor(() => expect(status()).toMatch(/This browser couldn't check the PIN/));
@@ -137,12 +137,12 @@ describe('lock screen', () => {
   });
 
   it('says why an open wallet was locked', () => {
-    render(<PinCodeOnLogin props={{ unlock: vi.fn(), createWallet: vi.fn(), lockReason: 'idle' }} />);
+    render(<PinCodeOnLogin props={{ unlock: vi.fn(), startOver: vi.fn(), lockReason: 'idle' }} />);
     expect(screen.getByText(/Locked after 5 minutes without activity/)).toBeTruthy();
   });
 
   it('tells a wallet from a newer version apart from a wrong PIN', async () => {
-    const p = { unlock: vi.fn(async () => { throw new NewerFormatError(); }), createWallet: vi.fn() };
+    const p = { unlock: vi.fn(async () => { throw new NewerFormatError(); }), startOver: vi.fn() };
     render(<PinCodeOnLogin props={p} />);
     typePin('2580');
     await waitFor(() => expect(status()).toMatch(/saved by a newer version/));
@@ -157,39 +157,52 @@ describe('lock screen', () => {
     await waitFor(() => expect(p.unlock).toHaveBeenLastCalledWith('2580'));
   });
 
-  it('replaces the locked wallet only after a warning and a confirmed new PIN', () => {
+  it('explains a forgotten PIN and offers the start screen', () => {
     const p = lock();
     fireEvent.click(screen.getByText('Forgot PIN?'));
     expect(screen.getByText('Forgot the PIN?')).toBeTruthy();
-    fireEvent.click(screen.getByText('Start a new empty wallet'));
-    typePin('9999');
-    typePin('9999');
-    expect(p.createWallet).toHaveBeenCalledWith('9999');
+    expect(screen.getByText(/The locked wallet stays until you do/)).toBeTruthy();
+    fireEvent.click(screen.getByText('Go to start screen'));
+    expect(p.startOver).toHaveBeenCalled();
   });
 
-  it('keeps the locked wallet when the user cancels or backs out', () => {
+  it('goes back to the PIN on Cancel', () => {
     const p = lock();
-    fireEvent.click(screen.getByText(/Forgot PIN/));
+    fireEvent.click(screen.getByText('Forgot PIN?'));
     fireEvent.click(screen.getByText('Cancel'));
     expect(screen.getByText('Enter PIN-code')).toBeTruthy();
-    fireEvent.click(screen.getByText(/Forgot PIN/));
-    fireEvent.click(screen.getByText('Start a new empty wallet'));
-    typePin('9999');
-    fireEvent.click(screen.getByText('Back'));
-    expect(screen.getByText('Enter PIN-code')).toBeTruthy();
-    expect(p.createWallet).not.toHaveBeenCalled();
+    expect(p.startOver).not.toHaveBeenCalled();
   });
 });
 
-describe('lock screen: restore from a backup', () => {
-  it('offers a backup as a way out, and Back returns to the PIN screen', () => {
-    const p = { unlock: vi.fn(), createWallet: vi.fn(), restore: (onBack: () => void) => <button onClick={onBack}>restore dialog</button> };
-    render(<PinCodeOnLogin props={p} />);
-    fireEvent.click(screen.getByText('Forgot PIN?'));
-    fireEvent.click(screen.getByText('Restore from a backup'));
-    fireEvent.click(screen.getByText('restore dialog'));
-    expect(screen.getByText('Enter PIN-code')).toBeTruthy();
-    expect(p.createWallet).not.toHaveBeenCalled();
+describe('start screen over a locked wallet', () => {
+  function startOver(createWallet = vi.fn()) {
+    const onBack = vi.fn();
+    const props = {
+      termsAndPolicyAgreed: true,
+      importOrExportSettingRequested: null,
+      importWallet: vi.fn(),
+      createWallet,
+    } as unknown as Props;
+    render(<NotLoggedIn props={props} replacing={{ onBack }} />);
+    return { props, onBack };
+  }
+
+  it('says the locked wallet will be replaced and offers a way back', () => {
+    const { onBack } = startOver();
+    expect(screen.getByRole('note').textContent).toMatch(/replaces it for good/);
+    fireEvent.click(screen.getByText('Back to unlock'));
+    expect(onBack).toHaveBeenCalled();
+  });
+
+  it('replaces it only once the new PIN is confirmed', () => {
+    const { props } = startOver();
+    fireEvent.click(screen.getByText('Create new wallet'));
+    expect(screen.getByText(/The locked wallet is replaced once you confirm it/)).toBeTruthy();
+    typePin('9999');
+    expect(props.createWallet).not.toHaveBeenCalled();
+    typePin('9999');
+    expect(props.createWallet).toHaveBeenCalledWith('9999');
   });
 });
 

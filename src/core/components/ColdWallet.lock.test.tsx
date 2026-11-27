@@ -37,29 +37,34 @@ async function openExport() {
   await screen.findByText('Export backup');
 }
 
-async function start() {
+async function showLocked() {
   const wallet = memoryWallet(await sealed('2580'));
   render(<ColdWallet properties={{
     storageFactory: inMemoryStorageFactory,
     userDataStorageFactory: wallet.factory,
     integrationUserDataStorageFactory: inMemoryStorageFactory,
   }} />);
+  return wallet;
+}
+
+async function start() {
+  const wallet = await showLocked();
   await enterPin('2580');
   return wallet;
 }
 
-describe('locking the open wallet', () => {
-  beforeEach(() => {
-    // market data loaders have nothing to reach in tests
-    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('offline'))));
-    vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
-    vi.stubGlobal('matchMedia', (q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.spyOn(console, 'info').mockImplementation(() => {});
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-  });
-  afterEach(() => vi.restoreAllMocks());
+beforeEach(() => {
+  // market data loaders have nothing to reach in tests
+  vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('offline'))));
+  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
+  vi.stubGlobal('matchMedia', (q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'info').mockImplementation(() => {});
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+afterEach(() => vi.restoreAllMocks());
 
+describe('locking the open wallet', () => {
   it('closes what was open when the Lock button is used', async () => {
     await start();
     await openExport();
@@ -75,5 +80,34 @@ describe('locking the open wallet', () => {
     await screen.findByText(/changed in another tab/);
     await enterPin('1111');
     expect(screen.queryByText('Export backup')).toBeNull();
+  });
+});
+
+describe('forgot PIN: the start screen over the locked wallet', () => {
+  async function toStartScreen() {
+    const wallet = await showLocked();
+    fireEvent.click(await screen.findByText('Forgot PIN?'));
+    fireEvent.click(screen.getByText('Go to start screen'));
+    await screen.findByRole('note');
+    return wallet;
+  }
+
+  it('goes back to the PIN and keeps the wallet', async () => {
+    await toStartScreen();
+    fireEvent.click(screen.getByText('Back to unlock'));
+    await enterPin('2580');
+  });
+
+  it('replaces the locked wallet with a new one after its PIN is confirmed', async () => {
+    await toStartScreen();
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByText('Create new wallet'));
+    for (let i = 0; i < 2; i++) {
+      for (const d of '9999') fireEvent.click(screen.getByRole('button', { name: d }));
+      fireEvent.click(screen.getByTitle('Confirm'));
+    }
+    await screen.findByTitle('Settings');
+    fireEvent.click(screen.getByTitle('Lock'));
+    await enterPin('9999');
   });
 });

@@ -26,7 +26,7 @@ import UserDataStorageFactory from "../domain/UserDataStorageFactory";
 import {buildDemoUserDataHolder} from "../utils/DemoAssetsGenerator";
 import uuidGenerator from "../utils/uuidGenerator";
 import PinSetup from "./pin/PinSetup";
-import BackupImportDialog from "./settings/ImportData/BackupImportDialog";
+import type {ImportedWallet} from "../services/UserDataService";
 
 export default function ColdWallet(
     {properties, startInDemoMode = false}: {
@@ -279,17 +279,29 @@ export default function ColdWallet(
     const [pinCodeSettingsRequested, setPinCodeSettingsRequested] = useState(false);
     const [pinChanged, setPinChanged] = useState(false);
 
-    // A new wallet is always created locked with a PIN and opens unlocked. Cached integration
-    // balances of a wallet this one replaces (lock screen → "start a new empty wallet") are
-    // dropped so none of them leak into the new one.
-    async function createWallet(pin: string) {
-        const newUserData = new UserData(uuidGenerator.generateUUID());
-        await createStoredWallet(newUserData, pin);
+    // Cached integration balances belong to the wallet they were fetched for; they are dropped when
+    // another wallet takes its place, so none of them show up in the new one.
+    function dropIntegrationBalances() {
         setBinanceUserData(null);
         setOkxUserData(null);
         setMonobankUserData(null);
         setCcxtUserData({} as CcxtAccountsData);
         clearMetaMaskData();
+    }
+
+    // A new wallet is always created locked with a PIN and opens unlocked.
+    async function createWallet(pin: string) {
+        const newUserData = new UserData(uuidGenerator.generateUUID());
+        await createStoredWallet(newUserData, pin);
+        dropIntegrationBalances();
+    }
+
+    // "Forgot PIN?" → the start screen over the locked wallet: creating or importing a wallet there
+    // replaces it; until then it stays, and "Back to unlock" (or a reload) returns to its PIN.
+    const [startingOver, setStartingOver] = useState(false);
+    async function importReplacingLocked(imported: ImportedWallet, pin?: string) {
+        await importWallet(imported, pin);
+        dropIntegrationBalances();
     }
 
     // Every real wallet must have a PIN: an older wallet created without one, or one restored from
@@ -357,6 +369,7 @@ export default function ColdWallet(
         if (wasLocked.current === shouldEnterPinCode) return;
         wasLocked.current = shouldEnterPinCode;
         stateReset();
+        setStartingOver(false);
     });
 
     const currencyService = useMemo(() => new CurrencyService(
@@ -483,19 +496,15 @@ export default function ColdWallet(
     };
     return (
         <div className={"app-root"}>
-            {shouldEnterPinCode ? <PinCodeOnLogin props={{
-                unlock,
-                createWallet,
-                lockReason,
-                restore: (onBack) => (
-                    <BackupImportDialog props={props}
-                                        title="Restore from a backup"
-                                        intro="Paste a backup token and enter its PIN. It replaces the locked wallet on this device once both check out."
-                                        submitLabel="Restore"
-                                        onCancel={onBack}
-                                        onImported={stateReset} />
-                ),
-            }}/> : pinSetupRequired
+            {shouldEnterPinCode ? (startingOver
+                ? <NotLoggedIn props={{...props, importWallet: importReplacingLocked}}
+                               replacing={{ onBack: () => { stateReset(); setStartingOver(false); } }}/>
+                : <PinCodeOnLogin props={{
+                    unlock,
+                    lockReason,
+                    startOver: () => { stateReset(); setStartingOver(true); },
+                }}/>
+            ) : pinSetupRequired
                 ? <PinSetup title="Set a PIN-code"
                             intro="This wallet has no PIN yet. Set one to lock it on this device."
                             onDone={setWalletPin}/>
