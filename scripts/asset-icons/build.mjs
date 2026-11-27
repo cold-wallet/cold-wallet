@@ -102,8 +102,8 @@ function buildCrypto() {
 
 // ---------------------------------------------------------------- sources
 // key → [web3icons folder, file]. Exchanges without an exchange mark in web3icons use their
-// own exchange token where that token's logo IS the exchange's mark (WhiteBIT/WBT, MEXC/MX,
-// Huobi/HT) or the exchange's chain mark (Hyperliquid/HyperEVM, HashKey).
+// own exchange token where that token's logo IS the exchange's mark (MEXC/MX, Huobi/HT) or the
+// exchange's chain mark (Hyperliquid/HyperEVM, HashKey). WhiteBIT and Monobank are below.
 const SOURCES = {
   binance: ['exchanges/background', 'binance'],
   okx: ['exchanges/background', 'okx'],
@@ -122,18 +122,29 @@ const SOURCES = {
   kucoin: ['exchanges/background', 'kucoin'],
   paradex: ['exchanges/background', 'paradex'],
   upbit: ['exchanges/background', 'upbit'],
-  whitebit: ['tokens/background', 'WBT'],
   mexc: ['tokens/background', 'MX'],
   huobi: ['tokens/background', 'HT'],
   hyperliquid: ['networks/background', 'hyper-evm'],
   hashkey: ['networks/background', 'hashkey'],
 };
 
-// No permissively licensed Monobank mark exists (it is a registered trademark with no public
-// brand kit terms), so Monobank gets a plain self-drawn "m" on its black brand colour.
-const MONOBANK_SVG =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect width="24" height="24" fill="#000"/>' +
-  '<path d="M6.5 16.5v-5a2.5 2.5 0 0 1 5.5 0v5m0-5a2.5 2.5 0 0 1 5.5 0v5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+// Marks web3icons doesn't have, taken from the companies' own websites (the logo in the site
+// header) and placed on a 24×24 tile: WhiteBIT's mark in black on white, as in its favicon;
+// Monobank's "mono" wordmark in white on the dark tile of its app icon.
+const WHITEBIT_MARK =
+  'M11.937 5.266h6.379C18.316 2.36 20.68 0 23.599 0h6.415l-5.2 5.266V24H15.1c-5.284.012-9.57-4.243-9.57-9.503v-3.965H.203c0-2.911 2.365-5.266 5.284-5.266h.036C5.523 2.36 7.888 0 10.806 0h6.415zm6.166 5.817a2 2 0 0 0 0 2.833c.784.78 2.061.78 2.846 0z' +
+  'M.2 10.635c0-2.986 2.425-5.4 5.418-5.4l.044 5.4z';
+const MONO_WORDMARK =
+  'M21.82 20.08V9.58c0-2.99-1.59-4.4-4.26-4.4a6.15 6.15 0 0 0-4.98 2.65c-.54-1.66-1.9-2.65-4.03-2.65a6.34 6.34 0 0 0-4.74 2.25v-1.9H0v14.55h3.81v-9.79c.57-.8 1.68-1.71 3-1.71 1.56 0 2.16.96 2.16 2.32v9.18h3.85v-9.82a3.85 3.85 0 0 1 3-1.68c1.56 0 2.16.96 2.16 2.32v9.18h3.84Zm10.46.36c4.8 0 7.69-3.5 7.69-7.65 0-4.12-2.88-7.61-7.69-7.61-4.77 0-7.65 3.49-7.65 7.61 0 4.16 2.88 7.65 7.65 7.65Zm0-3.4c-2.37 0-3.69-1.96-3.69-4.25 0-2.25 1.32-4.21 3.7-4.21 2.37 0 3.72 1.96 3.72 4.21 0 2.29-1.35 4.25-3.73 4.25Zm24.12 3.04V9.8c0-2.83-1.54-4.63-4.72-4.63a6.63 6.63 0 0 0-5.07 2.25v-1.9H42.8v14.55h3.8v-9.79a4.13 4.13 0 0 1 3.31-1.71c1.62 0 2.67.7 2.67 2.7v8.8h3.81Zm10.5.36c4.8 0 7.69-3.5 7.69-7.65 0-4.12-2.88-7.61-7.69-7.61-4.77 0-7.65 3.49-7.65 7.61 0 4.16 2.88 7.65 7.65 7.65Zm0-3.4c-2.37 0-3.69-1.96-3.69-4.25 0-2.25 1.32-4.21 3.7-4.21 2.36 0 3.71 1.96 3.71 4.21 0 2.29-1.35 4.25-3.72 4.25Z';
+const OWN_SOURCES = {
+  whitebit:
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect width="24" height="24" fill="#fff"/>' +
+    `<path fill="#000" transform="translate(4.9 6.36) scale(.47)" d="${WHITEBIT_MARK}"/></svg>`,
+  monobank:
+    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><defs><linearGradient id="mono__bg" x1="0" x2="0" y1="0" y2="1">' +
+    '<stop offset="0" stop-color="#30333f"/><stop offset="1" stop-color="#1b1c22"/></linearGradient></defs><rect width="24" height="24" fill="url(#mono__bg)"/>' +
+    `<path fill="#fff" transform="translate(3.5 9.08) scale(.228)" d="${MONO_WORDMARK}"/></svg>`,
+};
 
 function buildSources() {
   const dir = path.join(OUT, 'source');
@@ -145,8 +156,10 @@ function buildSources() {
     fs.writeFileSync(path.join(dir, key + '.svg'), minify(svg));
     done.push(key);
   }
-  fs.writeFileSync(path.join(dir, 'monobank.svg'), MONOBANK_SVG);
-  done.push('monobank');
+  for (const [key, svg] of Object.entries(OWN_SOURCES)) {
+    fs.writeFileSync(path.join(dir, key + '.svg'), svg);
+    done.push(key);
+  }
   console.log(`sources: ${done.length} icons`);
   return done.sort();
 }
