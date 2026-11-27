@@ -149,7 +149,7 @@ describe('UserDataService', () => {
     await act(async () => {
       const change = svc().setUserDataPin('9999');
       svc().lock('idle');
-      await change;
+      await expect(change).rejects.toThrow(); // the caller must not report a changed PIN
     });
     await settle();
     expect(svc().loggedIn).toBe(false);
@@ -185,6 +185,32 @@ describe('UserDataService', () => {
     expect(ok).toBe(false);
     await act(async () => { ok = await svc().unlock('9999'); });
     expect(ok).toBe(true);
+  });
+
+  it('says when an older copy of the app in another tab saved the wallet', async () => {
+    const { svc, saveElsewhere } = run(await sealed('2580'));
+    await act(async () => { await svc().unlock('2580'); });
+    saveElsewhere(new UserDataHolder(true, cypherService.encrypt(wallet(), '2580'), false));
+    await waitFor(() => expect(svc().loggedIn).toBe(false));
+    expect(svc().lockReason).toBe('outdated');
+  });
+
+  it('opens an older-format wallet when this browser cannot make a new key, and keeps saving it that way', async () => {
+    const legacy = new UserDataHolder(true, cypherService.encrypt(wallet(), '2580'), false);
+    const { svc, stored } = run(legacy);
+    setKdfParamsForTests({ alg: 'argon2id', m: 1, t: 1, p: 1 }); // making a new key fails
+    try {
+      let ok = false;
+      await act(async () => { ok = await svc().unlock('2580'); });
+      expect(ok).toBe(true);
+      expect(stored()).toBe(legacy);
+      act(() => { svc().setUserData({ ...svc().userData, lastOnline: 5 }); });
+      await settle();
+      expect(isSealed(stored().encryptedData)).toBe(false);
+      expect(cypherService.decrypt<UserData>(stored().encryptedData, '2580').lastOnline).toBe(5);
+    } finally {
+      setKdfParamsForTests({ alg: 'argon2id', m: 64, t: 1, p: 1 });
+    }
   });
 
   it('says when the stored wallet was saved by a newer version, and keeps it', async () => {

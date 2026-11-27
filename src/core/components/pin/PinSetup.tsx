@@ -1,9 +1,9 @@
 // components/pin/PinSetup.tsx — choose a new PIN in two steps: enter it, then enter it again.
 // Nothing is saved here: `onDone` gets the PIN only after both entries matched, and the caller
 // creates / re-encrypts the wallet then. On a mismatch the flow starts over from the first step,
-// since there is no telling which of the two entries had the typo. Used for a new wallet, for a
-// wallet that has no PIN yet (old or imported), for "start a new empty wallet" on the lock screen,
-// and for Settings → Change PIN (after the current PIN, hence `stepOffset`).
+// since there is no telling which of the two entries had the typo. Used for a new wallet (also one
+// replacing a locked wallet whose PIN was forgotten), for a wallet that has no PIN yet (old or
+// imported), and for Settings → Change PIN (after the current PIN, hence `stepOffset`).
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import { PIN_MAX, PIN_MIN } from './PinPad';
 import PinDialog, { ForgetPinWarning } from './PinDialog';

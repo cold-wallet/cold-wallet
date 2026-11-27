@@ -30,6 +30,14 @@ describe('parseBackupToken', () => {
     expect(await parseBackupToken(token)).toEqual({ ok: false, error: 'newer-version' });
   });
 
+  it('calls a backup with stronger key parameters than this version allows a newer one, not a wrong PIN', async () => {
+    const sealed = (await sealUserDataHolder(new UserData('u1', new UserSettings(), []), await newPinKey('4321'))).encryptedData;
+    const envelope = JSON.parse(atob(sealed.slice(4)));
+    envelope.kdf = { ...envelope.kdf, m: 1024 * 1024 };
+    const token = toToken({ pinCodeEncrypted: true, encryptedData: 'cw2.' + btoa(JSON.stringify(envelope)), demo: false });
+    expect(await parseBackupToken(token, '4321')).toEqual({ ok: false, error: 'newer-version' });
+  });
+
   describe('PIN-protected backups are decrypted and checked before anything is replaced', () => {
     let holder: UserDataHolder;
     let token: string;

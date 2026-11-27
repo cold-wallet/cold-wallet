@@ -1,6 +1,6 @@
-// BackupImportDialog — paste a backup token (and its PIN, if it has one) to restore a wallet, in a
-// dialog of its own. Used by the welcome screen's "Import wallet" and by the lock screen's
-// "Forgot PIN? → Restore from a backup". Nothing is replaced until the token decrypts and validates.
+// BackupImportDialog — paste a backup token (and its PIN, if it has one) to import a wallet, in a
+// dialog of its own. Used by the start screen's "Import wallet", also when it is shown over a locked
+// wallet after "Forgot PIN?". Nothing is replaced until the token decrypts and validates.
 import React, { type ReactNode } from "react";
 import Props from "../../Props";
 import { useBackupImport } from "./useBackupImport";

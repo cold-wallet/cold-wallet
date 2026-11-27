@@ -13,6 +13,7 @@ const LOCK_INTRO: Record<LockReason, string> = {
     manual: 'Your portfolio is locked. Enter your PIN to unlock.',
     idle: `Locked after ${Math.round(AUTO_LOCK_AFTER / 60_000)} minutes without activity. Enter your PIN to unlock.`,
     elsewhere: 'The wallet was changed in another tab. Enter its current PIN to unlock.',
+    outdated: 'An older copy of Cold Wallet in another tab saved this wallet. Reload or close that tab, then enter your PIN.',
 };
 
 export default function PinCodeOnLogin(

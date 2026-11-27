@@ -1,6 +1,6 @@
 // useIdleLock — calls `onIdle` once nothing has happened (no pointer, key, touch, wheel or scroll
-// input) for `ms` while `active`. Also checked when the tab becomes visible again, since timers in
-// background tabs are throttled.
+// input) for `ms` while `active`. Also checked when the tab becomes visible or focused again, or the
+// page is shown again: timers in background tabs are throttled and stop while the computer sleeps.
 import { useEffect, useRef } from 'react';
 
 export const AUTO_LOCK_AFTER = 5 * 60_000;
@@ -21,10 +21,14 @@ export default function useIdleLock(active: boolean, onIdle: () => void, ms: num
         const onVisible = () => { if (document.visibilityState === 'visible') check(); };
         EVENTS.forEach((e) => window.addEventListener(e, touch, { passive: true, capture: true }));
         document.addEventListener('visibilitychange', onVisible);
+        window.addEventListener('focus', check);
+        window.addEventListener('pageshow', check);
         const timer = window.setInterval(check, Math.min(10_000, ms));
         return () => {
             EVENTS.forEach((e) => window.removeEventListener(e, touch, { capture: true }));
             document.removeEventListener('visibilitychange', onVisible);
+            window.removeEventListener('focus', check);
+            window.removeEventListener('pageshow', check);
             window.clearInterval(timer);
         };
     }, [active, ms]);

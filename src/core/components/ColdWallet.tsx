@@ -296,13 +296,28 @@ export default function ColdWallet(
         dropIntegrationBalances();
     }
 
+    // Exchange balances are fetched with the settings of the wallet that is open. After an unlock or
+    // an import those settings change, so the next render (which has them) fetches once more.
+    const [integrationsReload, setIntegrationsReload] = useState(0);
+    useEffect(() => {
+        if (!integrationsReload) return;
+        loadBinanceUserData();
+        loadOkxUserData();
+        loadMonobankUserData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [integrationsReload]);
+
+    // An imported backup replaces the wallet: the previous one's cached balances go, and the
+    // restored one's are fetched with its own settings.
+    async function importReplacing(imported: ImportedWallet, pin?: string) {
+        await importWallet(imported, pin);
+        dropIntegrationBalances();
+        setIntegrationsReload((n) => n + 1);
+    }
+
     // "Forgot PIN?" → the start screen over the locked wallet: creating or importing a wallet there
     // replaces it; until then it stays, and "Back to unlock" (or a reload) returns to its PIN.
     const [startingOver, setStartingOver] = useState(false);
-    async function importReplacingLocked(imported: ImportedWallet, pin?: string) {
-        await importWallet(imported, pin);
-        dropIntegrationBalances();
-    }
 
     // Every real wallet must have a PIN: an older wallet created without one, or one restored from
     // a backup that had none, has to set it before the dashboard opens. The demo never needs one.
@@ -370,6 +385,7 @@ export default function ColdWallet(
         wasLocked.current = shouldEnterPinCode;
         stateReset();
         setStartingOver(false);
+        if (!shouldEnterPinCode) setIntegrationsReload((n) => n + 1);
     });
 
     const currencyService = useMemo(() => new CurrencyService(
@@ -412,7 +428,7 @@ export default function ColdWallet(
         showCreateNewAssetWindow, setShowCreateNewAssetWindow,
         creatingNewAsset, setCreatingNewAsset,
         userData, setUserData,
-        userDataHolder, importWallet,
+        userDataHolder, importWallet: importReplacing,
         isDemoMode,
         newAssetAmount, setNewAssetAmount,
         newAssetCurrency, setNewAssetCurrency,
@@ -497,7 +513,7 @@ export default function ColdWallet(
     return (
         <div className={"app-root"}>
             {shouldEnterPinCode ? (startingOver
-                ? <NotLoggedIn props={{...props, importWallet: importReplacingLocked}}
+                ? <NotLoggedIn props={props}
                                replacing={{ onBack: () => { stateReset(); setStartingOver(false); } }}/>
                 : <PinCodeOnLogin props={{
                     unlock,

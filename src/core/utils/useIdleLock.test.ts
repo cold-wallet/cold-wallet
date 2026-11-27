@@ -16,6 +16,15 @@ describe('useIdleLock', () => {
     expect(onIdle).toHaveBeenCalled();
   });
 
+  it('locks as soon as the window is focused again after the computer slept', () => {
+    const onIdle = vi.fn();
+    renderHook(() => useIdleLock(true, onIdle, 60_000));
+    vi.setSystemTime(Date.now() + 60 * 60_000); // the clock moved on, no timer ran
+    expect(onIdle).not.toHaveBeenCalled();
+    window.dispatchEvent(new Event('focus'));
+    expect(onIdle).toHaveBeenCalled();
+  });
+
   it('does nothing while inactive (locked wallet, demo, no PIN)', () => {
     const onIdle = vi.fn();
     renderHook(() => useIdleLock(false, onIdle, 60_000));

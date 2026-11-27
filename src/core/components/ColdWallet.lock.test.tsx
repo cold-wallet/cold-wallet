@@ -7,9 +7,21 @@ import { newPinKey } from '../services/PinVault';
 import UserData, { UserSettings } from '../domain/UserData';
 import UserDataHolder from '../domain/UserDataHolder';
 import type UserDataStorageFactory from '../domain/UserDataStorageFactory';
+import { dataImporter } from './settings/ImportData';
 
 // setupTests replaces ColdWallet with a stub for the other tests; this one needs the real thing.
 vi.unmock('./ColdWallet');
+
+// Binance stands in for the exchanges: each fetch records whether that render allowed loading.
+const { loadBinance } = vi.hoisted(() => ({ loadBinance: vi.fn() }));
+vi.mock('../integrations/binance/BinanceLoader', () => ({
+  default: (_demo: boolean, loadingAllowed: boolean) => ({
+    binancePrices: null, binancePricesLoaded: true,
+    binanceCurrencies: null, binanceCurrenciesLoaded: true,
+    binanceUserData: null, setBinanceUserData: () => {},
+    loadBinanceUserData: () => loadBinance(loadingAllowed),
+  }),
+}));
 
 // The wallet lives in memory; `saveElsewhere()` replaces it the way another tab would.
 function memoryWallet(initial: UserDataHolder) {
@@ -109,5 +121,28 @@ describe('forgot PIN: the start screen over the locked wallet', () => {
     await screen.findByTitle('Settings');
     fireEvent.click(screen.getByTitle('Lock'));
     await enterPin('9999');
+  });
+});
+
+describe('exchange balances', () => {
+  it('are fetched for the opened wallet right after unlocking', async () => {
+    loadBinance.mockClear();
+    await start();
+    await waitFor(() => expect(loadBinance).toHaveBeenCalledWith(true));
+  });
+
+  it('are fetched again after a backup is imported in Settings', async () => {
+    await start();
+    loadBinance.mockClear();
+    fireEvent.click(screen.getByTitle('Settings'));
+    fireEvent.click(await screen.findByText('Import'));
+    fireEvent.change(await screen.findByPlaceholderText(/Paste your backup token/), {
+      target: { value: dataImporter.generateExportData(await sealed('2580')) },
+    });
+    fireEvent.click(screen.getByText('Restore'));
+    await screen.findByText('Enter backup PIN');
+    for (const d of '2580') fireEvent.click(screen.getByRole('button', { name: d }));
+    fireEvent.click(screen.getByTitle('Confirm'));
+    await waitFor(() => expect(loadBinance).toHaveBeenCalledWith(true));
   });
 });

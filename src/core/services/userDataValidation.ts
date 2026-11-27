@@ -5,7 +5,7 @@ import UserDataHolder from '../domain/UserDataHolder';
 import cypherService from './CypherService';
 import UserData from '../domain/UserData';
 import { DEFAULT_PIN_CODE, openUserDataHolder, type ImportedWallet } from './UserDataService';
-import { isNewerFormat, WrongPinError } from './PinVault';
+import { isNewerFormat, NewerFormatError, WrongPinError } from './PinVault';
 import { validateAmount } from '../utils/amount';
 
 const holderSchema = z.object({
@@ -77,6 +77,7 @@ export async function parseBackupToken(token: string, pin?: string): Promise<Bac
     }
   } catch (e) {
     // a PIN that can't open it vs. a browser that couldn't derive the key (e.g. short on memory)
+    if (e instanceof NewerFormatError) return { ok: false, error: 'newer-version' };
     return { ok: false, error: !pinProtected || e instanceof WrongPinError ? failed : 'browser' };
   }
   if (!userDataSchema.safeParse(payload).success) return { ok: false, error: failed };

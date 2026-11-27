@@ -94,15 +94,15 @@ function fromB64(b64: string): Uint8Array<ArrayBuffer> {
 }
 
 // Bounds for parameters read from stored data or a pasted token, so a crafted token can't make
-// the browser allocate gigabytes or spin for minutes.
+// the browser allocate gigabytes or spin for minutes. Well-formed parameters beyond them (stronger
+// ones a newer version may use) are reported as a newer format, not as a wrong PIN.
 function checkKdf(kdf: unknown): KdfParams {
     const k = kdf as KdfParams;
-    const ok = !!k && k.alg === 'argon2id'
-        && Number.isInteger(k.m) && k.m >= 8 && k.m <= 256 * 1024
-        && Number.isInteger(k.t) && k.t >= 1 && k.t <= 10
-        && Number.isInteger(k.p) && k.p >= 1 && k.p <= 4
-        && k.m >= 8 * k.p;
-    if (!ok) throw new Error('unsupported key parameters');
+    const wellFormed = !!k && k.alg === 'argon2id'
+        && Number.isInteger(k.m) && Number.isInteger(k.t) && Number.isInteger(k.p)
+        && k.m >= 8 * k.p && k.t >= 1 && k.p >= 1;
+    if (!wellFormed) throw new WrongPinError();
+    if (k.m > 256 * 1024 || k.t > 10 || k.p > 4) throw new NewerFormatError();
     return { alg: 'argon2id', m: k.m, t: k.t, p: k.p };
 }
 
@@ -112,6 +112,8 @@ function checkKdf(kdf: unknown): KdfParams {
 export const WORKER_TIMEOUT_MS = 60_000;
 
 class WorkerUnavailableError extends Error {}
+/** The worker was restarted because another job hung: this job starts again on the new one. */
+class WorkerRestartedError extends Error {}
 
 const defaultWorker = () => (typeof Worker === 'undefined' ? null : new Argon2Worker());
 let createWorker: () => Worker | null = defaultWorker;
@@ -171,7 +173,12 @@ async function argon2(pin: string, salt: Uint8Array, kdf: KdfParams): Promise<Ui
             return await new Promise<Uint8Array>((resolve, reject) => {
                 const id = ++nextJob;
                 const timer = setTimeout(() => {
-                    if (jobs.has(id)) stopWorker(undefined, new KeyDerivationTimeoutError());
+                    const job = jobs.get(id);
+                    if (!job) return;
+                    jobs.delete(id);
+                    job.reject(new KeyDerivationTimeoutError());
+                    // the worker is stuck: replace it; other jobs it held start over on the new one
+                    stopWorker(undefined, new WorkerRestartedError());
                 }, WORKER_TIMEOUT_MS);
                 jobs.set(id, {
                     resolve: (raw) => { clearTimeout(timer); resolve(raw); },
@@ -180,6 +187,7 @@ async function argon2(pin: string, salt: Uint8Array, kdf: KdfParams): Promise<Ui
                 w.postMessage({ id, pin, salt, m: kdf.m, t: kdf.t, p: kdf.p });
             });
         } catch (e) {
+            if (e instanceof WorkerRestartedError) return argon2(pin, salt, kdf);
             // the worker ran and Argon2id itself failed (e.g. out of memory), or it stopped answering
             if (!(e instanceof WorkerUnavailableError)) throw e;
         }
@@ -211,9 +219,10 @@ export async function seal(data: unknown, pinKey: PinKey): Promise<string> {
     return PREFIX + toB64(new TextEncoder().encode(JSON.stringify(envelope)));
 }
 
-/** Keys made with weaker parameters than new keys get now: re-save with a new key when the PIN is at hand. */
+/** Keys made with weaker parameters than new keys get now: re-save with a new key when the PIN is at
+ *  hand. Memory is what makes Argon2id costly to attack, so more memory with fewer passes is kept. */
 export function isWeakerThanCurrent(kdf: KdfParams): boolean {
-    return kdf.m < kdfForNewKeys.m || kdf.t < kdfForNewKeys.t;
+    return kdf.m < kdfForNewKeys.m || (kdf.m === kdfForNewKeys.m && kdf.t < kdfForNewKeys.t);
 }
 
 function readEnvelope(sealed: string): { envelope: Envelope; kdf: KdfParams; salt: Uint8Array } {
@@ -224,7 +233,8 @@ function readEnvelope(sealed: string): { envelope: Envelope; kdf: KdfParams; sal
         const salt = fromB64(envelope.salt);
         if (salt.length < 8) throw new Error('bad salt');
         return { envelope, kdf, salt };
-    } catch {
+    } catch (e) {
+        if (e instanceof NewerFormatError) throw e;
         throw new WrongPinError();
     }
 }

@@ -34,11 +34,9 @@ export function useBackupImport(props: Props, onImported: () => void) {
     const canSubmit = tokenLooksValid && !busy;
 
     // The restored wallet opens unlocked (a backup with a PIN was just opened with it); one without
-    // a PIN lands on the "Set a PIN-code" screen (see ColdWallet).
+    // a PIN lands on the "Set a PIN-code" screen. Its exchange balances are fetched by ColdWallet,
+    // once its settings are in place.
     function finish() {
-        props.loadBinanceUserData();
-        props.loadMonobankUserData();
-        props.loadOkxUserData();
         onImported();
     }
 
