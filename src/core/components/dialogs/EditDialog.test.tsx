@@ -80,3 +80,19 @@ describe('EditDialog', () => {
     expect(screen.getByText(/35\/40/)).toBeTruthy();
   });
 });
+
+describe('EditDialog for an empty wallet', () => {
+  it('offers to import a backup token, which opens Settings → Import', () => {
+    const props = makeProps({ anyAssetExist: false, setImportOrExportSettingRequested: vi.fn() });
+    render(<EditDialog props={props} />);
+    fireEvent.click(screen.getByText('Import it'));
+    expect(props.stateReset).toHaveBeenCalled();
+    expect(props.setShowConfigsWindow).toHaveBeenCalledWith(true);
+    expect(props.setImportOrExportSettingRequested).toHaveBeenCalledWith('import');
+  });
+
+  it('does not offer it once the wallet has assets', () => {
+    render(<EditDialog props={makeProps({ anyAssetExist: true })} />);
+    expect(screen.queryByText('Import it')).toBeNull();
+  });
+});

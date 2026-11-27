@@ -153,6 +153,16 @@ export default function EditDialog({ props }: { props: Props }) {
                   <span className="connect-cta__main"><b>Connect an exchange or wallet</b><small>Auto-sync balances from Binance, OKX, MetaMask…</small></span>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
                 </button>
+                {!props.anyAssetExist && (
+                  <p className="import-hint">
+                    Have a backup token?{' '}
+                    <button className="import-hint__link" onClick={() => {
+                      props.stateReset();
+                      props.setShowConfigsWindow(true);
+                      props.setImportOrExportSettingRequested('import');
+                    }}>Import it</button>
+                  </p>
+                )}
               </>
             )}
             <div className="dialog__actions">

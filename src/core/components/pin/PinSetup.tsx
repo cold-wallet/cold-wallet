@@ -4,6 +4,7 @@
 // since there is no telling which of the two entries had the typo. Used for a new wallet (also one
 // replacing a locked wallet whose PIN was forgotten), for a wallet that has no PIN yet (old or
 // imported), and for Settings → Change PIN (after the current PIN, hence `stepOffset`).
+// Back on the confirming step returns to the first one; only there does it leave the flow.
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import { PIN_MAX, PIN_MIN } from './PinPad';
 import PinDialog, { ForgetPinWarning } from './PinDialog';
@@ -12,7 +13,7 @@ interface PinSetupProps {
   title: string;
   /** shown above the step prompt (why a PIN is being asked for) */
   intro?: ReactNode;
-  /** "Back" leaves the flow without saving anything; omitted when there is nowhere to go back to */
+  /** "Back" on the first step leaves the flow without saving anything; omitted when there is nowhere to go back to */
   onBack?: () => void;
   /** may return a promise (the wallet is being locked with the PIN): the keypad waits for it */
   onDone: (pin: string) => void | Promise<void>;
@@ -60,7 +61,7 @@ export default function PinSetup({ title, intro, onBack, onDone, stepOffset = 0 
       title={title}
       intro={intro}
       step={`Step ${stepOffset + (confirming ? 2 : 1)} of ${stepOffset + 2}`}
-      onBack={onBack}
+      onBack={confirming ? () => { setFirst(null); setEntry(null); } : onBack}
       busy={busy}
       status={busy ? 'Locking the wallet with your PIN…'
         : failed ? "This browser couldn't lock the wallet with the PIN (it may be short on memory). Nothing was saved. Try again, or use another browser."

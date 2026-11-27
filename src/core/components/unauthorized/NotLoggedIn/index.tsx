@@ -2,7 +2,7 @@
 // Create wallet (PIN first: nothing is stored until the PIN is chosen and confirmed) / demo mode /
 // import-from-token + terms checkbox. Also shown over a locked wallet whose PIN was forgotten
 // (`replacing`): a note says that creating or importing replaces it, with a way back to the PIN.
-import React, { useState, type ReactNode } from "react";
+import React, { useRef, useState, type ReactNode } from "react";
 import PinSetup from "../../pin/PinSetup";
 import BackupImportDialog from "../../settings/ImportData/BackupImportDialog";
 import Props from "../../Props";
@@ -24,6 +24,21 @@ export default function NotLoggedIn({ props, replacing }: {
 }) {
     const accepted = props.termsAndPolicyAgreed;
     const [choosingPin, setChoosingPin] = useState(false);
+    // A click on an option that needs the terms points at the checkbox: the row shakes (unless the
+    // system asks for less motion), the box is highlighted until ticked, and it takes the focus.
+    const [pointed, setPointed] = useState(false);
+    const terms = useRef<HTMLLabelElement>(null);
+    const termsBox = useRef<HTMLInputElement>(null);
+    function pointAtTerms() {
+        setPointed(true);
+        termsBox.current?.focus({ preventScroll: true });
+        terms.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+        if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+        terms.current?.animate?.(
+            [0, -7, 6, -4, 3, 0].map((x) => ({ transform: `translateX(${x}px)` })),
+            { duration: 380, easing: 'ease-out' },
+        );
+    }
 
     function createWallet() {
         if (accepted) setChoosingPin(true);
@@ -87,8 +102,12 @@ export default function NotLoggedIn({ props, replacing }: {
                 )}
 
                 <div className="welcome__opts">
+                    {/* aria-disabled, not disabled: a disabled button gets no click to point at the terms with */}
                     {OPTIONS.map((o) => (
-                        <button key={o.key} className={"wopt" + (o.primary ? " wopt--p" : "")} disabled={o.disabled} onClick={o.onClick}>
+                        <button key={o.key} className={"wopt" + (o.primary ? " wopt--p" : "")}
+                                aria-disabled={o.disabled || undefined}
+                                aria-describedby={o.disabled ? 'wterms-txt' : undefined}
+                                onClick={o.disabled ? pointAtTerms : o.onClick}>
                             <span className="wopt__ico">{o.icon}</span>
                             <span className="wopt__txt">
                                 <span className="wopt__title">{o.title}</span>
@@ -99,12 +118,12 @@ export default function NotLoggedIn({ props, replacing }: {
                     ))}
                 </div>
 
-                <label className="wterms">
-                    <input type="checkbox" checked={accepted} onChange={(e) => props.setTermsAndPolicyAgreed(e.target.checked)} />
+                <label ref={terms} className={"wterms" + (pointed && !accepted ? " wterms--pointed" : "")}>
+                    <input ref={termsBox} type="checkbox" checked={accepted} onChange={(e) => props.setTermsAndPolicyAgreed(e.target.checked)} />
                     <span className="wterms__box" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12l5 5L20 6" /></svg>
                     </span>
-                    <span className="wterms__txt">
+                    <span className="wterms__txt" id="wterms-txt">
                         I have read and accept the <a href="/terms">Terms of Use</a> and <a href="/privacy-policy">Privacy Policy</a>
                     </span>
                 </label>

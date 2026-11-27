@@ -146,3 +146,55 @@ describe('exchange balances', () => {
     await waitFor(() => expect(loadBinance).toHaveBeenCalledWith(true));
   });
 });
+
+describe('copying the backup token', () => {
+  function clipboard(writeText: () => Promise<void>) {
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+  }
+  function execCommand(result: boolean) {
+    Object.defineProperty(document, 'execCommand', { value: vi.fn(() => result), configurable: true });
+  }
+  afterEach(() => {
+    delete (navigator as { clipboard?: unknown }).clipboard;
+    delete (document as { execCommand?: unknown }).execCommand;
+  });
+
+  it('says Copied once the browser has copied it', async () => {
+    clipboard(() => Promise.resolve());
+    await start();
+    await openExport();
+    fireEvent.click(screen.getByText('Copy token'));
+    await screen.findByText('Copied');
+  });
+
+  it('copies it the old way where the clipboard API is missing, as in some in-app browsers', async () => {
+    execCommand(true);
+    await start();
+    await openExport();
+    fireEvent.click(screen.getByText('Copy token'));
+    await screen.findByText('Copied');
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
+  });
+
+  it('does not claim a copy when the token could not be selected', async () => {
+    execCommand(true);
+    const select = vi.spyOn(Selection.prototype, 'selectAllChildren').mockImplementation(() => {});
+    await start();
+    await openExport();
+    fireEvent.click(screen.getByText('Copy token'));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/Select the token above/);
+    expect(document.execCommand).not.toHaveBeenCalled();
+    select.mockRestore();
+  });
+
+  it('says so and selects the token when the browser refuses both ways', async () => {
+    clipboard(() => Promise.reject(new Error('denied')));
+    execCommand(false);
+    await start();
+    await openExport();
+    fireEvent.click(screen.getByText('Copy token'));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/didn't allow copying/);
+    expect(screen.queryByText('Copied')).toBeNull();
+    expect(window.getSelection()?.toString()).toBe(document.querySelector('.token-box code')!.textContent);
+  });
+});
