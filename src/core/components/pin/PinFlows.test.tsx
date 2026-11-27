@@ -159,9 +159,9 @@ describe('lock screen', () => {
 
   it('replaces the locked wallet only after a warning and a confirmed new PIN', () => {
     const p = lock();
-    fireEvent.click(screen.getByText(/Forgot PIN\? Start a new empty wallet/));
-    expect(screen.getByText('Start a new empty wallet?')).toBeTruthy();
-    fireEvent.click(screen.getByText('Continue'));
+    fireEvent.click(screen.getByText('Forgot PIN?'));
+    expect(screen.getByText('Forgot the PIN?')).toBeTruthy();
+    fireEvent.click(screen.getByText('Start a new empty wallet'));
     typePin('9999');
     typePin('9999');
     expect(p.createWallet).toHaveBeenCalledWith('9999');
@@ -173,9 +173,21 @@ describe('lock screen', () => {
     fireEvent.click(screen.getByText('Cancel'));
     expect(screen.getByText('Enter PIN-code')).toBeTruthy();
     fireEvent.click(screen.getByText(/Forgot PIN/));
-    fireEvent.click(screen.getByText('Continue'));
+    fireEvent.click(screen.getByText('Start a new empty wallet'));
     typePin('9999');
     fireEvent.click(screen.getByText('Back'));
+    expect(screen.getByText('Enter PIN-code')).toBeTruthy();
+    expect(p.createWallet).not.toHaveBeenCalled();
+  });
+});
+
+describe('lock screen: restore from a backup', () => {
+  it('offers a backup as a way out, and Back returns to the PIN screen', () => {
+    const p = { unlock: vi.fn(), createWallet: vi.fn(), restore: (onBack: () => void) => <button onClick={onBack}>restore dialog</button> };
+    render(<PinCodeOnLogin props={p} />);
+    fireEvent.click(screen.getByText('Forgot PIN?'));
+    fireEvent.click(screen.getByText('Restore from a backup'));
+    fireEvent.click(screen.getByText('restore dialog'));
     expect(screen.getByText('Enter PIN-code')).toBeTruthy();
     expect(p.createWallet).not.toHaveBeenCalled();
   });

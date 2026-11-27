@@ -26,6 +26,7 @@ import UserDataStorageFactory from "../domain/UserDataStorageFactory";
 import {buildDemoUserDataHolder} from "../utils/DemoAssetsGenerator";
 import uuidGenerator from "../utils/uuidGenerator";
 import PinSetup from "./pin/PinSetup";
+import BackupImportDialog from "./settings/ImportData/BackupImportDialog";
 
 export default function ColdWallet(
     {properties, startInDemoMode = false}: {
@@ -479,6 +480,14 @@ export default function ColdWallet(
                 unlock,
                 createWallet,
                 lockReason,
+                restore: (onBack) => (
+                    <BackupImportDialog props={props}
+                                        title="Restore from a backup"
+                                        intro="Paste a backup token and enter its PIN. It replaces the locked wallet on this device once both check out."
+                                        submitLabel="Restore"
+                                        onCancel={onBack}
+                                        onImported={stateReset} />
+                ),
             }}/> : pinSetupRequired
                 ? <PinSetup title="Set a PIN-code"
                             intro="This wallet has no PIN yet. Set one to lock it on this device."

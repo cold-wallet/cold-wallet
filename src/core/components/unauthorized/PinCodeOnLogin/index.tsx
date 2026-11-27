@@ -1,15 +1,15 @@
 // PinCodeOnLogin — app-unlock PIN screen. A forgotten PIN can't be recovered (the data is
-// encrypted with it), so the only way out is "start a new empty wallet": after a warning, a new PIN
-// is chosen and confirmed, and only then is the locked wallet replaced. Backing out at any step
-// leaves the locked wallet untouched.
-import React, { useEffect, useRef, useState } from "react";
+// encrypted with it), so "Forgot PIN?" offers two ways out, both replacing the locked wallet: restore
+// a backup token (with that backup's PIN), or start a new empty wallet (a new PIN chosen and
+// confirmed first). Backing out at any step leaves the locked wallet untouched.
+import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import PinDialog, { BROWSER_PIN_ERROR, NEWER_VERSION_PIN_ERROR } from "../../pin/PinDialog";
 import { NewerFormatError } from "../../../services/PinVault";
 import type { LockReason } from "../../../services/UserDataService";
 import { AUTO_LOCK_AFTER } from "../../../utils/useIdleLock";
 import PinSetup from "../../pin/PinSetup";
 
-type Step = 'unlock' | 'confirm-reset' | 'new-pin';
+type Step = 'unlock' | 'forgot' | 'new-pin' | 'restore';
 
 const LOCK_INTRO: Record<LockReason, string> = {
     manual: 'Your portfolio is locked. Enter your PIN to unlock.',
@@ -25,6 +25,8 @@ export default function PinCodeOnLogin(
             createWallet: (pin: string) => void | Promise<void>,
             /** why an open wallet was locked; none after a reload */
             lockReason?: LockReason | null,
+            /** the "restore from a backup" dialog; `onBack` returns to the PIN screen */
+            restore?: (onBack: () => void) => ReactNode,
         }
     }
 ) {
@@ -60,6 +62,10 @@ export default function PinCodeOnLogin(
                          onDone={props.createWallet} />;
     }
 
+    if (step === 'restore' && props.restore) {
+        return <>{props.restore(() => setStep('unlock'))}</>;
+    }
+
     if (step === 'unlock') {
         return <PinDialog title="Enter PIN-code"
                           intro={LOCK_INTRO[props.lockReason ?? 'manual']}
@@ -70,8 +76,8 @@ export default function PinCodeOnLogin(
                           setPin={(v) => { setEntry(v); if (v) { setWrong(false); setFailed(null); } }}
                           onAccept={acceptPinCode}
                           footer={
-                              <button className="pin-reset" disabled={checking} onClick={() => { setEntry(null); setWrong(false); setStep('confirm-reset'); }}>
-                                  Forgot PIN? Start a new empty wallet
+                              <button className="pin-reset" disabled={checking} onClick={() => { setEntry(null); setWrong(false); setStep('forgot'); }}>
+                                  Forgot PIN?
                               </button>
                           } />;
     }
@@ -79,14 +85,19 @@ export default function PinCodeOnLogin(
     return (
         <div className="scrim" style={{ zIndex: 80 }}>
             <div className="dialog pin-dialog pin-reset-confirm" role="alertdialog" aria-labelledby="pin-reset-title">
-                <h3 id="pin-reset-title">Start a new empty wallet?</h3>
+                <h3 id="pin-reset-title">Forgot the PIN?</h3>
                 <p className="data-desc">
-                    {"The wallet on this device will be deleted for good, with all its holdings and settings. "
-                        + "Without its PIN it can't be opened again, unless you have a backup token and its PIN."}
+                    {props.restore
+                        ? "Without its PIN, the wallet on this device can't be opened. Replace it with a backup token "
+                            + "(you'll need that backup's PIN), or start a new empty wallet. Either way, the wallet on "
+                            + "this device is deleted for good."
+                        : "Without its PIN, the wallet on this device can't be opened. Starting a new empty wallet "
+                            + "deletes it for good, with all its holdings and settings."}
                 </p>
-                <div className="dialog__actions">
+                <div className="dialog__actions pin-reset-actions">
+                    {props.restore && <button className="btn btn--p" onClick={() => setStep('restore')}>Restore from a backup</button>}
+                    <button className="btn btn--danger" onClick={() => setStep('new-pin')}>Start a new empty wallet</button>
                     <button className="btn" onClick={() => setStep('unlock')}>Cancel</button>
-                    <button className="btn btn--danger" onClick={() => setStep('new-pin')}>Continue</button>
                 </div>
             </div>
         </div>

@@ -3,8 +3,7 @@
 // import-from-token + terms checkbox.
 import React, { useState, type ReactNode } from "react";
 import PinSetup from "../../pin/PinSetup";
-import { useBackupImport } from "../../settings/ImportData/useBackupImport";
-import BackupImportFields from "../../settings/ImportData/BackupImportFields";
+import BackupImportDialog from "../../settings/ImportData/BackupImportDialog";
 import Props from "../../Props";
 
 interface Option {
@@ -103,38 +102,14 @@ export default function NotLoggedIn({ props }: { props: Props }) {
 function WelcomeImport({ props }: { props: Props }) {
     // Same flow as Settings → Import: the token (and its PIN, if it has one) is decrypted and
     // validated before anything is replaced; a rejected token keeps the dialog open with the reason.
-    const state = useBackupImport(props, () => {
-        props.stateReset();
-        props.setShowCreateNewAssetWindow(false);
-        props.setCreatingNewAsset(false);
-    });
-    const { text, setText } = state;
-
-    async function paste() {
-        try {
-            const t = await navigator.clipboard.readText();
-            if (t) setText(t);
-        } catch { /* clipboard unavailable */ }
-    }
-
-    return (
-        <div className="scrim" onClick={() => props.stateReset()}>
-            <div className="dialog" style={{ width: 520 }} onClick={(e) => e.stopPropagation()}>
-                <h3>Import wallet</h3>
-                <p className="data-desc">Paste a backup token exported from Cold Wallet to restore your portfolio.</p>
-                <BackupImportFields state={state} autoFocus />
-                <div className="data-actbar">
-                    <button className="ghostbtn" onClick={paste}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /></svg>
-                        Paste
-                    </button>
-                    <span className="meta num">{text.trim().length.toLocaleString()} characters</span>
-                </div>
-                <div className="dialog__actions">
-                    <button className="btn" onClick={() => props.stateReset()}>Cancel</button>
-                    <button className="btn btn--p" disabled={!state.canSubmit} onClick={state.submit}>Import</button>
-                </div>
-            </div>
-        </div>
-    );
+    return <BackupImportDialog props={props}
+                               title="Import wallet"
+                               intro="Paste a backup token exported from Cold Wallet to restore your portfolio."
+                               submitLabel="Import"
+                               onCancel={() => props.stateReset()}
+                               onImported={() => {
+                                   props.stateReset();
+                                   props.setShowCreateNewAssetWindow(false);
+                                   props.setCreatingNewAsset(false);
+                               }} />;
 }
