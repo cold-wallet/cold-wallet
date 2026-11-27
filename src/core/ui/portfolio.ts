@@ -21,6 +21,8 @@ export interface Valued {
   unitUsd: number;
   /** a USD price is known; without one `usd` is 0 and the holding is left out of every total */
   priced: boolean;
+  /** no price yet, but one may still arrive (shown as loading, not as "no price") */
+  pending: boolean;
 }
 
 export interface ClassSlice { key: 'fiat' | 'crypto'; label: string; usd: number; pct: number; color: string; }
@@ -30,7 +32,13 @@ export interface ArcSeg {
   [k: string]: unknown;
 }
 export interface ChartData { leafSegs: ArcSeg[]; curSegs: ArcSeg[]; typeSegs: ArcSeg[]; }
-export interface SidebarGroup { k: string; label: string; mark: string; tint: string; icon: string | null; items: Valued[]; sum: number; /** some holding in it has a price (else the sum means nothing) */ priced: boolean; }
+export interface SidebarGroup {
+  k: string; label: string; mark: string; tint: string; icon: string | null; items: Valued[]; sum: number;
+  /** holdings in it without a price: `sum` leaves them out */
+  unpriced: number;
+  /** some of those may still get one */
+  pending: boolean;
+}
 export interface SourceBar { key: string; usd: number; pct: number; label: string; mark: string; tint: string; icon: string | null; }
 
 function usdOf(ps: PriceService, a: AssetDTO): number {
@@ -69,9 +77,16 @@ export function unitUsdOf(asset: AssetDTO, ps: PriceService): number {
 }
 
 /** Attach USD value + source + visual metadata to every asset. When `hideMetaMaskDust` is on,
- *  drop MetaMask holdings worth < $0.01 (dust / price-less scam tokens) — filtering here, the one
- *  point where USD is known, hides them consistently across totals, charts, legend and by-source. */
-export function valueAssets(assets: AssetDTO[], ps: PriceService, hideMetaMaskDust = false): Valued[] {
+ *  drop MetaMask holdings worth < $0.01 and those no source prices (dust / price-less scam
+ *  tokens) — but not one whose price may still arrive (`pricePending`): a real token mustn't
+ *  vanish while prices load. Filtering here, the one point where USD is known, hides them
+ *  consistently across totals, charts, legend and by-source. */
+export function valueAssets(
+  assets: AssetDTO[],
+  ps: PriceService,
+  hideMetaMaskDust = false,
+  pricePending: (currency: string) => boolean = () => false,
+): Valued[] {
   const priced: Record<string, boolean> = {};
   const valued: Valued[] = assets.map((a) => {
     const known = (priced[a.currency] ??= isPriced(a.currency, ps));
@@ -82,6 +97,7 @@ export function valueAssets(assets: AssetDTO[], ps: PriceService, hideMetaMaskDu
       kind: a.type === AssetType.fiat ? 'fiat' : 'crypto',
       usd: known ? usdOf(ps, a) : 0,
       priced: known,
+      pending: !known && pricePending(a.currency),
       source: assetSource(a),
       manual: isManual(a),
       color: assetColor(a.currency),
@@ -91,7 +107,7 @@ export function valueAssets(assets: AssetDTO[], ps: PriceService, hideMetaMaskDu
     };
   });
   return hideMetaMaskDust
-    ? valued.filter((v) => !(v.asset.isMetaMaskAsset && v.usd < 0.01))
+    ? valued.filter((v) => !(v.asset.isMetaMaskAsset && (v.priced ? v.usd < 0.01 : !v.pending)))
     : valued;
 }
 
@@ -181,7 +197,8 @@ export function sidebarGroups(v: Valued[], query: string): SidebarGroup[] {
     items.sort((a, b) => b.usd - a.usd);
     const sum = items.reduce((s, h) => s + h.usd, 0);
     const s = items[0].source;
-    return { k, label: s.label, mark: s.mark, tint: s.tint, icon: s.icon, items, sum, priced: items.some((h) => h.priced) };
+    const unpriced = items.filter((h) => !h.priced);
+    return { k, label: s.label, mark: s.mark, tint: s.tint, icon: s.icon, items, sum, unpriced: unpriced.length, pending: unpriced.some((h) => h.pending) };
   });
   out.sort((a, b) => b.sum - a.sum);
   return out;

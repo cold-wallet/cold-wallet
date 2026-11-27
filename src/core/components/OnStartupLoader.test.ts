@@ -4,61 +4,67 @@ import OnStartupLoader, { MarketSources, SYNC_GIVE_UP, SYNC_SCREEN_MAX } from '.
 const nothingYet: MarketSources = {
   binancePricesLoaded: false, binanceCurrenciesLoaded: false,
   okxPricesLoaded: false, okxCurrenciesLoaded: false,
-  monobankRatesFresh: false, savedPricesAvailable: false, anyAssetExist: true, walletOpen: true,
+  monobankRatesFresh: false, pricesMissing: true, dashboardOpen: true,
 };
 const allFresh: MarketSources = {
   ...nothingYet,
   binancePricesLoaded: true, binanceCurrenciesLoaded: true,
   okxPricesLoaded: true, okxCurrenciesLoaded: true, monobankRatesFresh: true,
 };
+const hook = (initialProps: MarketSources) => renderHook((s: MarketSources) => OnStartupLoader(s), { initialProps });
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 describe('the market-data screen', () => {
-  it('waits on a first launch with holdings, but not longer than its limit', () => {
-    const { result } = renderHook(() => OnStartupLoader(nothingYet));
+  it('waits while holdings have no price, but not longer than its limit', () => {
+    const { result } = hook(nothingYet);
     expect(result.current.loaded).toBe(false);
     act(() => { vi.advanceTimersByTime(SYNC_SCREEN_MAX); });
     expect(result.current.loaded).toBe(true);
     expect(result.current.syncing).toBe(true);
   });
 
-  it('is skipped with prices saved on an earlier visit, which refresh quietly', () => {
-    const { result } = renderHook(() => OnStartupLoader({ ...nothingYet, savedPricesAvailable: true }));
-    expect(result.current).toEqual({ loaded: true, syncing: true });
-  });
-
-  it('is skipped when there is nothing to price', () => {
-    const { result } = renderHook(() => OnStartupLoader({ ...nothingYet, anyAssetExist: false }));
-    expect(result.current.loaded).toBe(true);
+  it('is skipped when every holding already has a price (saved, or from one source)', () => {
+    const { result } = hook({ ...nothingYet, pricesMissing: false });
+    expect(result.current).toEqual({ loaded: true, syncing: true, stale: false });
   });
 
   it('gives way as soon as every source answered', () => {
-    const { result, rerender } = renderHook((s: MarketSources) => OnStartupLoader(s), { initialProps: nothingYet });
+    const { result, rerender } = hook(nothingYet);
     rerender(allFresh);
-    expect(result.current).toEqual({ loaded: true, syncing: false });
+    expect(result.current).toEqual({ loaded: true, syncing: false, stale: false });
   });
 
-  it('waits for the wallet to open: a PIN screen or start screen does not use up its time', () => {
-    const { result, rerender } = renderHook((s: MarketSources) => OnStartupLoader(s), { initialProps: { ...nothingYet, walletOpen: false, anyAssetExist: false } });
+  it('gives way as soon as the missing prices arrive, before every source answered', () => {
+    const { result, rerender } = hook(nothingYet);
+    rerender({ ...nothingYet, pricesMissing: false });
+    expect(result.current.loaded).toBe(true);
+  });
+
+  it('starts counting only when the dashboard opens: a PIN screen does not use up its time', () => {
+    const { result, rerender } = hook({ ...nothingYet, dashboardOpen: false });
     act(() => { vi.advanceTimersByTime(SYNC_SCREEN_MAX * 3); });
-    rerender(nothingYet); // unlocked: holdings, no prices on this device yet
+    rerender(nothingYet);
     expect(result.current.loaded).toBe(false);
     act(() => { vi.advanceTimersByTime(SYNC_SCREEN_MAX); });
     expect(result.current.loaded).toBe(true);
   });
 
   it('does not come back once the dashboard was shown', () => {
-    const { result, rerender } = renderHook((s: MarketSources) => OnStartupLoader(s), { initialProps: { ...nothingYet, anyAssetExist: false } });
-    rerender(nothingYet); // the first holding was just added, prices still on the way
+    const { result, rerender } = hook({ ...nothingYet, pricesMissing: false });
+    rerender(nothingYet); // the first holding was just added, its price still on the way
     expect(result.current.loaded).toBe(true);
   });
+});
 
-  it('stops saying prices are loading after a minute of a source not answering', () => {
-    const { result } = renderHook(() => OnStartupLoader({ ...allFresh, monobankRatesFresh: false }));
-    expect(result.current.syncing).toBe(true);
+describe('price freshness', () => {
+  it('says prices may be outdated once a source stays silent for a minute', () => {
+    const { result, rerender } = hook({ ...allFresh, monobankRatesFresh: false, pricesMissing: false });
+    expect(result.current).toMatchObject({ syncing: true, stale: false });
     act(() => { vi.advanceTimersByTime(SYNC_GIVE_UP); });
-    expect(result.current.syncing).toBe(false);
+    expect(result.current).toMatchObject({ syncing: false, stale: true });
+    rerender({ ...allFresh, pricesMissing: false }); // it answers after all
+    expect(result.current).toMatchObject({ syncing: false, stale: false });
   });
 });

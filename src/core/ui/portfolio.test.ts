@@ -32,10 +32,27 @@ describe('valueAssets without every price', () => {
 });
 
 describe('sidebarGroups without prices', () => {
-  it('says whether a group has anything priced, so its sum is not shown as $0', () => {
-    const [manual] = sidebarGroups(valueAssets([asset('BTC', '1', AssetType.crypto)], new PriceService({ BTCEUR: '50000' }, [], {}, {})), '');
-    expect(manual.priced).toBe(false);
-    const [same] = sidebarGroups(valueAssets([asset('BTC', '1', AssetType.crypto)], new PriceService({ BTCEUR: '50000' }, fx, {}, {})), '');
-    expect(same.priced).toBe(true);
+  it('counts what a group sum leaves out and whether a price may still come', () => {
+    const noFx = new PriceService({ BTCEUR: '50000' }, [], {}, {});
+    const [g] = sidebarGroups(valueAssets([asset('USD', '5', AssetType.fiat), asset('EUR', '1', AssetType.fiat)], noFx, false, () => true), '');
+    expect([g.sum, g.unpriced, g.pending]).toEqual([5, 1, true]);
+    const [none] = sidebarGroups(valueAssets([asset('EUR', '1', AssetType.fiat)], noFx, false, () => false), '');
+    expect([none.unpriced, none.pending]).toEqual([1, false]);
+  });
+});
+
+describe('valueAssets: prices on the way', () => {
+  const noFx = new PriceService({}, [], {}, {});
+  const mm = (code: string) => Object.assign(asset(code, '3', AssetType.crypto), { isMetaMaskAsset: true });
+
+  it('marks a holding without a price as pending while one may still arrive', () => {
+    const [h] = valueAssets([asset('EUR', '1', AssetType.fiat)], noFx, false, () => true);
+    expect([h.priced, h.pending]).toEqual([false, true]);
+  });
+
+  it('keeps a MetaMask token whose price is loading, and hides one no source prices', () => {
+    const loading = valueAssets([mm('REAL')], noFx, true, () => true);
+    expect(loading.map((h) => h.code)).toEqual(['REAL']);
+    expect(valueAssets([mm('SCAM')], noFx, true, () => false)).toEqual([]);
   });
 });
