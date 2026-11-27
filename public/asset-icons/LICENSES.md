@@ -8,8 +8,8 @@ the folder from the exact package versions below.
 |---|---|---|---|
 | `crypto/` | Coin logos ("background" tile variant), 260 files | [`@web3icons/core`](https://github.com/0xa3k5/web3icons) 4.0.61 | MIT, © 2024 0xa3k5 |
 | `crypto/` | Coin logos (colour variant), 274 files, used where web3icons has no tile | [`cryptocurrency-icons`](https://github.com/spothq/cryptocurrency-icons) 0.18.1 | CC0 1.0 (public domain) |
-| `source/` | Exchange / wallet marks (Binance, OKX, MetaMask, Kraken, Coinbase, Bybit, KuCoin, Gate, Bitget, Bitstamp, Bithumb, BtcTurk, CoinEx, Crypto.com, Gemini, Paradex, Upbit), plus WhiteBIT (WBT), MEXC (MX), Huobi/HTX (HT), Hyperliquid (HyperEVM) and HashKey from the token/network sets | `@web3icons/core` 4.0.61 | MIT, © 2024 0xa3k5 |
-| `source/monobank.svg` | Plain "m" on black, drawn for this project | Cold Wallet | Same as this repository |
+| `source/` | Exchange / wallet marks (Binance, OKX, MetaMask, Kraken, Coinbase, Bybit, KuCoin, Gate, Bitget, Bitstamp, Bithumb, BtcTurk, CoinEx, Crypto.com, Gemini, Paradex, Upbit), plus MEXC (MX), Huobi/HTX (HT), Hyperliquid (HyperEVM) and HashKey from the token/network sets | `@web3icons/core` 4.0.61 | MIT, © 2024 0xa3k5 |
+| `source/whitebit.svg`, `source/monobank.svg` | WhiteBIT's mark and Monobank's "mono" wordmark, taken from the logo in the header of each company's own website (whitebit.com, monobank.ua) and placed on a tile | The companies' own websites | Trademarks of their owners; see below |
 
 **Fiat currencies have no image files.** They are drawn at runtime as a tile with the currency
 symbol (₴ € £ $ zł …), taken from the browser's built-in `Intl` data. See
@@ -19,8 +19,9 @@ symbol (₴ € £ $ zł …), taken from the browser's built-in `Intl` data. Se
 
 Coin, exchange and wallet logos are trademarks of their owners. They are used here only to
 identify which currency or integration a holding belongs to (nominative use). Using them does
-not imply endorsement or affiliation. Monobank publishes no brand kit with usable terms, so its
-badge is a self-drawn lettermark, not the official logo.
+not imply endorsement or affiliation.
+WhiteBIT and Monobank publish no brand kit, so their marks are taken from their own websites
+and used the same way.
 
 ## MIT licence text (@web3icons/core)
 
