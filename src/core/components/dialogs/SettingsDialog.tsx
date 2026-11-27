@@ -491,22 +491,33 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
 
 function ExportView({ props }: { props: Props }) {
   const token = dataImporter.generateExportData(props.userDataHolder);
-  // 'failed': the browser refused the clipboard (no permission, not a secure page); the token is
-  // selected instead so it can be copied by hand.
+  // The clipboard API is missing or refused in some places (in-app browsers such as MetaMask's,
+  // pages not served over https), so the token is then selected and copied the old way. 'failed':
+  // that didn't work either; the token stays selected so it can be copied by hand.
   const [copied, setCopied] = useState<'yes' | 'failed' | null>(null);
   const tokenBox = useRef<HTMLElement>(null);
   const resetCopied = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(resetCopied.current), []);
+  function copyBySelection(): boolean {
+    const selection = window.getSelection();
+    if (!tokenBox.current || !selection) return false;
+    selection.selectAllChildren(tokenBox.current);
+    let done = false;
+    try { done = document.execCommand('copy'); } catch { /* not supported */ }
+    if (done) selection.removeAllRanges();
+    return done;
+  }
   async function copy() {
     clearTimeout(resetCopied.current);
+    let done: boolean;
     try {
       await navigator.clipboard.writeText(token);
-      setCopied('yes');
-      resetCopied.current = setTimeout(() => setCopied(null), 1600);
+      done = true;
     } catch {
-      setCopied('failed');
-      if (tokenBox.current) window.getSelection()?.selectAllChildren(tokenBox.current);
+      done = copyBySelection();
     }
+    setCopied(done ? 'yes' : 'failed');
+    if (done) resetCopied.current = setTimeout(() => setCopied(null), 1600);
   }
   return (
     <div className="dlg__body">

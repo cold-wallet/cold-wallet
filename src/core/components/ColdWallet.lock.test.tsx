@@ -151,7 +151,13 @@ describe('copying the backup token', () => {
   function clipboard(writeText: () => Promise<void>) {
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
   }
-  afterEach(() => { delete (navigator as { clipboard?: unknown }).clipboard; });
+  function execCommand(result: boolean) {
+    Object.defineProperty(document, 'execCommand', { value: vi.fn(() => result), configurable: true });
+  }
+  afterEach(() => {
+    delete (navigator as { clipboard?: unknown }).clipboard;
+    delete (document as { execCommand?: unknown }).execCommand;
+  });
 
   it('says Copied once the browser has copied it', async () => {
     clipboard(() => Promise.resolve());
@@ -161,8 +167,18 @@ describe('copying the backup token', () => {
     await screen.findByText('Copied');
   });
 
-  it('says so and selects the token when the browser refuses', async () => {
+  it('copies it the old way where the clipboard API is missing, as in some in-app browsers', async () => {
+    execCommand(true);
+    await start();
+    await openExport();
+    fireEvent.click(screen.getByText('Copy token'));
+    await screen.findByText('Copied');
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
+  });
+
+  it('says so and selects the token when the browser refuses both ways', async () => {
     clipboard(() => Promise.reject(new Error('denied')));
+    execCommand(false);
     await start();
     await openExport();
     fireEvent.click(screen.getByText('Copy token'));
