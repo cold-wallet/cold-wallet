@@ -16,9 +16,11 @@ interface HoldingRowProps {
   onEdit: () => void;
   onDelete: () => void;
   onRefresh?: () => Promise<unknown>;
+  /** prices are still being fetched: a holding without one says it's coming, not "no price" */
+  syncing?: boolean;
 }
 
-export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete, onRefresh }: HoldingRowProps) {
+export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete, onRefresh, syncing = false }: HoldingRowProps) {
   const a = h.asset;
   const amt = amountDisplay(a.amount, h.scale, h.unitUsd);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,7 +54,10 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
         <div className="row__usd num">
           <AmountText amt={amt} code={h.code} hidden={hidden} />
         </div>
-        <div className="row__amt num">{maskUSD(h.usd, hidden)}</div>
+        {/* never "$0.00" for a holding whose price isn't known: that would read as worthless */}
+        {h.priced
+          ? <div className="row__amt num">{maskUSD(h.usd, hidden)}</div>
+          : <div className="row__amt row__amt--noprice">{syncing ? 'price loading…' : 'no price'}</div>}
       </div>
       <div className="row__actions">
         {h.manual ? (

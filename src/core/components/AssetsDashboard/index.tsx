@@ -79,6 +79,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     const sources = useMemo(() => sourceBreakdown(chartValued, chartTotal), [chartValued, chartTotal]);
 
     const sourceCount = new Set(valued.map((h) => h.source.key)).size;
+    const unpriced = valued.filter((h) => !h.priced).length;
     const maxLeaf = Math.max(...chart.leafSegs.map((l) => l.usd), 1);
     const hidden = props.hideAmounts;
     const totalStr = hidden ? AMOUNT_MASK : fmtUSD(total);
@@ -173,8 +174,15 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             <div className="total__label">Total balance</div>
                             <FitText className="total__val num" max={32} min={16}>{totalInt}<span className="cents">{totalCents}</span></FitText>
                         </div>
-                        {!props.loaded && <div className="total__delta num" title="Syncing market data">syncing…</div>}
+                        {props.syncing && <div className="total__delta num" title="Fetching live prices and exchange rates">syncing…</div>}
                     </div>
+                    {unpriced > 0 && (
+                        <div className="total__note" role="status">
+                            {props.syncing
+                                ? `${unpriced} holding${unpriced === 1 ? '' : 's'} not counted yet: price loading`
+                                : `${unpriced} holding${unpriced === 1 ? '' : 's'} not counted: no price`}
+                        </div>
+                    )}
                 </div>
 
                 <div className="searchrow">
@@ -194,7 +202,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             <div className="group__head">
                                 <SourceMark className="group__chip" icon={g.icon} mark={g.mark} tint={g.tint} />
                                 <span className="group__name">{g.label}</span>
-                                <span className="group__sum num">{maskUSD(g.sum, hidden, { cents: false })}</span>
+                                <span className="group__sum num">{g.priced ? maskUSD(g.sum, hidden, { cents: false }) : '—'}</span>
                             </div>
                             {g.items.map((h) => (
                                 <HoldingRow
@@ -206,6 +214,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                     onEdit={() => editAsset(h.asset)}
                                     onDelete={() => deleteAsset(h.asset)}
                                     onRefresh={h.asset.isMetaMaskAsset ? () => props.refreshMetaMaskAsset(h.id) : undefined}
+                                    syncing={props.syncing}
                                 />
                             ))}
                         </div>
@@ -235,13 +244,19 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                 </div>
 
                 <div className="cards">
-                    {classes.map((c) => (
+                    {classes.map((c) => {
+                        const notCounted = valued.filter((h) => h.kind === c.key && !h.priced).length;
+                        const nothingPriced = notCounted > 0 && !valued.some((h) => h.kind === c.key && h.priced);
+                        return (
                         <div className="statcard" key={c.key}>
                             <div className="statcard__label">{c.label}</div>
-                            <FitText className="statcard__val num" max={26} min={13}>{maskUSD(c.usd, hidden)}</FitText>
+                            <FitText className="statcard__val num" max={26} min={13}>{nothingPriced ? '—' : maskUSD(c.usd, hidden)}</FitText>
                             <div className="statcard__row">
                                 <span className="dot" style={{ background: c.color }} />
-                                <span className="num">{c.pct.toFixed(2)}%</span> of portfolio
+                                {nothingPriced
+                                    ? <span>{props.syncing ? 'price loading' : 'no price'}</span>
+                                    : <><span className="num">{c.pct.toFixed(2)}%</span> of portfolio</>}
+                                {notCounted > 0 && !nothingPriced && <span> · {notCounted} not counted</span>}
                             </div>
                             <div className="splitbar">
                                 {slices.filter((a) => a.kind === c.key).map((a) => (
@@ -249,7 +264,8 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                 ))}
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 <div className="panel-lg">

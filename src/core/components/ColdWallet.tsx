@@ -117,6 +117,7 @@ export default function ColdWallet(
     const {
         monobankRates,
         monobankCurrencies,
+        monobankRatesFresh,
         monobankUserData,
         setMonobankUserData,
         loadMonobankUserData,
@@ -127,17 +128,6 @@ export default function ColdWallet(
         properties.integrationUserDataStorageFactory,
         userData.settings.monobankIntegrationEnabled,
         userData.settings.monobankIntegrationToken
-    );
-
-    const {loaded} = OnStartupLoader(
-        binancePricesLoaded,
-        binanceCurrenciesLoaded,
-        okxPricesLoaded,
-        okxCurrenciesLoaded,
-        coinGeckoPricesLoaded,
-        coinGeckoCurrenciesLoaded,
-        monobankRates,
-        monobankCurrencies,
     );
 
     const [newAssetCurrency, setNewAssetCurrency] = useState<string | null>(null);
@@ -255,6 +245,17 @@ export default function ColdWallet(
         () => getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData),
         [userData, binanceUserData, okxUserData, monobankUserData,]
     )
+    const {loaded, syncing} = OnStartupLoader({
+        binancePricesLoaded,
+        binanceCurrenciesLoaded,
+        okxPricesLoaded,
+        okxCurrenciesLoaded,
+        monobankRatesFresh,
+        savedPricesAvailable: !!binancePrices && !!okxPrices && !!monobankRates?.length,
+        anyAssetExist,
+        walletOpen: loggedIn && !shouldEnterPinCode,
+    });
+
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow]
         = useState(!anyAssetExist && loggedIn);
     useEffect(() => setShowCreateNewAssetWindow(!anyAssetExist && loggedIn),
@@ -493,7 +494,7 @@ export default function ColdWallet(
         metaMaskErrorMessage,
         metaMaskHandleConnect,
 
-        loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded,
+        loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded, syncing,
 
         selectedPageNumber, setSelectedPageNumber,
         firstPageChartView, setFirstPageChartView,

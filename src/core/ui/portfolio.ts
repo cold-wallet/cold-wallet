@@ -19,6 +19,8 @@ export interface Valued {
   sym: string;
   scale: number;
   unitUsd: number;
+  /** a USD price is known; without one `usd` is 0 and the holding is left out of every total */
+  priced: boolean;
 }
 
 export interface ClassSlice { key: 'fiat' | 'crypto'; label: string; usd: number; pct: number; color: string; }
@@ -28,12 +30,18 @@ export interface ArcSeg {
   [k: string]: unknown;
 }
 export interface ChartData { leafSegs: ArcSeg[]; curSegs: ArcSeg[]; typeSegs: ArcSeg[]; }
-export interface SidebarGroup { k: string; label: string; mark: string; tint: string; icon: string | null; items: Valued[]; sum: number; }
+export interface SidebarGroup { k: string; label: string; mark: string; tint: string; icon: string | null; items: Valued[]; sum: number; /** some holding in it has a price (else the sum means nothing) */ priced: boolean; }
 export interface SourceBar { key: string; usd: number; pct: number; label: string; mark: string; tint: string; icon: string | null; }
 
 function usdOf(ps: PriceService, a: AssetDTO): number {
   const v = ps.transform(a.currency, +a.amount, 'USD');
   return isFinite(v) ? v : 0;
+}
+
+/** USD for 1 unit is known (PriceService answers 0, NaN or Infinity when a rate is missing) */
+export function isPriced(currency: string, ps: PriceService): boolean {
+  const unit = ps.transform(currency, 1, 'USD');
+  return isFinite(unit) && unit > 0;
 }
 
 // Per-currency display precision. Show only as many decimals as carry weight: the smallest
@@ -64,19 +72,24 @@ export function unitUsdOf(asset: AssetDTO, ps: PriceService): number {
  *  drop MetaMask holdings worth < $0.01 (dust / price-less scam tokens) — filtering here, the one
  *  point where USD is known, hides them consistently across totals, charts, legend and by-source. */
 export function valueAssets(assets: AssetDTO[], ps: PriceService, hideMetaMaskDust = false): Valued[] {
-  const valued: Valued[] = assets.map((a) => ({
-    asset: a,
-    id: a.id,
-    code: a.currency,
-    kind: a.type === AssetType.fiat ? 'fiat' : 'crypto',
-    usd: usdOf(ps, a),
-    source: assetSource(a),
-    manual: isManual(a),
-    color: assetColor(a.currency),
-    sym: assetSym(a.currency),
-    scale: displayScale(a, ps),
-    unitUsd: unitUsdOf(a, ps),
-  }));
+  const priced: Record<string, boolean> = {};
+  const valued: Valued[] = assets.map((a) => {
+    const known = (priced[a.currency] ??= isPriced(a.currency, ps));
+    return {
+      asset: a,
+      id: a.id,
+      code: a.currency,
+      kind: a.type === AssetType.fiat ? 'fiat' : 'crypto',
+      usd: known ? usdOf(ps, a) : 0,
+      priced: known,
+      source: assetSource(a),
+      manual: isManual(a),
+      color: assetColor(a.currency),
+      sym: assetSym(a.currency),
+      scale: displayScale(a, ps),
+      unitUsd: unitUsdOf(a, ps),
+    };
+  });
   return hideMetaMaskDust
     ? valued.filter((v) => !(v.asset.isMetaMaskAsset && v.usd < 0.01))
     : valued;
@@ -168,7 +181,7 @@ export function sidebarGroups(v: Valued[], query: string): SidebarGroup[] {
     items.sort((a, b) => b.usd - a.usd);
     const sum = items.reduce((s, h) => s + h.usd, 0);
     const s = items[0].source;
-    return { k, label: s.label, mark: s.mark, tint: s.tint, icon: s.icon, items, sum };
+    return { k, label: s.label, mark: s.mark, tint: s.tint, icon: s.icon, items, sum, priced: items.some((h) => h.priced) };
   });
   out.sort((a, b) => b.sum - a.sum);
   return out;
