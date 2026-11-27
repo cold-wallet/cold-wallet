@@ -56,11 +56,8 @@ export default function ColdWallet(
         storageFactory: properties.userDataStorageFactory,
     });
 
-    // Locking closes whatever was open (settings, a backup token on screen, half-typed keys), so
-    // the next unlock starts from the dashboard.
     function lockWallet(reason: 'idle' | 'manual') {
         lock(reason);
-        stateReset();
     }
     // An unlocked wallet locks itself after a while without any user activity.
     useIdleLock(loggedIn && !isDemoMode && userDataHolder.pinCodeEncrypted, () => lockWallet('idle'), AUTO_LOCK_AFTER);
@@ -351,6 +348,16 @@ export default function ColdWallet(
         setCurrentIntegrationApiPassword(null)
         setCurrentIntegrationApiAdditionalSetting(null)
     }
+
+    // Every lock (idle, the Lock button, a PIN changed in another tab) closes whatever was open:
+    // settings, a backup token on screen, half-typed keys or amounts. Nothing typed survives it.
+    // Unlocking resets once more, from the data just opened, so the dashboard starts clean.
+    const wasLocked = useRef(shouldEnterPinCode);
+    useEffect(() => {
+        if (wasLocked.current === shouldEnterPinCode) return;
+        wasLocked.current = shouldEnterPinCode;
+        stateReset();
+    });
 
     const currencyService = useMemo(() => new CurrencyService(
         binanceCurrencies || {},
