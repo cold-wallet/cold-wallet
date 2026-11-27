@@ -66,7 +66,7 @@ export default function PinSetup({ title, intro, onBack, onDone, stepOffset = 0 
         : failed ? "This browser couldn't lock the wallet with the PIN (it may be short on memory). Nothing was saved. Try again, or use another browser."
         : confirming ? 'Enter the same PIN again to confirm it.'
         : mismatch ? "The PINs didn't match. Choose your PIN again."
-          : `Choose a ${PIN_MIN}–${PIN_MAX} digit PIN.`}
+          : `Choose a ${PIN_MIN}–${PIN_MAX} digit PIN. 6 or more digits is safer.`}
       statusError={(mismatch || failed) && !confirming && !busy}
       pin={entry}
       setPin={setEntry}

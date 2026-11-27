@@ -39,6 +39,7 @@ export default function ChangePin({ props }: { props: Props }) {
 
   async function save(pin: string) {
     await props.setWalletPin(pin);
+    if (hasPin) props.setPinChanged(true); // Settings then says what this means for older backups
     props.setPinCodeSettingsRequested(false);
   }
 

@@ -163,6 +163,9 @@ export default interface Props {
 
     pinCodeSettingsRequested: boolean,
     setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,
+    /** the PIN was just changed: Settings notes that older backups keep the old PIN */
+    pinChanged: boolean,
+    setPinChanged: Dispatch<SetStateAction<boolean>>,
     /** check a PIN against the stored wallet without changing anything */
     verifyPin: (pin: string) => Promise<boolean>,
     /** set or change the wallet's PIN: the data is locked with it and stays unlocked */

@@ -189,6 +189,7 @@ describe('Settings: change PIN', () => {
       verifyPin: vi.fn(async (pin: string) => pin === pinCode),
       setWalletPin: vi.fn(async () => undefined),
       setPinCodeSettingsRequested: vi.fn(),
+      setPinChanged: vi.fn(),
     } as unknown as Props;
     render(<ChangePin props={props} />);
     return props;
@@ -207,6 +208,7 @@ describe('Settings: change PIN', () => {
     typePin('4444');
     expect(props.setWalletPin).toHaveBeenCalledWith('4444');
     await waitFor(() => expect(props.setPinCodeSettingsRequested).toHaveBeenCalledWith(false));
+    expect(props.setPinChanged).toHaveBeenCalledWith(true); // Settings mentions older backups
   });
 
   it('goes back to Settings without saving', async () => {

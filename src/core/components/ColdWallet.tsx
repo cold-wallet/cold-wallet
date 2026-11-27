@@ -279,6 +279,7 @@ export default function ColdWallet(
     const [importDataBuffer, setImportDataBuffer] = useState<string | null>(null);
 
     const [pinCodeSettingsRequested, setPinCodeSettingsRequested] = useState(false);
+    const [pinChanged, setPinChanged] = useState(false);
 
     // A new wallet is always created locked with a PIN and opens unlocked. Cached integration
     // balances of a wallet this one replaces (lock screen → "start a new empty wallet") are
@@ -339,6 +340,7 @@ export default function ColdWallet(
         setImportDataBuffer(null);
 
         setPinCodeSettingsRequested(false);
+        setPinChanged(false);
 
         setEnabledCcxtIntegrations(getEnabledCcxtIntegrations())
         setLoadingUserDataFromResource(null)
@@ -463,6 +465,7 @@ export default function ColdWallet(
         importDataBuffer, setImportDataBuffer,
 
         pinCodeSettingsRequested, setPinCodeSettingsRequested,
+        pinChanged, setPinChanged,
         verifyPin, setWalletPin,
         createWallet,
         lockWallet: () => lockWallet('manual'),
