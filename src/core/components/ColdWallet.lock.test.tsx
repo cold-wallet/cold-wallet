@@ -146,3 +146,28 @@ describe('exchange balances', () => {
     await waitFor(() => expect(loadBinance).toHaveBeenCalledWith(true));
   });
 });
+
+describe('copying the backup token', () => {
+  function clipboard(writeText: () => Promise<void>) {
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+  }
+  afterEach(() => { delete (navigator as { clipboard?: unknown }).clipboard; });
+
+  it('says Copied once the browser has copied it', async () => {
+    clipboard(() => Promise.resolve());
+    await start();
+    await openExport();
+    fireEvent.click(screen.getByText('Copy token'));
+    await screen.findByText('Copied');
+  });
+
+  it('says so and selects the token when the browser refuses', async () => {
+    clipboard(() => Promise.reject(new Error('denied')));
+    await start();
+    await openExport();
+    fireEvent.click(screen.getByText('Copy token'));
+    expect((await screen.findByRole('alert')).textContent).toMatch(/didn't allow copying/);
+    expect(screen.queryByText('Copied')).toBeNull();
+    expect(window.getSelection()?.toString()).toBe(document.querySelector('.token-box code')!.textContent);
+  });
+});

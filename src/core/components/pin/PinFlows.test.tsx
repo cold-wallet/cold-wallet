@@ -39,16 +39,32 @@ describe('PinSetup', () => {
     expect(onDone).toHaveBeenCalledWith('1111');
   });
 
-  it('offers Back on both steps only when there is somewhere to go back to', () => {
+  it('goes back from the confirming step to the first one, and leaves only from there', () => {
     const onBack = vi.fn();
-    const { unmount } = render(<PinSetup title="t" onBack={onBack} onDone={vi.fn()} />);
-    fireEvent.click(screen.getByText('Back'));
+    const onDone = vi.fn();
+    render(<PinSetup title="t" onBack={onBack} onDone={onDone} />);
     typePin('2580');
     fireEvent.click(screen.getByText('Back'));
-    expect(onBack).toHaveBeenCalledTimes(2);
-    unmount();
+    expect(onBack).not.toHaveBeenCalled();
+    expect(screen.getByText('Step 1 of 2')).toBeTruthy();
+    typePin('1111');
+    typePin('1111');
+    expect(onDone).toHaveBeenCalledWith('1111');
+  });
+
+  it('leaves from the first step with Back', () => {
+    const onBack = vi.fn();
+    render(<PinSetup title="t" onBack={onBack} onDone={vi.fn()} />);
+    fireEvent.click(screen.getByText('Back'));
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers Back on the first step only when there is somewhere to go back to', () => {
     render(<PinSetup title="t" onDone={vi.fn()} />);
     expect(screen.queryByText('Back')).toBeNull();
+    typePin('2580');
+    fireEvent.click(screen.getByText('Back'));
+    expect(screen.getByText('Step 1 of 2')).toBeTruthy();
   });
 
   it('warns that a forgotten PIN means losing access', () => {
@@ -116,8 +132,42 @@ describe('creating a wallet', () => {
     fireEvent.click(screen.getByText('Create new wallet'));
     typePin('2580');
     fireEvent.click(screen.getByText('Back'));
+    fireEvent.click(screen.getByText('Back'));
     expect(screen.getByText('Try the demo')).toBeTruthy();
     expect(props.createWallet).not.toHaveBeenCalled();
+  });
+});
+
+describe('start screen before the terms are accepted', () => {
+  function welcome() {
+    const props = {
+      termsAndPolicyAgreed: false,
+      importOrExportSettingRequested: null,
+      setImportOrExportSettingRequested: vi.fn(),
+      createWallet: vi.fn(),
+    } as unknown as Props;
+    render(<NotLoggedIn props={props} />);
+    return props;
+  }
+  const option = (title: string) => screen.getByText(title).closest('button')!;
+
+  it('points at the terms instead of creating or importing', () => {
+    const props = welcome();
+    for (const title of ['Create new wallet', 'Import wallet']) {
+      expect(option(title).getAttribute('aria-disabled')).toBe('true');
+      fireEvent.click(option(title));
+    }
+    expect(screen.queryByText('Step 1 of 2')).toBeNull();
+    expect(props.setImportOrExportSettingRequested).not.toHaveBeenCalled();
+    const box = screen.getByRole('checkbox');
+    expect(document.activeElement).toBe(box);
+    expect(box.closest('label')!.className).toMatch(/wterms--pointed/);
+  });
+
+  it('leaves the demo open', () => {
+    welcome();
+    expect(option('Try the demo').getAttribute('aria-disabled')).toBeNull();
+    expect(document.querySelector('.wterms--pointed')).toBeNull();
   });
 });
 

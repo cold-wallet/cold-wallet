@@ -4,7 +4,7 @@
 //   importOrExportSettingRequested → Export / Import (dataImporter)
 //   pinCodeSettingsRequested → ChangePin (own compact dialog; there is no "remove": a PIN is required)
 //   else → default view (Integrations · Data · Security)
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Props from "../Props";
 import { onSaveSetting } from "../settings/IntegrationSettings";
 import { dataImporter } from "../settings/ImportData";
@@ -246,12 +246,13 @@ function DefaultView({ props }: { props: Props }) {
         <div className="sect__label">Data</div>
         <div className="duo">
           <button className="optbtn" onClick={() => props.setImportOrExportSettingRequested('export')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v12M8 11l4 4 4-4M4 21h16" /></svg>
-            <span>Export<small>Backup token</small></span>
+            {/* arrows from the wallet's side: a token goes out (up) on export, comes in (down) on import */}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 15V3M8 7l4-4 4 4M4 21h16" /></svg>
+            <span>Export<small>Copy a backup token</small></span>
           </button>
           <button className="optbtn" onClick={() => props.setImportOrExportSettingRequested('import')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 15V3M8 7l4-4 4 4M4 21h16" /></svg>
-            <span>Import<small>Restore from token</small></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v12M8 11l4 4 4-4M4 21h16" /></svg>
+            <span>Import<small>Paste a backup token</small></span>
           </button>
         </div>
       </div>
@@ -490,11 +491,22 @@ function IntegrationConfig({ props, name }: { props: Props; name: string }) {
 
 function ExportView({ props }: { props: Props }) {
   const token = dataImporter.generateExportData(props.userDataHolder);
-  const [copied, setCopied] = useState(false);
-  function copy() {
-    try { navigator.clipboard.writeText(token); } catch { /* unavailable */ }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+  // 'failed': the browser refused the clipboard (no permission, not a secure page); the token is
+  // selected instead so it can be copied by hand.
+  const [copied, setCopied] = useState<'yes' | 'failed' | null>(null);
+  const tokenBox = useRef<HTMLElement>(null);
+  const resetCopied = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(resetCopied.current), []);
+  async function copy() {
+    clearTimeout(resetCopied.current);
+    try {
+      await navigator.clipboard.writeText(token);
+      setCopied('yes');
+      resetCopied.current = setTimeout(() => setCopied(null), 1600);
+    } catch {
+      setCopied('failed');
+      if (tokenBox.current) window.getSelection()?.selectAllChildren(tokenBox.current);
+    }
   }
   return (
     <div className="dlg__body">
@@ -503,15 +515,21 @@ function ExportView({ props }: { props: Props }) {
         <div className="cfg-title"><b>Export backup</b></div>
       </div>
       <p className="data-desc">This token is an encrypted backup of all your holdings and integration settings. Restoring it asks for the PIN this wallet has now. Keep the token and the PIN in different places, and share neither.</p>
-      <div className="token-box"><code>{token}</code></div>
+      <div className="token-box"><code ref={tokenBox}>{token}</code></div>
       <div className="data-actbar">
-        <button className={"ghostbtn" + (copied ? " copied" : "")} onClick={copy}>
-          {copied
+        <button className={"ghostbtn" + (copied === 'yes' ? " copied" : "")} onClick={copy}>
+          {copied === 'yes'
             ? <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12l5 5L20 6" /></svg>Copied</>
             : <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>Copy token</>}
         </button>
         <span className="meta num">{token.length.toLocaleString()} characters</span>
       </div>
+      {copied === 'failed' && (
+        <div className="import-err" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 8v5M12 16h.01" /></svg>
+          This browser didn't allow copying. The token is selected above, so you can copy it yourself.
+        </div>
+      )}
       <div className="cfg-foot">
         <button className="btn btn--p" onClick={() => props.setImportOrExportSettingRequested(null)} style={{ flex: 'none', padding: '0 28px' }}>Done</button>
       </div>

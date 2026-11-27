@@ -505,10 +505,15 @@ body {
 .wopt--p .wopt__desc, .wopt--p .wopt__chev { color: color-mix(in oklab, var(--accent-ink) 62%, transparent); }
 .wopt--p:hover .wopt__chev { color: var(--accent-ink); }
 
-.welcome__opts:has(.wterms) {}
-.wopt:disabled { cursor: not-allowed; opacity: .45; transform: none; }
-.wopt:disabled:hover { background: var(--card); border-color: var(--line-2); }
-.wopt--p:disabled:hover { background: var(--accent); filter: none; }
+/* An option waiting for the terms: grey, not a faded green, so it doesn't read as ready. It stays
+   clickable (aria-disabled) to point at the checkbox. */
+.wopt[aria-disabled="true"], .wopt[aria-disabled="true"]:hover {
+  cursor: not-allowed; transform: none; filter: none;
+  background: var(--card); border-color: var(--line); color: var(--ink-3);
+}
+.wopt[aria-disabled="true"] .wopt__ico { background: transparent; border-color: var(--line); color: var(--ink-3); }
+.wopt[aria-disabled="true"] .wopt__desc, .wopt[aria-disabled="true"] .wopt__chev,
+.wopt[aria-disabled="true"]:hover .wopt__chev { color: var(--ink-3); opacity: .6; transform: none; }
 
 .wterms {
   display: flex; align-items: flex-start; gap: 10px; margin-top: 22px; padding: 0 4px;
@@ -524,6 +529,9 @@ body {
 .wterms input:checked + .wterms__box { background: var(--accent); border-color: var(--accent); }
 .wterms input:checked + .wterms__box svg { opacity: 1; }
 .wterms input:focus-visible + .wterms__box { outline: 2px solid var(--accent-dim); outline-offset: 2px; }
+/* after a click on an option that needs the terms, until the box is ticked */
+.wterms--pointed .wterms__box { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-dim); }
+.wterms--pointed .wterms__txt { color: var(--ink); }
 .wterms a { color: var(--accent); text-decoration: none; font-weight: 500; }
 .wterms a:hover { text-decoration: underline; }
 .dialog { width: 380px; box-sizing: border-box; max-width: calc(100vw - 28px); max-height: calc(100vh - 28px); overflow-y: auto; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: 24px; box-shadow: 0 30px 80px -20px #000; }
@@ -543,6 +551,8 @@ body {
 .btn--p:hover { background: var(--accent); color: var(--accent-ink); filter: brightness(1.08); }
 .btn--danger { background: var(--danger); color: #fff; border-color: var(--danger); }
 .btn--danger:hover { background: var(--danger); color: #fff; filter: brightness(1.08); }
+/* disabled: grey whatever the kind, so a primary button doesn't look ready */
+.btn:disabled, .btn:disabled:hover { cursor: not-allowed; filter: none; background: var(--card); border-color: var(--line); color: var(--ink-3); }
 
 /* confirm-delete dialog */
 .confirm__ico { width: 48px; height: 48px; border-radius: 14px; margin: 0 auto 16px; display: grid; place-items: center; background: color-mix(in oklab, var(--danger) 16%, transparent); color: var(--danger); }
@@ -796,7 +806,7 @@ body {
 .key--ok { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .key--ok:hover { filter: brightness(1.08); background: var(--accent); }
 .key--ok.is-pressed { background: var(--accent); filter: brightness(1.12); }
-.key--ok:disabled { opacity: .4; cursor: not-allowed; filter: none; }
+.key--ok:disabled, .key--ok:disabled:hover { cursor: not-allowed; filter: none; background: var(--card); border-color: var(--line); color: var(--ink-3); }
 .key--muted { color: var(--ink-2); }
 .pin-msg { text-align: center; font-size: 12.5px; margin-top: 18px; min-height: 16px; color: var(--ink-3); }
 .pin-msg.ok { color: var(--accent); }
@@ -873,6 +883,9 @@ body {
 .connect-cta__main b { font-size: 13.5px; font-weight: 600; display: block; }
 .connect-cta__main small { font-size: 11.5px; color: var(--ink-3); }
 .connect-cta > svg { width: 17px; height: 17px; color: var(--ink-3); flex: none; }
+.import-hint { margin: 12px 0 0; text-align: center; font-size: 12.5px; color: var(--ink-3); }
+.import-hint__link { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; font-weight: 600; color: var(--accent); }
+.import-hint__link:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 .sel-chip { display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 16px; }
 .sel-chip__ico { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; font-size: 17px; font-weight: 600; }
