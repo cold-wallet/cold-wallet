@@ -7,6 +7,7 @@ const eurNumCode = 978;
 const BTC = "BTC";
 const EUR = "EUR";
 const USDT = "USDT";
+const USD = "USD";
 
 
 function isFiat(currency: string) {
@@ -178,7 +179,36 @@ export default class PriceService {
         return amountFrom / price;
     }
 
+    /**
+     * USD for 1 unit of a coin straight from market data, without fiat FX rates; 0 when no
+     * source quotes it. Binance and OKX quote coins in USDT, CoinGecko in `usd` directly.
+     *
+     * USDT ≈ USD: a USDT quote is turned into USD with CoinGecko's own USDT price when it is
+     * known, otherwise taken 1:1 (the peg). The same rule prices USDT itself, so a USDT
+     * holding is worth CoinGecko's USDT price, or $1 when that is not loaded.
+     */
+    private getCryptoPriceUSD(coin: string): number {
+        const positive = (n: number | undefined) => (n !== undefined && isFinite(n) && n > 0) ? n : 0;
+        const usdtUsd = positive(this.coingeckoPrices[USDT.toLowerCase()]?.[USD.toLowerCase()]) || 1;
+        if (coin === USDT) {
+            return usdtUsd;
+        }
+        const quotes = [
+            positive(+this.binancePrices[`${coin}${USDT}`]) * usdtUsd,
+            positive(+this.okxPrices[`${coin}-${USDT}`]) * usdtUsd,
+            positive(this.coingeckoPrices[coin.toLowerCase()]?.[USD.toLowerCase()]),
+        ].filter(p => p > 0);
+        return quotes.length ? quotes.reduce((a, b) => a + b, 0) / quotes.length : 0;
+    }
+
     private transformCryptoToFiat(currencyFrom: string, amount: number, currencyTo: string): number {
+        if (currencyTo === USD) {
+            // direct USD/USDT market price first: works before (or without) Monobank's FX rates
+            const usdPrice = this.getCryptoPriceUSD(currencyFrom);
+            if (usdPrice) {
+                return amount * usdPrice;
+            }
+        }
         const btcAmount = (currencyFrom === BTC)
             ? amount
             : this.transformCrypto(amount, currencyFrom, BTC);
