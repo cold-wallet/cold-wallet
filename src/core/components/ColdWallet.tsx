@@ -62,10 +62,11 @@ export default function ColdWallet(
         storageFactory: properties.userDataStorageFactory,
     });
 
-    // The lock screen's doors close before the wallet locks, and open once the PIN is right.
+    // The lock screen's doors close before the wallet locks, and open once the PIN is right. An
+    // auto-lock is immediate: by then nobody should see the wallet any longer.
     const vault = useVault<'idle' | 'manual'>({ locked: shouldEnterPinCode, unlock, lock });
     function lockWallet(reason: 'idle' | 'manual') {
-        vault.lock(reason);
+        vault.lock(reason, reason === 'manual');
     }
     // An unlocked wallet locks itself after a while without any user activity.
     useIdleLock(loggedIn && !isDemoMode && userDataHolder.pinCodeEncrypted, () => lockWallet('idle'), AUTO_LOCK_AFTER);
@@ -580,7 +581,7 @@ export default function ColdWallet(
                                replacing={{ onBack: () => { stateReset(); setStartingOver(false); } }}/>
                 : null
             ) : pinSetupRequired
-                ? <PinSetup title="Set a PIN-code"
+                ? <PinSetup title="Set a PIN"
                             intro="This wallet has no PIN yet. Set one to lock it on this device."
                             onDone={setWalletPin}/>
                 : loggedIn

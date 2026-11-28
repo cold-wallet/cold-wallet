@@ -921,6 +921,11 @@ body {
 .vault__door--l .vault__emblem { right: calc(var(--emblem) / -2); }
 .vault__door--r .vault__emblem { left: calc(var(--emblem) / -2); }
 .vault-wheel { transform-box: fill-box; transform-origin: center; }
+.vault__caption {
+  position: absolute; left: 0; right: 0; top: calc(50% + var(--emblem) * 0.62 + 14px); margin: 0;
+  text-align: center; font-size: 13px; color: var(--ink-2); animation: vault-caption-in .3s ease both;
+}
+@keyframes vault-caption-in { from { opacity: 0; } }
 
 .vault__card {
   position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; overflow-y: auto;
@@ -935,7 +940,6 @@ body {
 .vault[data-phase="turning"] .vault__emblem { filter: drop-shadow(0 0 26px color-mix(in oklab, var(--accent) 40%, transparent)); }
 .vault[data-phase="opening"] .vault__door--l { animation: vault-open-l var(--vault-open) cubic-bezier(.7,0,.2,1) forwards; }
 .vault[data-phase="opening"] .vault__door--r { animation: vault-open-r var(--vault-open) cubic-bezier(.7,0,.2,1) forwards; }
-.vault[data-phase="opening"] { pointer-events: none; }
 .vault[data-phase="closing"] .vault__door--l { animation: vault-close-l var(--vault-close) cubic-bezier(.5,0,.25,1) both; }
 .vault[data-phase="closing"] .vault__door--r { animation: vault-close-r var(--vault-close) cubic-bezier(.5,0,.25,1) both; }
 .vault[data-phase="opening"] .vault__door, .vault[data-phase="closing"] .vault__door { box-shadow: 0 0 60px rgba(0,0,0,.6); }

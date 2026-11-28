@@ -18,7 +18,7 @@ export default function ChangePin({ props }: { props: Props }) {
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const back = () => props.setPinCodeSettingsRequested(false);
-  const title = hasPin ? 'Change PIN-code' : 'Set PIN-code';
+  const title = hasPin ? 'Change PIN' : 'Set a PIN';
 
   async function checkCurrent() {
     if (checking || !entry || entry.length < PIN_MIN) return;

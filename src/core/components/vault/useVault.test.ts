@@ -25,6 +25,7 @@ describe('useVault', () => {
     vi.useFakeTimers();
   });
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.useRealTimers();
     setVaultTimingsForTests({ checkMin: 0, turn: 0, open: 0, close: 0, latch: 0 });
   });
@@ -72,12 +73,30 @@ describe('useVault', () => {
   });
 
   it('locks at once when nobody can see the doors', () => {
-    const hidden = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
     const { hook, lock, phase } = setup(false);
     act(() => hook.result.current.lock('manual'));
     expect(lock).toHaveBeenCalledTimes(1);
     expect(phase()).toBe('shut');
-    hidden.mockRestore();
+  });
+
+  it('locks at once without the doors when asked to (an auto-lock)', () => {
+    const { hook, lock, phase } = setup(false);
+    act(() => hook.result.current.lock('manual', false));
+    expect(lock).toHaveBeenCalledTimes(1);
+    expect(phase()).toBe('shut');
+  });
+
+  it('locks at once when the tab is hidden while the doors close', () => {
+    const { hook, lock, phase } = setup(false);
+    act(() => hook.result.current.lock('manual'));
+    expect(phase()).toBe('closing');
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    act(() => { document.dispatchEvent(new Event('visibilitychange')); });
+    expect(lock).toHaveBeenCalledWith('manual');
+    expect(phase()).toBe('shut');
+    act(() => { vi.advanceTimersByTime(T.close + T.latch); });
+    expect(lock).toHaveBeenCalledTimes(1); // the doors' own timers were dropped
   });
 
   it('shows the dashboard at once when the opening is skipped', async () => {
@@ -88,12 +107,20 @@ describe('useVault', () => {
     expect(phase()).toBe('open');
   });
 
-  it('follows locks and unlocks made elsewhere', () => {
-    const { hook, phase } = setup(false);
+  it('follows locks and unlocks made elsewhere in the same render', () => {
+    const seen: string[] = [];
+    const lock = vi.fn();
+    const hook = renderHook(({ locked }: Props) => {
+      const v = useVault<'manual'>({ locked, unlock: async () => true, lock });
+      seen.push(`${locked}:${v.phase}`);
+      return v;
+    }, { initialProps: { locked: false } });
     hook.rerender({ locked: true }); // e.g. the PIN changed in another tab
-    expect(phase()).toBe('shut');
+    expect(hook.result.current.phase).toBe('shut');
     hook.rerender({ locked: false }); // e.g. a new wallet created from the start screen
-    expect(phase()).toBe('open');
+    expect(hook.result.current.phase).toBe('open');
+    // never a render with doors over an open wallet, or none over a locked one
+    expect(seen.filter((s) => s === 'true:open' || s === 'false:shut')).toEqual([]);
   });
 
   it('shuts when the wallet is locked elsewhere while the doors open', async () => {

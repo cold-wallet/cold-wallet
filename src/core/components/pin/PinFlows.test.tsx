@@ -198,6 +198,16 @@ describe('lock screen', () => {
     await waitFor(() => expect(status()).toMatch(/saved by a newer version/));
   });
 
+  it('shakes on a wrong PIN, and not again when coming back from "Forgot PIN?"', async () => {
+    lock();
+    typePin('1111');
+    await waitFor(() => expect(status()).toMatch(/Wrong PIN/));
+    expect(document.querySelector('.pin-dialog')!.classList.contains('is-shake')).toBe(true);
+    fireEvent.click(screen.getByText('Forgot PIN?'));
+    fireEvent.click(screen.getByText('Cancel'));
+    expect(document.querySelector('.pin-dialog')!.classList.contains('is-shake')).toBe(false);
+  });
+
   it('says when the PIN is wrong and passes the right one on', async () => {
     const p = lock();
     typePin('1111');

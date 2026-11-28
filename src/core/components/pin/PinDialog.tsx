@@ -32,10 +32,13 @@ export default function PinDialog({ title, intro, status, statusError, step, onB
   // (e.g. the import token textarea).
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => { box.current?.focus(); }, []);
-  // a wrong PIN shakes the dialog: the class is put back each time so the animation runs again
+  // A wrong PIN shakes the dialog: the class is put back each time so the animation runs again.
+  // Only a change after opening counts (reopening after "Forgot PIN?" keeps the old count).
+  const shown = useRef(shake);
   useEffect(() => {
     const el = box.current;
-    if (!shake || !el) return;
+    if (shake === shown.current || !el) return;
+    shown.current = shake;
     el.classList.remove('is-shake');
     void el.offsetWidth;
     el.classList.add('is-shake');

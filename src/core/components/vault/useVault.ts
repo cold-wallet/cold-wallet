@@ -28,7 +28,7 @@ export interface VaultTimings {
     latch: number;
 }
 
-export const VAULT_TIMINGS: VaultTimings = { checkMin: 500, turn: 300, open: 450, close: 340, latch: 260 };
+export const VAULT_TIMINGS: VaultTimings = { checkMin: 300, turn: 240, open: 420, close: 320, latch: 220 };
 let timings: VaultTimings = VAULT_TIMINGS;
 
 /** Tests only: how long each step takes (0 everywhere: no animation). */
@@ -36,10 +36,22 @@ export function setVaultTimingsForTests(t: VaultTimings) {
     timings = t;
 }
 
-function animated(): boolean {
+/** The step durations in use. */
+export const vaultTimings = () => timings;
+
+/** Whether the doors animate now: not in tests, not for a hidden tab, not with reduced motion. */
+export function vaultMotion(): boolean {
     if (timings.open === 0) return false;
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return false;
     return !(typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+}
+
+/** The phase to show for `locked`: a lock or unlock made elsewhere wins over the stored phase at
+ *  once, so no frame shows doors over an open wallet or nothing over a locked one. */
+function shownPhase(phase: VaultPhase, locked: boolean): VaultPhase {
+    if (locked && phase !== 'shut' && phase !== 'checking') return 'shut';
+    if (!locked && phase === 'shut') return 'open';
+    return phase;
 }
 
 export default function useVault<R>({ locked, unlock, lock }: {
@@ -58,17 +70,17 @@ export default function useVault<R>({ locked, unlock, lock }: {
     const after = (ms: number, run: () => void) => { timers.current.push(window.setTimeout(run, ms)); };
     useEffect(() => clearTimers, []);
 
-    // Follow locks and unlocks the doors didn't start, and locks that cut an animation short.
+    // Store what is shown, so the next step starts from it.
+    const shown = shownPhase(phase, locked);
     useEffect(() => {
-        if (locked && phase !== 'shut' && phase !== 'checking') { clearTimers(); setPhase('shut'); }
-        else if (!locked && phase === 'shut') setPhase('open');
-    }, [locked, phase, setPhase]);
+        if (shown !== phase) { clearTimers(); setPhase(shown); }
+    }, [shown, phase, setPhase]);
 
     const latest = useRef({ unlock, lock });
     latest.current = { unlock, lock };
 
     const openDoors = useCallback(async (pin: string): Promise<boolean> => {
-        const motion = animated();
+        const motion = vaultMotion();
         const started = Date.now();
         setPhase('checking');
         let ok: boolean;
@@ -91,21 +103,44 @@ export default function useVault<R>({ locked, unlock, lock }: {
         return true;
     }, [setPhase]);
 
-    const closeDoors = useCallback((reason: R) => {
+    // The reason of a lock waiting for the doors to shut.
+    const pending = useRef<{ reason: R } | null>(null);
+    const lockNow = useCallback(() => {
+        const p = pending.current;
+        pending.current = null;
+        clearTimers();
+        if (p) { latest.current.lock(p.reason); setPhase('shut'); }
+    }, [setPhase]);
+
+    /** Lock the wallet; with `animate`, close the doors first. */
+    const closeDoors = useCallback((reason: R, animate = true) => {
         const p = current.current;
-        if (p === 'closing' || p === 'latching') return;
-        if (p !== 'open' || !animated()) { clearTimers(); latest.current.lock(reason); return; }
+        if (p === 'closing' || p === 'latching') {
+            if (!animate) lockNow();
+            return;
+        }
+        if (!animate || p !== 'open' || !vaultMotion()) { clearTimers(); latest.current.lock(reason); return; }
+        pending.current = { reason };
         setPhase('closing');
         after(timings.close, () => {
             setPhase('latching');
-            after(timings.latch, () => { latest.current.lock(reason); setPhase('shut'); });
+            after(timings.latch, lockNow);
         });
-    }, [setPhase]);
+    }, [setPhase, lockNow]);
+
+    // A tab hidden while the doors close locks at once: background timers can run late.
+    const closingNow = shown === 'closing' || shown === 'latching';
+    useEffect(() => {
+        if (!closingNow) return;
+        const onHidden = () => { if (document.visibilityState === 'hidden') lockNow(); };
+        document.addEventListener('visibilitychange', onHidden);
+        return () => document.removeEventListener('visibilitychange', onHidden);
+    }, [closingNow, lockNow]);
 
     /** A click or key while the doors open: show the dashboard at once. */
     const skip = useCallback(() => {
         if (current.current === 'turning' || current.current === 'opening') { clearTimers(); setPhase('open'); }
     }, [setPhase]);
 
-    return { phase, unlock: openDoors, lock: closeDoors, skip };
+    return { phase: shown, unlock: openDoors, lock: closeDoors, skip };
 }
