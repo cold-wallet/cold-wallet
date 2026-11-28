@@ -90,7 +90,9 @@ function statusNote(props: Props, key: string, on: boolean): string {
     case 'metamask': {
       const acc = props.userData.settings.metaMask?.accounts;
       const addr = acc ? Object.keys(acc)[0] : null;
-      return addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : 'Connected';
+      const name = addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : 'Connected';
+      const scan = props.refresh.metaMaskScan;
+      return scan && scan.total ? `${name} · searching tokens ${Math.floor(scan.done * 100 / scan.total)}%` : name;
     }
     default: return 'API key';
   }
@@ -255,6 +257,14 @@ function DefaultView({ props }: { props: Props }) {
             <span>Import<small>Paste a backup token</small></span>
           </button>
         </div>
+        {props.refresh.coinGeckoCatalogue && props.refresh.coinGeckoCatalogue.total > 0 && (
+          <p className="data-desc" role="status">
+            Prices for the coin picker are loading in the background:{' '}
+            {Math.floor(props.refresh.coinGeckoCatalogue.done * 100 / props.refresh.coinGeckoCatalogue.total)}%
+            {' '}({props.refresh.coinGeckoCatalogue.done.toLocaleString('en-US')} of {props.refresh.coinGeckoCatalogue.total.toLocaleString('en-US')} coins).
+            Prices of your holdings load first.
+          </p>
+        )}
       </div>
 
       <div className="sect">

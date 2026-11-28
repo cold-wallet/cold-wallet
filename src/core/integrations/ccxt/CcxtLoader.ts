@@ -3,8 +3,20 @@ import {useEffect, useRef, useState} from "react";
 import useInterval from "../../utils/useInterval";
 import UserData from "../../domain/UserData";
 import ccxtConnector from "./ccxtConnector";
+import {CCXT_REJECTED, CCXT_UNKNOWN_EXCHANGE} from "./ccxtErrors";
+import {ccxtScope} from "../../refresh/scopeKeys";
 import AssetDTO from "../../domain/AssetDTO";
 import ApiResponse from "../../domain/ApiResponse";
+import {RefreshTracker, useRetry, useScopedRunner} from "../../refresh/useRefreshTracker";
+import {dueForPoll, FailKind, planManual, stateOf} from "../../refresh/refreshState";
+
+const USER_DATA_INTERVAL_MS = 60_000;
+const exchangeOfScope = (key: string) => key.slice('ccxt:'.length);
+const isCcxtScope = (key: string) => key.startsWith('ccxt:');
+
+export function ccxtFailKind(code: number): FailKind {
+    return code === CCXT_REJECTED || code === CCXT_UNKNOWN_EXCHANGE ? 'fatal' : 'retry';
+}
 
 export interface CcxtAccountsData {
     [exchangeName: string]: AssetDTO[],
@@ -48,6 +60,7 @@ export default function CcxtLoader(
     loadingUserDataAllowed: boolean,
     storageFactory: StorageFactory,
     userData: UserData,
+    tracker: RefreshTracker,
 ) {
     const getEnabledCcxtIntegrations = () => new Set(savedEnabledCcxtIntegrations(userData))
 
@@ -82,36 +95,68 @@ export default function CcxtLoader(
     }, [savedEnabled, loadingUserDataAllowed]);
 
     // Syncs the exchanges switched on in the saved settings (not the switches, which may show a
-    // change still being checked or not saved yet).
-    const loadCcxtUserData = () => {
+    // change still being checked or not saved yet). Exchanges load in parallel; each one's balances
+    // and refresh button update as soon as it answers.
+    const runner = useScopedRunner(tracker, false);
+    const loadExchanges = (exchanges: string[], manual: boolean): Promise<void> => {
         if (!loadingUserDataAllowed) {
-            return
+            return Promise.resolve();
         }
         const startedFor = userData.id;
         const integrations = userData.settings.integrations || {};
-        const enabled = savedEnabledCcxtIntegrations(userData);
-        Promise.all(enabled.map(exchange => ccxtConnector.loadUserData(
-            exchange,
-            integrations[exchange].apiKey,
-            integrations[exchange].apiSecret,
-            integrations[exchange].password,
-            integrations[exchange].additionalSetting,
-        ).catch((e: unknown) => {
-            console.info(`could not sync ${exchange}`, e);
-            return ApiResponse.fail<AssetDTO[]>(0, String(e));
-        })
-            .then(response => [exchange, response] as [string, ApiResponse<AssetDTO[]>])))
-            .then(answers => {
-                if (openWallet.current.id !== startedFor) return;
+        const enabled = savedEnabledCcxtIntegrations(userData).filter(e => exchanges.includes(e));
+        if (!enabled.length) return Promise.resolve();
+        return runner(enabled.map(ccxtScope), manual, async (keys, settle) => {
+            await Promise.all(keys.map(exchangeOfScope).map(exchange => ccxtConnector.loadUserData(
+                exchange,
+                integrations[exchange].apiKey,
+                integrations[exchange].apiSecret,
+                integrations[exchange].password,
+                integrations[exchange].additionalSetting,
+            ).catch((e: unknown) => {
+                console.info(`could not sync ${exchange}`, e);
+                return ApiResponse.fail<AssetDTO[]>(0, String(e));
+            }).then(response => {
+                const key = ccxtScope(exchange);
+                if (openWallet.current.id !== startedFor) { settle.skip(key); return; }
                 const enabledNow = savedEnabledCcxtIntegrations(openWallet.current);
-                setCcxtUserData(saved => mergeCcxtSync(saved, enabledNow, answers));
-            })
+                setCcxtUserData(saved => mergeCcxtSync(saved, enabledNow, [[exchange, response]]));
+                if (response.success) settle.ok(key);
+                else settle.fail(key, response.error || 'Balances did not load', ccxtFailKind(response.code));
+            })));
+        });
+    };
+
+    // polling: every exchange switched on, except those that loaded meanwhile (a manual refresh)
+    const loadCcxtUserData = () => {
+        const now = Date.now();
+        const status = tracker.current();
+        void loadExchanges(savedEnabledCcxtIntegrations(userData)
+            .filter(exchange => dueForPoll(stateOf(status, ccxtScope(exchange)), now, USER_DATA_INTERVAL_MS)), false);
     };
     // on start (a wallet already open), then every minute; ColdWallet also calls it right after
     // an unlock or an import, like the other exchanges
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(loadCcxtUserData, []);
-    useInterval(loadCcxtUserData, 60_000);
+    useInterval(loadCcxtUserData, USER_DATA_INTERVAL_MS);
+    useRetry(tracker, '', keys => {
+        const exchanges = keys.filter(isCcxtScope).map(exchangeOfScope);
+        if (exchanges.length) void loadExchanges(exchanges, false);
+    });
+
+    // an exchange switched off: its refresh state goes too
+    useEffect(() => {
+        const on = savedEnabledCcxtIntegrations(userData);
+        tracker.forget(k => isCcxtScope(k) && !on.includes(exchangeOfScope(k)));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [savedEnabled]);
+
+    /** Manual refresh of these exchanges (default: all switched on); fresh ones answer at once. */
+    const refreshCcxt = (exchanges: string[] = savedEnabledCcxtIntegrations(userData)): Promise<void> => {
+        const plan = planManual(tracker.current(), exchanges.map(ccxtScope), Date.now());
+        tracker.pulse(plan.fresh);
+        return loadExchanges(plan.fetch.map(exchangeOfScope), true);
+    };
 
     return {
         ccxtUserData, setCcxtUserData,
@@ -119,5 +164,6 @@ export default function CcxtLoader(
         setEnabledCcxtIntegrations,
         getEnabledCcxtIntegrations,
         loadCcxtUserData,
+        refreshCcxt,
     }
 }

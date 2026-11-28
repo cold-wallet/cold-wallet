@@ -1,6 +1,7 @@
 import ApiResponse from "../../domain/ApiResponse";
 import fiatCurrencies from "../../fiatCurrencies";
 import AssetDTO, {AssetType} from "../../domain/AssetDTO";
+import {CCXT_REJECTED, CCXT_UNKNOWN_EXCHANGE} from "./ccxtErrors";
 
 // ccxt bundles ~100 exchange modules (tens of MB unbundled in dev). Importing it at the
 // top of this module used to drag the whole library into the initial render path on every
@@ -19,6 +20,7 @@ function loadCcxt(): Promise<any> {
     }
     return ccxtPromise;
 }
+
 
 const ccxtConnector = {
     /** Cached exchange list (empty until ccxt has finished loading); also kicks off the load. */
@@ -70,13 +72,15 @@ const ccxtConnector = {
                 return ApiResponse.success(200, assets)
             } catch (error: any) {
                 console.error(error)
+                // rejected keys or missing permissions: retrying won't help (see CCXT_REJECTED)
+                const rejected = ccxt.AuthenticationError && error instanceof ccxt.AuthenticationError;
                 return ApiResponse.fail(
-                    error?.response?.status,
+                    rejected ? CCXT_REJECTED : error?.response?.status,
                     error.message || error.response?.data?.errorDescription,
                 )
             }
         }
-        return ApiResponse.fail(0, `unknown exchange ${exchange}`);
+        return ApiResponse.fail(CCXT_UNKNOWN_EXCHANGE, `unknown exchange ${exchange}`);
     }
 }
 

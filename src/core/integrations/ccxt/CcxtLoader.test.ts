@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import useRefreshTracker from '../../refresh/useRefreshTracker';
 import CcxtLoader, { CcxtAccountsData, keepEnabledCcxt, mergeCcxtSync, savedEnabledCcxtIntegrations } from './CcxtLoader';
 import StorageFactory from '../../domain/StorageFactory';
 import StorageRepositoryFactory from '../../../web/storage/StorageRepositoryFactory';
@@ -9,6 +10,9 @@ import UserData, { IntegrationSettingsData } from '../../domain/UserData';
 
 const { connector } = vi.hoisted(() => ({ connector: { loadUserData: vi.fn() } }));
 vi.mock('./ccxtConnector', () => ({ default: connector }));
+
+/** the loader as ColdWallet runs it: with a refresh tracker of its own */
+const useCcxt = (allowed: boolean, storage: StorageFactory, user: UserData) => CcxtLoader(allowed, storage, user, useRefreshTracker());
 
 const coin = (exchange: string, currency: string) =>
   new AssetDTO(`${exchange}_${currency} SPOT`, currency, '1', `${currency} SPOT`, 8, AssetType.crypto, false, false, false, true, exchange);
@@ -70,7 +74,7 @@ describe('savedEnabledCcxtIntegrations', () => {
 describe('CcxtLoader', () => {
   it('a locked wallet syncs nothing and keeps the saved balances', async () => {
     const saved = { kraken: [coin('kraken', 'BTC')] };
-    const { result } = renderHook(() => CcxtLoader(false, device(saved), new UserData('unauthorized')));
+    const { result } = renderHook(() => useCcxt(false, device(saved), new UserData('unauthorized')));
     await act(async () => {});
     expect(connector.loadUserData).not.toHaveBeenCalled();
     expect(currencies(result.current.ccxtUserData)).toEqual({ kraken: ['BTC'] });
@@ -79,7 +83,7 @@ describe('CcxtLoader', () => {
   it('after an unlock: the switches follow the opened settings, and a sync keeps an enabled exchange', async () => {
     connector.loadUserData.mockResolvedValue(ApiResponse.success(200, [coin('kraken', 'BTC'), coin('kraken', 'XRP')]));
     const saved = { kraken: [coin('kraken', 'BTC')] };
-    const { result, rerender } = renderHook(({ allowed, user }) => CcxtLoader(allowed, device(saved), user),
+    const { result, rerender } = renderHook(({ allowed, user }) => useCcxt(allowed, device(saved), user),
       { initialProps: { allowed: false, user: new UserData('unauthorized') } });
     expect(result.current.enabledCcxtIntegrations.size).toBe(0);
 
@@ -93,7 +97,7 @@ describe('CcxtLoader', () => {
   it('a sync in flight while an exchange is switched on keeps the balances its check just loaded', async () => {
     let answer: (r: unknown) => void = () => {};
     connector.loadUserData.mockReturnValue(new Promise((r) => { answer = r; }));
-    const { result, rerender } = renderHook(({ user }) => CcxtLoader(true, device(), user),
+    const { result, rerender } = renderHook(({ user }) => useCcxt(true, device(), user),
       { initialProps: { user: wallet('w', { bybit: integration(true), kraken: integration(false) }) } });
     await waitFor(() => expect(connector.loadUserData).toHaveBeenCalledTimes(1)); // syncing [bybit]
 
@@ -107,7 +111,7 @@ describe('CcxtLoader', () => {
   it('switching an exchange off drops its saved balances; a locked wallet drops nothing', async () => {
     const storage = device({ kraken: [coin('kraken', 'BTC')], bybit: [coin('bybit', 'ETH')] });
     const both = wallet('w', { kraken: integration(true), bybit: integration(true) });
-    const { result, rerender } = renderHook(({ allowed, user }) => CcxtLoader(allowed, storage, user),
+    const { result, rerender } = renderHook(({ allowed, user }) => useCcxt(allowed, storage, user),
       { initialProps: { allowed: false, user: new UserData('unauthorized') } });
     await act(async () => {});
     expect(Object.keys(result.current.ccxtUserData).sort()).toEqual(['bybit', 'kraken']);
@@ -123,7 +127,7 @@ describe('CcxtLoader', () => {
   it('a sync started for one wallet does not land in the wallet that replaced it', async () => {
     let answer: (r: unknown) => void = () => {};
     connector.loadUserData.mockReturnValue(new Promise((r) => { answer = r; }));
-    const { result, rerender } = renderHook(({ user }) => CcxtLoader(true, device(), user),
+    const { result, rerender } = renderHook(({ user }) => useCcxt(true, device(), user),
       { initialProps: { user: wallet('old', { kraken: integration(true) }) } });
     await waitFor(() => expect(connector.loadUserData).toHaveBeenCalled());
 

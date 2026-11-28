@@ -69,51 +69,101 @@ const okxApiClient = {
         okxCurrencies: { [index: string]: OkxCurrencyResponse } | null,
         okxAccount: OkxAccount | null,
     ) {
-        const extractAsset = (type: string, balance: { ccy: string, eq: string }) => {
-            let decimalScale = (okxCurrencies && okxCurrencies[balance.ccy]?.precision) || ((() => {
-                console.warn("not found precision for " + balance.ccy)
-                return 8
-            })());
-            if (!+(+balance.eq).toFixed(decimalScale)) {
-                decimalScale = balance.eq.split(".")[1].length
-            }
-            return new AssetDTO(
-                `okx_${type}_${balance.ccy}`,
-                balance.ccy,
-                String(balance.eq),
-                `${balance.ccy} ${type} OKX`,
-                decimalScale,
-                fiatCurrencies.getByStringCode(balance.ccy) ? fiat : crypto,
-                false,
-                false,
-                true,
-            )
-        };
-
-        const client = new RestClient({apiKey, apiSecret, apiPass});
+        const credentials = {apiKey, apiSecret, apiPass};
         const accountInfo = okxAccount ? {...okxAccount} : new OkxAccount()
         try {
-            const balances: AccountBalance[] = await client.getBalance();
-            accountInfo.spotAccountBalances = balances[0].details
-                .filter(balance => Number(balance.eq))
-                .map(asset => extractAsset("spot", asset))
+            accountInfo.spotAccountBalances = await okxApiClient.fetchSpotBalances(credentials, okxCurrencies);
         } catch (e) {
             console.warn("failed to load balances from OKX", e)
         }
         if (subAccountName) {
             try {
-                const subAccountBalances: SubAccountBalances[] = await client.getSubAccountBalances({
-                    subAcct: subAccountName
-                });
-                accountInfo.subAccountBalances = subAccountBalances[0].details
-                    .filter(balance => Number(balance.eq))
-                    .map(asset => extractAsset("sub", asset))
+                accountInfo.subAccountBalances = await okxApiClient.fetchSubAccountBalances(credentials, subAccountName, okxCurrencies);
             } catch (e) {
                 console.warn("failed to load subAccount balances from OKX", e)
             }
         }
         return accountInfo
     },
+    /** The trading account's non-zero balances; only `ccy`'s when given (an empty list: none left).
+     *  Throws when OKX answers without the account itself (see accountDetails). */
+    async fetchSpotBalances(
+        credentials: OkxCredentials,
+        okxCurrencies: { [index: string]: OkxCurrencyResponse } | null,
+        ccy?: string,
+    ): Promise<AssetDTO[]> {
+        const client = new RestClient(credentials);
+        const balances: AccountBalance[] = await client.getBalance(ccy ? {ccy} : undefined);
+        return accountDetails(balances, 'trading account')
+            .filter(balance => Number(balance.eq))
+            .filter(balance => !ccy || balance.ccy === ccy)
+            .map(asset => extractOkxAsset("spot", asset, okxCurrencies))
+    },
+    async fetchSubAccountBalances(
+        credentials: OkxCredentials,
+        subAccountName: string,
+        okxCurrencies: { [index: string]: OkxCurrencyResponse } | null,
+    ): Promise<AssetDTO[]> {
+        const client = new RestClient(credentials);
+        const subAccountBalances: SubAccountBalances[] = await client.getSubAccountBalances({
+            subAcct: subAccountName
+        });
+        return accountDetails(subAccountBalances, 'sub-account')
+            .filter(balance => Number(balance.eq))
+            .map(asset => extractOkxAsset("sub", asset, okxCurrencies))
+    },
+}
+
+/** The coin balances of an OKX balance answer. OKX always answers with the account (`data: [{…,
+ *  details}]`): `details: []` means it holds nothing, so those balances really are gone. An answer
+ *  without the account (`data: []`) is not one OKX gives for a working account — maintenance, a
+ *  faulty proxy — so it is an error: the balances shown stay, and the request is tried again. */
+export function accountDetails<T>(answer: { details?: T[] }[] | undefined, what: string): T[] {
+    const details = answer?.[0]?.details;
+    if (!Array.isArray(details)) throw new Error(`OKX answered without the ${what} balances`);
+    return details;
+}
+
+export interface OkxCredentials {
+    apiKey: string,
+    apiSecret: string,
+    apiPass: string,
+}
+
+function extractOkxAsset(type: string, balance: { ccy: string, eq: string },
+                         okxCurrencies: { [index: string]: OkxCurrencyResponse } | null) {
+    let decimalScale = (okxCurrencies && okxCurrencies[balance.ccy]?.precision) || ((() => {
+        console.warn("not found precision for " + balance.ccy)
+        return 8
+    })());
+    if (!+(+balance.eq).toFixed(decimalScale)) {
+        decimalScale = balance.eq.split(".")[1].length
+    }
+    return new AssetDTO(
+        `okx_${type}_${balance.ccy}`,
+        balance.ccy,
+        String(balance.eq),
+        `${balance.ccy} ${type} OKX`,
+        decimalScale,
+        fiatCurrencies.getByStringCode(balance.ccy) ? fiat : crypto,
+        false,
+        false,
+        true,
+    )
+}
+
+/** The coin an OKX holding is for, and whether it sits in the trading account or the sub-account. */
+export function okxAssetPart(assetId: string): { part: 'spot' | 'sub', ccy: string } | null {
+    const m = /^okx_(spot|sub)_(.+)$/.exec(assetId);
+    return m ? {part: m[1] as 'spot' | 'sub', ccy: m[2]} : null;
+}
+
+/** The trading account with `ccy`'s balance replaced by `fresh` (none: that coin is gone). */
+export function withOkxSpotCurrency(account: OkxAccount | null, ccy: string, fresh: AssetDTO[]): OkxAccount {
+    const next = account ? {...account} : new OkxAccount();
+    const others = (next.spotAccountBalances || []).filter(a => a.currency !== ccy);
+    next.spotAccountBalances = [...others, ...fresh];
+    return next;
 }
 
 export class OkxAccount {

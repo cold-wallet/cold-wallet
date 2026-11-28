@@ -17,6 +17,26 @@ import {CurrencyService} from "../services/CurrencyService";
 import Option from "./integrations/SelectIntegration/Option";
 import PriceService from "../services/PriceService";
 import {MetaMaskWallet} from "../integrations/metamask/MetaMaskWallet";
+import type {MetaMaskScanProgress} from "../integrations/metamask/MetaMaskLoader";
+import type {CatalogueProgress} from "../integrations/coingecko/CoinGeckoLoader";
+import type {RefreshStore} from "../refresh/useRefreshTracker";
+
+/** Manual refresh of the dashboard's data, and what is loading right now. */
+export interface RefreshControls {
+    /** what is loading or failed (the buttons subscribe to it) */
+    store: RefreshStore;
+    /** prices and every connected source */
+    refreshAll: () => void;
+    /** one source, by its dashboard key ("binance", "okx", "monobank", "metamask", "ccxt:<exchange>") */
+    refreshSource: (sourceKey: string) => void;
+    /** the scope a holding's own refresh button loads (null: its source loads everything at once) */
+    assetScope: (asset: AssetDTO) => string | null;
+    refreshAsset: (asset: AssetDTO) => void;
+    /** the MetaMask token search, while it runs */
+    metaMaskScan: MetaMaskScanProgress | null;
+    /** the background price catalogue for the coin picker, while it loads */
+    coinGeckoCatalogue: CatalogueProgress | null;
+}
 
 export default interface Props {
     anyAssetExist: boolean,
@@ -169,6 +189,7 @@ export default interface Props {
     pricePending: (currency: string) => boolean,
     /** every holding the dashboard shows: manual plus connected integrations */
     allAssets: AssetDTO[],
+    refresh: RefreshControls,
 
     pinCodeSettingsRequested: boolean,
     setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,

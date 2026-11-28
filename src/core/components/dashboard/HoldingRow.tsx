@@ -1,7 +1,15 @@
 // components/dashboard/HoldingRow.tsx — one holding in the sidebar list (new design .row/.coin).
 // Manual holdings get edit/delete; integration (synced) holdings get a lock, plus a
-// targeted refresh button when the source supports it (MetaMask).
-import React, { useState } from 'react';
+// targeted refresh button when the source can load part of an account (Binance, OKX, MetaMask).
+import React from 'react';
+import RefreshButton from './RefreshButton';
+import type { ButtonView } from '../../refresh/describe';
+import type { RefreshStatus } from '../../refresh/refreshState';
+import { RefreshStore, useRefreshStatus } from '../../refresh/useRefreshTracker';
+
+/** for rows without a refresh button: a status that never changes */
+const NOTHING: RefreshStatus = {};
+const NO_REFRESH: RefreshStore = { current: () => NOTHING, subscribe: () => () => undefined };
 import { maskUSD, amountDisplay } from '../../ui/format';
 import AmountText from './AmountText';
 import PendingValue from './PendingValue';
@@ -16,22 +24,20 @@ interface HoldingRowProps {
   onSelect: (id: string) => void;
   onEdit: () => void;
   onDelete: () => void;
-  onRefresh?: () => Promise<unknown>;
+  /** this holding's refresh button (none: its source loads everything at once) */
+  refresh?: { store: RefreshStore; view: (status: RefreshStatus, now: number) => ButtonView; onClick: () => void };
 }
 
-export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete, onRefresh }: HoldingRowProps) {
+export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete, refresh }: HoldingRowProps) {
   const a = h.asset;
   const amt = amountDisplay(a.amount, h.scale, h.unitUsd);
-  const [refreshing, setRefreshing] = useState(false);
-  const refresh = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!onRefresh || refreshing) return;
-    setRefreshing(true);
-    onRefresh().catch(() => {}).finally(() => setRefreshing(false));
-  };
+  // a holding being refreshed (or failing) keeps its buttons visible, not only on hover
+  const status = useRefreshStatus(refresh?.store ?? NO_REFRESH);
+  const view = refresh?.view(status, Date.now());
+  const busy = !!view && (view.spinning || view.tone !== 'idle');
   return (
     <div
-      className={'row' + (active ? ' is-active' : '')}
+      className={'row' + (active ? ' is-active' : '') + (busy ? ' row--busy' : '')}
       onClick={() => onSelect(h.id)}
       title={a.normalizedName}
     >
@@ -72,13 +78,8 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
           </>
         ) : (
           <>
-            {onRefresh ? (
-              <button className={'act refresh' + (refreshing ? ' spinning' : '')} title="Refresh balance"
-                      disabled={refreshing} onClick={refresh}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
-                </svg>
-              </button>
+            {refresh ? (
+              <RefreshButton className="act refresh" label={'Refresh ' + h.code} store={refresh.store} view={refresh.view} onClick={refresh.onClick} />
             ) : (
               /* spacer in the edit slot so the lock lines up with the delete button */
               <span className="act" aria-hidden="true" style={{ visibility: 'hidden' }} />

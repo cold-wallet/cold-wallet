@@ -19,6 +19,32 @@ export const CORE_SECTIONS: BinanceSection[] = ['spot', 'marginIsolated', 'margi
 export const HEAVY_SECTIONS: BinanceSection[] = ['lockedDeFiStaking', 'flexibleDefiStaking', 'savingsFixed', 'savingsFlexible'];
 const ALL_SECTIONS = new Set<BinanceSection>([...CORE_SECTIONS, ...HEAVY_SECTIONS]);
 
+/** What each section is called in the UI. */
+export const BINANCE_SECTION_LABELS: Record<BinanceSection, string> = {
+    spot: 'Spot',
+    marginIsolated: 'Isolated margin',
+    marginCross: 'Cross margin',
+    futuresUsdM: 'USDⓈ-M futures',
+    futuresCoinM: 'COIN-M futures',
+    funding: 'Funding',
+    lockedDeFiStaking: 'Locked staking',
+    flexibleDefiStaking: 'Flexible staking',
+    savingsFixed: 'Locked Simple Earn',
+    savingsFlexible: 'Flexible Simple Earn',
+};
+
+/** The balances one section loads. */
+export function binanceSectionAssets(info: AccountInfo, section: BinanceSection): AssetDTO[] {
+    return (section === 'spot' ? info.account?.balances : info[section]) || [];
+}
+
+/** The section a Binance holding was loaded by (null: none of the current ones). */
+export function binanceSectionOf(info: AccountInfo | null, assetId: string): BinanceSection | null {
+    if (!info) return null;
+    return [...CORE_SECTIONS, ...HEAVY_SECTIONS]
+        .find(section => binanceSectionAssets(info, section).some(a => a.id === assetId)) || null;
+}
+
 const binanceApiClient = {
     fetchBinancePrices: async (): Promise<ApiResponse<{ [p: string]: string } | any>> => {
         try {
@@ -52,89 +78,85 @@ const binanceApiClient = {
             )
         }
     },
+    /** Loads the account's balances section by section. `onSection` hears about each section as
+     *  it finishes, with the account as loaded so far (or the error that section failed with), so
+     *  callers can show balances and progress before the slow sections are done. */
     async getUserInfoAsync(
         key: string,
         secret: string,
         binanceCurrencies: { [index: string]: BinanceCurrencyResponse } | null,
         binanceUserData: AccountInfo | null,
         sections: Set<BinanceSection> = ALL_SECTIONS,
+        onSection?: (section: BinanceSection, accountInfo: AccountInfo, error?: unknown) => void,
     ) {
         const binanceApiService = new BinanceApiService(key, secret, binanceCurrencies);
         // Spread preserves the fields of any section we're NOT refreshing this cycle (staggering).
         const accountInfo = binanceUserData ? {...binanceUserData} : new AccountInfo()
-        if (sections.has('spot')) try {
-            const account: Account = await runThrottled(() => binanceApiService.accountInfo(), 'spot');
-            accountInfo.account = {
-                ...account,
-                balances: account.balances
-                    .filter(balance => +balance.free + +balance.locked)
-                    .filter(balance => !(
-                        balance.asset.indexOf("LD") === 0 && (!binanceCurrencies || !binanceCurrencies[balance.asset])
-                    ))
-                    .map(balance => new AssetDTO(
-                        "binance_" + account.accountType + "_" + balance.asset,
-                        balance.asset,
-                        String(+balance.free + +balance.locked),
-                        balance.asset + " " + account.accountType + " binance",
-                        (binanceCurrencies && binanceCurrencies[balance.asset]?.precision) || ((() => {
-                            console.warn("not found precision for " + balance.asset)
-                            return 8
-                        })()),
-                        fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
-                        true,
-                    ))
-            } as SpotAccount
-        } catch (e) {
-            console.warn("failed to load accountInfo from binance", e)
-        }
-        if (sections.has('marginIsolated')) try {
-            accountInfo.marginIsolated = await runThrottled(() => binanceApiService.isolatedMarginAssets(), 'marginIsolated')
-        } catch (e) {
-            console.warn("failed to load isolatedMarginAssets from binance", e)
-        }
-        if (sections.has('marginCross')) try {
-            accountInfo.marginCross = await runThrottled(() => binanceApiService.crossMarginAssets(), 'marginCross')
-        } catch (e) {
-            console.warn("failed to load crossMarginAssets from binance", e)
-        }
-        if (sections.has('futuresUsdM')) try {
-            accountInfo.futuresUsdM = await runThrottled(() => binanceApiService.futuresBalancesUsdM(), 'futuresUsdM')
-        } catch (e) {
-            console.warn("failed to load futuresBalancesUsdM from binance", e)
-        }
-        if (sections.has('futuresCoinM')) try {
-            accountInfo.futuresCoinM = await runThrottled(() => binanceApiService.futuresBalancesCoinM(), 'futuresCoinM')
-        } catch (e) {
-            console.warn("failed to load futuresBalancesCoinM from binance", e)
-        }
-        if (sections.has('funding')) try {
-            accountInfo.funding = await runThrottled(() => binanceApiService.fundingAssets(), 'funding')
-        } catch (e) {
-            console.warn("failed to load fundingAssets from binance", e)
-        }
         // lockedStaking is disabled (Binance removed the endpoint) — no proxy call, no section.
         accountInfo.lockedStaking = []
-        if (sections.has('lockedDeFiStaking')) try {
-            accountInfo.lockedDeFiStaking = await runThrottled(() => binanceApiService.lockedDeFiStaking(), 'lockedDeFiStaking')
-        } catch (e) {
-            console.warn("failed to load lockedDeFiStaking from binance", e)
-        }
-        if (sections.has('flexibleDefiStaking')) try {
-            accountInfo.flexibleDefiStaking = await runThrottled(() => binanceApiService.flexibleDefiStaking(), 'flexibleDefiStaking')
-        } catch (e) {
-            console.warn("failed to load flexibleDefiStaking from binance", e)
-        }
         // DEPRECATED: liquidityFarming was removed as Binance discontinued bswap endpoints in January 2024
         // Replacement: Simple Earn products (savingsFixed and savingsFlexible) provide similar functionality
-        if (sections.has('savingsFixed')) try {
-            accountInfo.savingsFixed = await runThrottled(() => binanceApiService.savingsFixed(), 'savingsFixed')
-        } catch (e) {
-            console.warn("failed to load savingsFixed from binance", e)
-        }
-        if (sections.has('savingsFlexible')) try {
-            accountInfo.savingsFlexible = await runThrottled(() => binanceApiService.savingsFlexible(), 'savingsFlexible')
-        } catch (e) {
-            console.warn("failed to load savingsFlexible from binance", e)
+        const loaders: [BinanceSection, () => Promise<void>][] = [
+            ['spot', async () => {
+                const account: Account = await runThrottled(() => binanceApiService.accountInfo(), 'spot');
+                accountInfo.account = {
+                    ...account,
+                    balances: account.balances
+                        .filter(balance => +balance.free + +balance.locked)
+                        .filter(balance => !(
+                            balance.asset.indexOf("LD") === 0 && (!binanceCurrencies || !binanceCurrencies[balance.asset])
+                        ))
+                        .map(balance => new AssetDTO(
+                            "binance_" + account.accountType + "_" + balance.asset,
+                            balance.asset,
+                            String(+balance.free + +balance.locked),
+                            balance.asset + " " + account.accountType + " binance",
+                            (binanceCurrencies && binanceCurrencies[balance.asset]?.precision) || ((() => {
+                                console.warn("not found precision for " + balance.asset)
+                                return 8
+                            })()),
+                            fiatCurrencies.getByStringCode(balance.asset) ? fiat : crypto,
+                            true,
+                        ))
+                } as SpotAccount
+            }],
+            ['marginIsolated', async () => {
+                accountInfo.marginIsolated = await runThrottled(() => binanceApiService.isolatedMarginAssets(), 'marginIsolated')
+            }],
+            ['marginCross', async () => {
+                accountInfo.marginCross = await runThrottled(() => binanceApiService.crossMarginAssets(), 'marginCross')
+            }],
+            ['futuresUsdM', async () => {
+                accountInfo.futuresUsdM = await runThrottled(() => binanceApiService.futuresBalancesUsdM(), 'futuresUsdM')
+            }],
+            ['futuresCoinM', async () => {
+                accountInfo.futuresCoinM = await runThrottled(() => binanceApiService.futuresBalancesCoinM(), 'futuresCoinM')
+            }],
+            ['funding', async () => {
+                accountInfo.funding = await runThrottled(() => binanceApiService.fundingAssets(), 'funding')
+            }],
+            ['lockedDeFiStaking', async () => {
+                accountInfo.lockedDeFiStaking = await runThrottled(() => binanceApiService.lockedDeFiStaking(), 'lockedDeFiStaking')
+            }],
+            ['flexibleDefiStaking', async () => {
+                accountInfo.flexibleDefiStaking = await runThrottled(() => binanceApiService.flexibleDefiStaking(), 'flexibleDefiStaking')
+            }],
+            ['savingsFixed', async () => {
+                accountInfo.savingsFixed = await runThrottled(() => binanceApiService.savingsFixed(), 'savingsFixed')
+            }],
+            ['savingsFlexible', async () => {
+                accountInfo.savingsFlexible = await runThrottled(() => binanceApiService.savingsFlexible(), 'savingsFlexible')
+            }],
+        ];
+        for (const [section, load] of loaders) {
+            if (!sections.has(section)) continue;
+            try {
+                await load();
+                onSection?.(section, {...accountInfo});
+            } catch (e) {
+                console.warn(`failed to load ${section} from binance`, e)
+                onSection?.(section, {...accountInfo}, e);
+            }
         }
         const stats = flushThrottleStats();
         if (stats.retries) console.warn(`binance refresh: ${stats.calls} proxy calls, ${stats.retries} throttle-retries`);
