@@ -96,7 +96,8 @@ export default function NotLoggedIn({ props, replacing }: {
 
                 {replacing && (
                     <div className="welcome__replace" role="note">
-                        A locked wallet is on this device. Creating or importing a wallet replaces it for good.{' '}
+                        A locked wallet is on this device. Creating or importing a wallet permanently deletes it from
+                        this device — it can only be restored from its backup token.{' '}
                         <button className="welcome__back" onClick={replacing.onBack}>Back to unlock</button>
                     </div>
                 )}

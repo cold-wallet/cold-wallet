@@ -83,7 +83,7 @@ export default function PinCodeOnLogin(
                 <p className="data-desc">
                     {"Without its PIN, the wallet on this device can't be opened. On the start screen you can "
                         + "create a new wallet or import one from a token. The locked wallet stays until you do, "
-                        + "then it's replaced for good."}
+                        + "then it's permanently deleted from this device. Only its backup token can bring it back."}
                 </p>
                 <div className="dialog__actions">
                     <button className="btn" onClick={() => setStep('unlock')}>Cancel</button>

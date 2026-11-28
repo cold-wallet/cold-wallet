@@ -248,9 +248,11 @@ describe('start screen over a locked wallet', () => {
     return { props, onBack };
   }
 
-  it('says the locked wallet will be replaced and offers a way back', () => {
+  it('says the locked wallet will be deleted, how to get it back, and offers a way back', () => {
     const { onBack } = startOver();
-    expect(screen.getByRole('note').textContent).toMatch(/replaces it for good/);
+    const note = screen.getByRole('note').textContent;
+    expect(note).toMatch(/permanently deletes it from\s+this device/);
+    expect(note).toMatch(/only be restored from its backup token/);
     fireEvent.click(screen.getByText('Back to unlock'));
     expect(onBack).toHaveBeenCalled();
   });
