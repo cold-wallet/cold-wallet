@@ -19,18 +19,28 @@ export function savedEnabledCcxtIntegrations(userData: UserData): string[] {
 }
 
 /** Balances after a sync: each exchange that answered gets exactly what it answered (an empty
- *  list when everything was sold), one that failed keeps its last balances, and exchanges no
- *  longer switched on are dropped. */
+ *  list when everything was sold), one that failed keeps its last balances. Answers only count
+ *  for exchanges still switched on (`enabled`, as of when they land); every other exchange keeps
+ *  what it has, so one switched on meanwhile keeps the balances its check just loaded. Exchanges
+ *  switched off are dropped by `keepEnabledCcxt`, not here. */
 export function mergeCcxtSync(
     saved: CcxtAccountsData,
     enabled: string[],
     answers: [string, ApiResponse<AssetDTO[]>][],
 ): CcxtAccountsData {
-    const next: CcxtAccountsData = {};
-    enabled.forEach(exchange => { if (saved[exchange]) next[exchange] = saved[exchange]; });
+    const next: CcxtAccountsData = { ...saved };
     answers.forEach(([exchange, response]) => {
-        if (response.success) next[exchange] = response.result || [];
+        if (response.success && enabled.includes(exchange)) next[exchange] = response.result || [];
     });
+    return next;
+}
+
+/** Drops the saved balances of exchanges not switched on (unchanged object when there are none). */
+export function keepEnabledCcxt(saved: CcxtAccountsData, enabled: string[]): CcxtAccountsData {
+    const dropped = Object.keys(saved).filter(exchange => !enabled.includes(exchange));
+    if (!dropped.length) return saved;
+    const next = { ...saved };
+    dropped.forEach(exchange => delete next[exchange]);
     return next;
 }
 
@@ -57,9 +67,19 @@ export default function CcxtLoader(
         setCcxtUserData
     ] = storageFactory.createStorage<CcxtAccountsData>("ccxtUserData", () => ({} as CcxtAccountsData));
 
-    // a sync started for one wallet must not land in another that replaced it meanwhile
-    const walletId = useRef(userData.id);
-    walletId.current = userData.id;
+    // The wallet open now, for syncs that land later: one started for a wallet that was replaced
+    // meanwhile is dropped, and the others count only for exchanges still switched on.
+    const openWallet = useRef(userData);
+    openWallet.current = userData;
+
+    // Balances of an exchange switched off go once its saved flag says so (also right after an
+    // unlock or an import, for the settings just opened). Not while the wallet is locked: its
+    // settings aren't readable then, so nothing would look switched on.
+    useEffect(() => {
+        if (!loadingUserDataAllowed) return;
+        setCcxtUserData(saved => keepEnabledCcxt(saved, savedEnabledCcxtIntegrations(userData)));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [savedEnabled, loadingUserDataAllowed]);
 
     // Syncs the exchanges switched on in the saved settings (not the switches, which may show a
     // change still being checked or not saved yet).
@@ -76,11 +96,15 @@ export default function CcxtLoader(
             integrations[exchange].apiSecret,
             integrations[exchange].password,
             integrations[exchange].additionalSetting,
-        ).catch((e: unknown) => ApiResponse.fail<AssetDTO[]>(0, String(e)))
+        ).catch((e: unknown) => {
+            console.info(`could not sync ${exchange}`, e);
+            return ApiResponse.fail<AssetDTO[]>(0, String(e));
+        })
             .then(response => [exchange, response] as [string, ApiResponse<AssetDTO[]>])))
             .then(answers => {
-                if (walletId.current !== startedFor) return;
-                setCcxtUserData(saved => mergeCcxtSync(saved, enabled, answers));
+                if (openWallet.current.id !== startedFor) return;
+                const enabledNow = savedEnabledCcxtIntegrations(openWallet.current);
+                setCcxtUserData(saved => mergeCcxtSync(saved, enabledNow, answers));
             })
     };
     // on start (a wallet already open), then every minute; ColdWallet also calls it right after
