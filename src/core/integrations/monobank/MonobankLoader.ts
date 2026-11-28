@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import useInterval from "../../../core/utils/useInterval";
 import monobankApiClient from "../../../core/integrations/monobank/monobankApiClient";
 import ApiResponse from "../../../core/domain/ApiResponse";
@@ -31,6 +31,9 @@ const MonobankLoader = (
         setMonobankCurrencies
     ] = storageFactory.createStorageNullable<{ [index: string]: FiatCurrency }>("monobankCurrencies");
 
+    // the rates above may be the ones saved on an earlier visit; this says they were fetched now
+    const [monobankRatesFresh, setMonobankRatesFresh] = useState(false);
+
     const loadMonobank = () => {
         monobankApiClient.fetchMonobankRatesAndCurrencies()
             .then((response: ApiResponse<MonobankPublicDataResponse | any>) => {
@@ -38,6 +41,7 @@ const MonobankLoader = (
                     const result: MonobankPublicDataResponse = response.result;
                     setMonobankRates(result.rates);
                     setMonobankCurrencies(result.currencies);
+                    setMonobankRatesFresh(true);
                 } else {
                     console.warn('Error fetching rates from monobank:', response.error);
                 }
@@ -84,6 +88,7 @@ const MonobankLoader = (
     return {
         monobankRates,
         monobankCurrencies,
+        monobankRatesFresh,
         monobankUserData,
         setMonobankUserData,
         loadMonobankUserData,

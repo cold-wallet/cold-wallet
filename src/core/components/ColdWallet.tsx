@@ -15,6 +15,8 @@ import UserData from "../domain/UserData";
 import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 import AssetDTO from "../domain/AssetDTO";
 import OnStartupLoader from "./OnStartupLoader";
+import { collectHoldings } from "./holdings";
+import { isPriced } from "../ui/portfolio";
 import Props from "./Props";
 import CcxtLoader, {CcxtAccountsData} from "../integrations/ccxt/CcxtLoader";
 import {CurrencyService} from "../services/CurrencyService";
@@ -81,6 +83,7 @@ export default function ColdWallet(
         coinGeckoPrices, coinGeckoPricesLoaded,
         coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
         prefetchCoinGeckoPrice,
+        coinGeckoPricePending,
     } = CoinGeckoLoader(properties.storageFactory, neededPriceSymbols)
 
     const loadingUserDataAllowed = !isDemoMode && !shouldEnterPinCode;
@@ -117,6 +120,7 @@ export default function ColdWallet(
     const {
         monobankRates,
         monobankCurrencies,
+        monobankRatesFresh,
         monobankUserData,
         setMonobankUserData,
         loadMonobankUserData,
@@ -127,17 +131,6 @@ export default function ColdWallet(
         properties.integrationUserDataStorageFactory,
         userData.settings.monobankIntegrationEnabled,
         userData.settings.monobankIntegrationToken
-    );
-
-    const {loaded} = OnStartupLoader(
-        binancePricesLoaded,
-        binanceCurrenciesLoaded,
-        okxPricesLoaded,
-        okxCurrenciesLoaded,
-        coinGeckoPricesLoaded,
-        coinGeckoCurrenciesLoaded,
-        monobankRates,
-        monobankCurrencies,
     );
 
     const [newAssetCurrency, setNewAssetCurrency] = useState<string | null>(null);
@@ -408,6 +401,27 @@ export default function ColdWallet(
         okxPrices,
         coinGeckoPrices])
 
+    // every holding the dashboard shows, and whether some of them have no price yet
+    const allAssets = useMemo(() => collectHoldings({
+        userData, binanceUserData, okxUserData, monobankUserData,
+        metaMaskSettingsEnabled, metaMaskAssets, ccxtUserData,
+    }), [userData, binanceUserData, okxUserData, monobankUserData, metaMaskSettingsEnabled, metaMaskAssets, ccxtUserData]);
+    const pricesMissing = useMemo(
+        () => allAssets.some((a) => !isPriced(a.currency, priceService)),
+        [allAssets, priceService]);
+    const pinSetupFirst = loggedIn && !isDemoMode && !userDataHolder.pinCodeEncrypted;
+    const {loaded, syncing, stale} = OnStartupLoader({
+        binancePricesLoaded,
+        binanceCurrenciesLoaded,
+        okxPricesLoaded,
+        okxCurrenciesLoaded,
+        monobankRatesFresh,
+        pricesMissing,
+        dashboardOpen: loggedIn && !shouldEnterPinCode && !pinSetupFirst,
+    });
+    /** a price for `currency` may still arrive: some source hasn't answered, or CoinGecko owes it */
+    const pricePending = (currency: string) => syncing || coinGeckoPricePending(currency);
+
     function getCurrencyOptions(): Option[] {
         return Array.from(currencyService.getCurrencyList())
             .sort(compareStringsIgnoreCase)
@@ -493,7 +507,8 @@ export default function ColdWallet(
         metaMaskErrorMessage,
         metaMaskHandleConnect,
 
-        loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded,
+        loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded, syncing,
+        pricesStale: stale, pricePending, allAssets,
 
         selectedPageNumber, setSelectedPageNumber,
         firstPageChartView, setFirstPageChartView,

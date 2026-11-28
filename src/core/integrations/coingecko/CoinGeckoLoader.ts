@@ -21,6 +21,7 @@ const SWEEP_BATCH = 500;
 const SWEEP_COOLDOWN_MS = 30 * 60_000; // pause between full sweeps
 const FAILURE_PAUSE_MS = 60_000;       // back off after any failure (rate limit etc.)
 const CURRENCIES_TTL_MS = 7 * 24 * 3_600_000;
+const FAILURES_BEFORE_GIVING_UP = 3;
 
 export default function CoinGeckoLoader(
     storageFactory: StorageFactory,
@@ -34,6 +35,9 @@ export default function CoinGeckoLoader(
         coinGeckoCurrenciesFetchedAt,
         setCoinGeckoCurrenciesFetchedAt
     ] = storageFactory.createStorage<number>("coinGeckoCurrenciesFetchedAt", () => 0);
+
+    // the directory request failed (it isn't retried this session): no CoinGecko price is coming
+    const [currenciesFailed, setCurrenciesFailed] = useState(false);
 
     let loadCoinGeckoCurrencies = () => {
         // Sentinel: the corrected map resolves BTC to "bitcoin", and now carries per-chain
@@ -54,6 +58,7 @@ export default function CoinGeckoLoader(
                     setCoinGeckoCurrencies(response.result);
                     setCoinGeckoCurrenciesFetchedAt(Date.now());
                 } else {
+                    setCurrenciesFailed(true);
                     console.warn(`Error fetching currencies from ${name}:`, response.error);
                 }
             });
@@ -72,6 +77,12 @@ export default function CoinGeckoLoader(
     // long-tail prices too); held prices are seeded from the small persisted cache on reload.
     const [coinGeckoPrices, setCoinGeckoPrices] = useState<CoinGeckoPriceResponse>(() => persistedPrices);
     const [coinGeckoPricesLoaded, setCoinGeckoPricesLoaded] = useState(false);
+
+    // Which coins a price may still come for: CoinGecko hasn't answered a request that included
+    // them yet. A coin it answered without a price, or one it doesn't list, has no price coming;
+    // after FAILURES_BEFORE_GIVING_UP failed requests in a row it stops claiming one is on the way.
+    const [answered, setAnswered] = useState<Set<string>>(() => new Set());
+    const [failuresInRow, setFailuresInRow] = useState(0);
 
     const [sweepIndex, setSweepIndex] = useState(0);
     const pauseUntil = useRef(0);
@@ -124,6 +135,12 @@ export default function CoinGeckoLoader(
         apiClient.fetchPrices(toLoad, subCurrencies)
             .then((response: ApiResponse<CoinGeckoPriceResponse | any>) => {
                 if (response.success) {
+                    setFailuresInRow(0);
+                    setAnswered((prev) => {
+                        const next = new Set(prev);
+                        Object.keys(toLoad).forEach((ticker) => next.add(ticker));
+                        return next;
+                    });
                     const merged = {...coinGeckoPrices, ...(response.result)};
                     setCoinGeckoPrices(merged)             // full map, in memory only
                     setPersistedPrices(pickNeeded(merged)) // small held subset, persisted
@@ -135,6 +152,7 @@ export default function CoinGeckoLoader(
                         console.log(`coingecko sweep at ${at} of ${total} (${(at * 100 / total).toFixed(1)}%)`)
                     }
                 } else {
+                    setFailuresInRow((n) => n + 1);
                     // most likely a 429 (rate limit) — give the API a breather
                     pauseUntil.current = Date.now() + FAILURE_PAUSE_MS;
                     console.warn(`Error fetching prices from ${name}, pausing for ${FAILURE_PAUSE_MS / 1000}s:`, response.error);
@@ -154,8 +172,18 @@ export default function CoinGeckoLoader(
         fetchPrices(new Set([symbol.toUpperCase()]), false)
     };
 
+    /** a CoinGecko price for `symbol` may still arrive (see `answered` above) */
+    const coinGeckoPricePending = (symbol: string): boolean => {
+        const ticker = symbol.toUpperCase();
+        if (coinGeckoPrices[ticker.toLowerCase()]) return false;
+        if (failuresInRow >= FAILURES_BEFORE_GIVING_UP) return false;
+        if (!coinGeckoCurrencies) return !currenciesFailed; // the directory is still loading
+        return !!coinGeckoCurrencies[ticker] && !answered.has(ticker);
+    };
+
     return {
         coinGeckoPrices, coinGeckoPricesLoaded,
+        coinGeckoPricePending,
         coinGeckoCurrencies,
         coinGeckoCurrenciesLoaded: !!coinGeckoCurrencies,
         prefetchCoinGeckoPrice,

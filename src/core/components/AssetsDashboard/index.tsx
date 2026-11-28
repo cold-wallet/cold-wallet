@@ -1,9 +1,6 @@
 import './index.css';
 
 import React, { useMemo, useState } from "react";
-import { AccountInfo } from "../../integrations/binance/binanceApiClient";
-import { OkxAccount } from "../../integrations/okx/okxApiClient";
-import MonobankUserData from "../../integrations/monobank/MonobankUserData";
 import AssetDTO from "../../domain/AssetDTO";
 import Props from "../Props";
 
@@ -16,6 +13,7 @@ import FitText from "../dashboard/FitText";
 import DonutChart from "../dashboard/DonutChart";
 import TreemapChart from "../dashboard/TreemapChart";
 import HoldingRow from "../dashboard/HoldingRow";
+import PendingValue from "../dashboard/PendingValue";
 import { NumericFormat } from "react-number-format";
 import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../../ui/format";
 import { assetSym, shortenAddresses } from "../../ui/visual";
@@ -38,34 +36,15 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     const [breakdownOpen, setBreakdownOpen] = useState(false);
     const view = props.firstPageChartView === 'tree' ? 'tree' : 'donut';
 
-    // Aggregate manual + every connected integration into one AssetDTO[] (same as the old stats).
-    const allAssets: AssetDTO[] = useMemo(() => {
-        let assets = [...props.userData.assets];
-        if (props.userData.settings.binanceIntegrationEnabled && props.binanceUserData) {
-            assets = assets.concat(AccountInfo.getAllAssets(props.binanceUserData));
-        }
-        if (props.userData.settings.monobankIntegrationEnabled && props.monobankUserData) {
-            assets = assets.concat(MonobankUserData.getAllAssets(props.monobankUserData));
-        }
-        if (props.userData.settings.okxIntegrationEnabled && props.okxUserData) {
-            assets = assets.concat(OkxAccount.getAllAssets(props.okxUserData));
-        }
-        if (props.metaMaskSettingsEnabled && props.metaMaskAssets) {
-            assets = assets.concat(props.metaMaskAssets);
-        }
-        return Object.values(props.ccxtUserData).reduce((merged, current) => merged.concat(current), assets);
-    }, [
-        props.userData,
-        props.binanceUserData,
-        props.okxUserData,
-        props.monobankUserData,
-        props.metaMaskAssets,
-        props.ccxtUserData,
-    ]);
+    // every holding: manual + each connected integration (collected in ColdWallet)
+    const allAssets: AssetDTO[] = props.allAssets;
 
     // Hide sub-cent MetaMask dust unless the user turned it off in MetaMask settings (default ON).
     const hideMmDust = props.userData.settings.metaMask?.hideSmallAssets !== false;
-    const valued = useMemo(() => valueAssets(allAssets, props.priceService, hideMmDust), [allAssets, props.priceService, hideMmDust]);
+    const valued = useMemo(() => valueAssets(allAssets, props.priceService, hideMmDust, props.pricePending),
+        // pricePending is a new function each render; what it answers changes with these
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [allAssets, props.priceService, hideMmDust, props.syncing, props.pricePending]);
     const total = useMemo(() => totalUsd(valued), [valued]); // true net incl. negatives — headline Total only
     // Proportion visuals (donut/treemap/legend, Fiat/Crypto cards, By source) can't draw a negative
     // slice, so they run on positives only; percentages are taken against the positive sum (0–100%).
@@ -79,6 +58,11 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     const sources = useMemo(() => sourceBreakdown(chartValued, chartTotal), [chartValued, chartTotal]);
 
     const sourceCount = new Set(valued.map((h) => h.source.key)).size;
+    const loadingCount = valued.filter((h) => h.pending).length;
+    const noPriceCount = valued.filter((h) => !h.priced && !h.pending).length;
+    const notCounted = loadingCount + noPriceCount;
+    const nothingPriced = valued.length > 0 && notCounted === valued.length;
+    const holdings = (n: number) => `${n} holding${n === 1 ? '' : 's'}`;
     const maxLeaf = Math.max(...chart.leafSegs.map((l) => l.usd), 1);
     const hidden = props.hideAmounts;
     const totalStr = hidden ? AMOUNT_MASK : fmtUSD(total);
@@ -171,10 +155,27 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                     <div className="total">
                         <div>
                             <div className="total__label">Total balance</div>
-                            <FitText className="total__val num" max={32} min={16}>{totalInt}<span className="cents">{totalCents}</span></FitText>
+                            {/* nothing priced yet: not "$0.00", which reads as an empty wallet */}
+                            {nothingPriced
+                                ? <div className="total__val num">{loadingCount ? <PendingValue /> : '—'}</div>
+                                : <FitText className="total__val num" max={32} min={16}>{totalInt}<span className="cents">{totalCents}</span></FitText>}
                         </div>
-                        {!props.loaded && <div className="total__delta num" title="Syncing market data">syncing…</div>}
+                        {props.syncing && <div className="total__delta num" title="Fetching live prices and exchange rates">syncing…</div>}
+                        {props.pricesStale && (
+                            <div className="total__delta total__delta--warn" title="A price source hasn't answered: some values may use prices saved earlier">
+                                may be outdated
+                            </div>
+                        )}
                     </div>
+                    {notCounted > 0 && (
+                        <div className="total__note" role="status">
+                            {!noPriceCount
+                                ? `${holdings(loadingCount)} not counted yet: price loading`
+                                : !loadingCount
+                                    ? `${holdings(noPriceCount)} not counted: no price`
+                                    : `${holdings(notCounted)} not counted: ${loadingCount} price loading, ${noPriceCount} no price`}
+                        </div>
+                    )}
                 </div>
 
                 <div className="searchrow">
@@ -194,7 +195,14 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             <div className="group__head">
                                 <SourceMark className="group__chip" icon={g.icon} mark={g.mark} tint={g.tint} />
                                 <span className="group__name">{g.label}</span>
-                                <span className="group__sum num">{maskUSD(g.sum, hidden, { cents: false })}</span>
+                                <span className="group__sum num">
+                                    {g.unpriced === g.items.length
+                                        ? (g.pending ? <PendingValue /> : '—')
+                                        : maskUSD(g.sum, hidden, { cents: false })}
+                                    {g.unpriced > 0 && g.unpriced < g.items.length && (
+                                        <span className="group__more" title={`${holdings(g.unpriced)} not counted: ${g.pending ? 'price loading' : 'no price'}`}>+{g.unpriced}</span>
+                                    )}
+                                </span>
                             </div>
                             {g.items.map((h) => (
                                 <HoldingRow
@@ -235,13 +243,23 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                 </div>
 
                 <div className="cards">
-                    {classes.map((c) => (
+                    {classes.map((c) => {
+                        const inClass = valued.filter((h) => h.kind === c.key);
+                        const classNotCounted = inClass.filter((h) => !h.priced).length;
+                        const classNothingPriced = classNotCounted > 0 && classNotCounted === inClass.length;
+                        const classPending = inClass.some((h) => h.pending);
+                        return (
                         <div className="statcard" key={c.key}>
                             <div className="statcard__label">{c.label}</div>
-                            <FitText className="statcard__val num" max={26} min={13}>{maskUSD(c.usd, hidden)}</FitText>
+                            {classNothingPriced
+                                ? <div className="statcard__val num">{classPending ? <PendingValue /> : '—'}</div>
+                                : <FitText className="statcard__val num" max={26} min={13}>{maskUSD(c.usd, hidden)}</FitText>}
                             <div className="statcard__row">
                                 <span className="dot" style={{ background: c.color }} />
-                                <span className="num">{c.pct.toFixed(2)}%</span> of portfolio
+                                {classNothingPriced
+                                    ? <span>{classPending ? 'price loading' : 'no price'}</span>
+                                    : <><span className="num">{c.pct.toFixed(2)}%</span> of portfolio</>}
+                                {classNotCounted > 0 && !classNothingPriced && <span> · {classNotCounted} not counted</span>}
                             </div>
                             <div className="splitbar">
                                 {slices.filter((a) => a.kind === c.key).map((a) => (
@@ -249,7 +267,8 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                 ))}
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 <div className="panel-lg">
@@ -270,6 +289,12 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             </button>
                         </div>
                     </div>
+                    {chart.leafSegs.length === 0 && notCounted > 0 ? (
+                        /* holdings, but none priced yet: not an empty "$0" chart */
+                        <div className="chart-pending" role="status">
+                            {loadingCount ? <><PendingValue /><span>Prices loading</span></> : <span>No prices for these holdings</span>}
+                        </div>
+                    ) : (
                     <div className="chartwrap">
                         {view === 'tree'
                             ? <TreemapChart classes={classes} leafSegs={chart.leafSegs} hot={hot} setHot={setHot} />
@@ -299,6 +324,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             })}
                         </div>
                     </div>
+                    )}
                 </div>
 
                 <div className="toprow toprow--single">

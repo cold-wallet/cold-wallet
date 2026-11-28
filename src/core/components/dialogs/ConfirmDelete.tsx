@@ -4,14 +4,16 @@ import Props from '../Props';
 import { AssetType } from '../../domain/AssetDTO';
 import { maskUSD, amountDisplay } from '../../ui/format';
 import AmountText from '../dashboard/AmountText';
-import { displayScale, unitUsdOf } from '../../ui/portfolio';
+import { displayScale, isPriced, unitUsdOf } from '../../ui/portfolio';
 import { assetColor } from '../../ui/visual';
 import { CoinChip } from '../dashboard/AssetIcon';
+import PendingValue from '../dashboard/PendingValue';
 
 export default function ConfirmDelete({ props }: { props: Props }) {
   const a = props.assetToDelete!;
   const color = assetColor(a.currency);
   const usd = props.priceService.transform(a.currency, +a.amount, 'USD');
+  const priced = isPriced(a.currency, props.priceService);
   const amt = amountDisplay(a.amount, displayScale(a, props.priceService), unitUsdOf(a, props.priceService));
   const hidden = props.hideAmounts;
 
@@ -47,7 +49,10 @@ export default function ConfirmDelete({ props }: { props: Props }) {
             <span className="num confirm__amt" title={hidden ? undefined : `${a.amount} ${a.currency}`}>
               <AmountText amt={amt} code={a.currency} hidden={hidden} />
             </span>
-            <span className="num confirm__usd" title={hidden ? undefined : maskUSD(usd, false)}>{maskUSD(usd, hidden)}</span>
+            {/* an unknown price is not $0.00 */}
+            {priced
+              ? <span className="num confirm__usd" title={hidden ? undefined : maskUSD(usd, false)}>{maskUSD(usd, hidden)}</span>
+              : <span className="confirm__usd">{props.pricePending(a.currency) ? <PendingValue /> : 'no price'}</span>}
           </div>
         </div>
         <div className="dialog__actions">

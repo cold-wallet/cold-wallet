@@ -159,7 +159,16 @@ export default interface Props {
     loadMonobankUserData: () => void,
     loadBinanceUserData: () => void,
     loadOkxUserData: () => void,
+    /** the market-data screen may give way to the dashboard */
     loaded: boolean,
+    /** not every price source has answered yet (for at most a minute after the dashboard opened) */
+    syncing: boolean,
+    /** some price source never answered: values may rest on prices saved on an earlier visit */
+    pricesStale: boolean,
+    /** a price for this currency may still arrive */
+    pricePending: (currency: string) => boolean,
+    /** every holding the dashboard shows: manual plus connected integrations */
+    allAssets: AssetDTO[],
 
     pinCodeSettingsRequested: boolean,
     setPinCodeSettingsRequested: Dispatch<SetStateAction<boolean>>,

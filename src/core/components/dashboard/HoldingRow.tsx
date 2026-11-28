@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { maskUSD, amountDisplay } from '../../ui/format';
 import AmountText from './AmountText';
+import PendingValue from './PendingValue';
 import { shortenAddresses } from '../../ui/visual';
 import { CoinChip, SourceMark } from './AssetIcon';
 import type { Valued } from '../../ui/portfolio';
@@ -52,7 +53,12 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
         <div className="row__usd num">
           <AmountText amt={amt} code={h.code} hidden={hidden} />
         </div>
-        <div className="row__amt num">{maskUSD(h.usd, hidden)}</div>
+        {/* never "$0.00" for a holding whose price isn't known: that would read as worthless */}
+        {h.priced
+          ? <div className="row__amt num">{maskUSD(h.usd, hidden)}</div>
+          : h.pending
+            ? <div className="row__amt"><PendingValue /></div>
+            : <div className="row__amt row__amt--noprice">no price</div>}
       </div>
       <div className="row__actions">
         {h.manual ? (
