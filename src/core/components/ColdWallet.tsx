@@ -5,6 +5,8 @@ import NotLoggedIn from "./unauthorized/NotLoggedIn";
 import AssetsDashboard from "./AssetsDashboard";
 import StorageFactory from "../domain/StorageFactory";
 import PinCodeOnLogin from "./unauthorized/PinCodeOnLogin";
+import Vault from "./vault/Vault";
+import useVault from "./vault/useVault";
 import OkxLoader from "../integrations/okx/OkxLoader";
 import UserDataService from "../services/UserDataService";
 import useIdleLock, {AUTO_LOCK_AFTER} from "../utils/useIdleLock";
@@ -60,8 +62,10 @@ export default function ColdWallet(
         storageFactory: properties.userDataStorageFactory,
     });
 
+    // The lock screen's doors close before the wallet locks, and open once the PIN is right.
+    const vault = useVault<'idle' | 'manual'>({ locked: shouldEnterPinCode, unlock, lock });
     function lockWallet(reason: 'idle' | 'manual') {
-        lock(reason);
+        vault.lock(reason);
     }
     // An unlocked wallet locks itself after a while without any user activity.
     useIdleLock(loggedIn && !isDemoMode && userDataHolder.pinCodeEncrypted, () => lockWallet('idle'), AUTO_LOCK_AFTER);
@@ -574,11 +578,7 @@ export default function ColdWallet(
             {shouldEnterPinCode ? (startingOver
                 ? <NotLoggedIn props={props}
                                replacing={{ onBack: () => { stateReset(); setStartingOver(false); } }}/>
-                : <PinCodeOnLogin props={{
-                    unlock,
-                    lockReason,
-                    startOver: () => { stateReset(); setStartingOver(true); },
-                }}/>
+                : null
             ) : pinSetupRequired
                 ? <PinSetup title="Set a PIN-code"
                             intro="This wallet has no PIN yet. Set one to lock it on this device."
@@ -587,6 +587,15 @@ export default function ColdWallet(
                     ? <AssetsDashboard props={props}/>
                     : <NotLoggedIn props={props}/>
             }
+            {vault.phase !== 'open' && !(shouldEnterPinCode && startingOver) && (
+                <Vault phase={vault.phase} onSkip={vault.skip}>
+                    {shouldEnterPinCode && <PinCodeOnLogin props={{
+                        unlock: vault.unlock,
+                        lockReason,
+                        startOver: () => { stateReset(); setStartingOver(true); },
+                    }}/>}
+                </Vault>
+            )}
         </div>
     );
 };

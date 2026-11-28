@@ -19,15 +19,28 @@ interface PinDialogProps {
   footer?: ReactNode;
   /** the PIN is being checked: the keypad is paused */
   busy?: boolean;
+  /** shown above the title in place of the lock icon */
+  mark?: ReactNode;
+  /** rendered as is, without its own dimmed backdrop (the caller places it) */
+  bare?: boolean;
+  /** changes on every wrong PIN: the dialog shakes */
+  shake?: number;
 }
 
-export default function PinDialog({ title, intro, status, statusError, step, onBack, pin, setPin, onAccept, footer, busy = false }: PinDialogProps) {
+export default function PinDialog({ title, intro, status, statusError, step, onBack, pin, setPin, onAccept, footer, busy = false, mark, bare = false, shake = 0 }: PinDialogProps) {
   // Take focus when opened, so typed digits reach the keypad and not a field left focused underneath
   // (e.g. the import token textarea).
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => { box.current?.focus(); }, []);
-  return (
-    <div className="scrim" style={{ zIndex: 80 }}>
+  // a wrong PIN shakes the dialog: the class is put back each time so the animation runs again
+  useEffect(() => {
+    const el = box.current;
+    if (!shake || !el) return;
+    el.classList.remove('is-shake');
+    void el.offsetWidth;
+    el.classList.add('is-shake');
+  }, [shake]);
+  const dialog = (
       <div className="dialog pin-dialog" ref={box} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title}>
         {(onBack || step) && (
           <div className="pin-dialog__head">
@@ -41,9 +54,11 @@ export default function PinDialog({ title, intro, status, statusError, step, onB
           </div>
         )}
         <div className="pin-dialog__title">
-          <span className="pin-dialog__chip">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
-          </span>
+          {mark ?? (
+            <span className="pin-dialog__chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+            </span>
+          )}
           <b>{title}</b>
         </div>
         {intro && <p className="pin-dialog__intro">{intro}</p>}
@@ -51,8 +66,8 @@ export default function PinDialog({ title, intro, status, statusError, step, onB
         <PinPad pinCode={pin} setPinCode={setPin} acceptPinCode={onAccept} disabled={busy} />
         {footer}
       </div>
-    </div>
   );
+  return bare ? dialog : <div className="scrim" style={{ zIndex: 80 }}>{dialog}</div>;
 }
 
 /** Shown when the browser itself fails (e.g. not enough memory to derive the key) — never as a

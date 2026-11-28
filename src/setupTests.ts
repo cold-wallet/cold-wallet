@@ -23,3 +23,7 @@ vi.mock('react-dom/test-utils', async () => {
 // sealed this way records its own parameters, so opening it uses the same cheap ones.
 import { setKdfParamsForTests } from './core/services/PinVault';
 setKdfParamsForTests({ alg: 'argon2id', m: 64, t: 1, p: 1 });
+
+// The lock screen's doors open and close at once in tests (useVault.test covers the animation).
+import { setVaultTimingsForTests } from './core/components/vault/useVault';
+setVaultTimingsForTests({ checkMin: 0, turn: 0, open: 0, close: 0, latch: 0 });

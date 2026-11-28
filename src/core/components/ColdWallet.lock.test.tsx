@@ -50,7 +50,7 @@ const sealedWithKraken = async (pin: string) => {
 };
 
 async function enterPin(pin: string) {
-  await screen.findByText('Enter PIN-code');
+  await screen.findByText('Enter PIN');
   for (const d of pin) fireEvent.click(screen.getByRole('button', { name: d }));
   fireEvent.click(screen.getByTitle('Confirm'));
   await screen.findByTitle('Settings');

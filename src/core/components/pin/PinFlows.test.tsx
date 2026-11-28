@@ -220,7 +220,7 @@ describe('lock screen', () => {
     const p = lock();
     fireEvent.click(screen.getByText('Forgot PIN?'));
     fireEvent.click(screen.getByText('Cancel'));
-    expect(screen.getByText('Enter PIN-code')).toBeTruthy();
+    expect(screen.getByText('Enter PIN')).toBeTruthy();
     expect(p.startOver).not.toHaveBeenCalled();
   });
 });
