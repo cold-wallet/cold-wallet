@@ -6,6 +6,10 @@ import {getPublicClient, readContracts} from "@wagmi/core";
 import {wagmiConfig} from '../../../wagmiConfig';
 import erc20top100 from "./../../../resources/erc20top100_2023.json"
 import useInterval from "../../utils/useInterval";
+import {RefreshTracker, useRetry, useScopedRunner} from "../../refresh/useRefreshTracker";
+import {planManual} from "../../refresh/refreshState";
+import {DEMO_REFRESH_MS} from "../../refresh/demo";
+import {METAMASK, metaMaskScope} from "../../refresh/scopeKeys";
 import StorageFactory from "../../domain/StorageFactory";
 import AssetDTO, {crypto} from "../../domain/AssetDTO";
 import {chainIdToName, metaMaskChains} from "./MetaMaskChains";
@@ -40,13 +44,23 @@ const balanceAssetId = (b: AddressBalanceResult) =>
     `metamask ${b.symbol} ${chainIdToName[b.chainId] || b.chainId} ${b.address}`;
 
 const REDUCE_BATCH_SIZE_ERROR = "error, reduce batch size";
+
+const assetIdOfScope = (key: string) => key.slice(METAMASK.length + 1);
+
+/** Progress of the token search: how many of the known token contracts were checked so far. */
+export interface MetaMaskScanProgress {
+    done: number;
+    total: number;
+}
+
 export default function MetaMaskLoader(
     isDemoMode: boolean,
     loadingUserDataAllowed: boolean,
     binanceCurrencies: { [symbol: string]: BinanceCurrencyResponse } | null,
     coinGeckoCurrencies: { [symbol: string]: CoinGeckoCurrencyResponse } | null,
     storageFactory: StorageFactory,
-    userData: UserData
+    userData: UserData,
+    tracker: RefreshTracker,
 ) {
 
     const [metaMaskSettingsEnabled, setMetaMaskSettingsEnabled] = useState(
@@ -353,34 +367,65 @@ export default function MetaMaskLoader(
         return results;
     }
 
-    // Targeted single-token refresh: re-fetch ONE already-known balance (1 RPC call) instead
-    // of rescanning the whole token list. Returns false when nothing was updated.
-    const refreshMetaMaskAsset = async (assetId: string): Promise<boolean> => {
+    // The latest balances, also between a set and the render that shows it.
+    const latestData = useRef(metaMaskUserData);
+    latestData.current = metaMaskUserData;
+    const runner = useScopedRunner(tracker, false);
+
+    /** Re-fetch already-known balances by asset id (one RPC call per token, batched), instead of
+     *  rescanning the whole token list. A confirmed zero drops the token; an error keeps it. */
+    const loadBalances = (assetIds: string[], manual: boolean): Promise<void> => {
+        if (!assetIds.length) return Promise.resolve();
         if (isDemoMode) {
             // no real wallet behind demo data — just let the UI show its spinner briefly
-            await new Promise(r => setTimeout(r, 800));
-            return true;
+            return runner(assetIds.map(metaMaskScope), manual, async (keys, settle) => {
+                await new Promise(r => setTimeout(r, DEMO_REFRESH_MS));
+                keys.forEach(settle.ok);
+            });
         }
-        let balance: AddressBalanceResult | null = null;
-        Object.values(metaMaskUserData).forEach(bySymbol =>
-            Object.values(bySymbol).forEach(byChain =>
-                Object.values(byChain).forEach(b => {
-                    if (balanceAssetId(b) === assetId) balance = b;
-                })));
-        if (!balance) return false;
-        const request = requestForBalance(balance);
-        if (!request) return false;
-        const [result] = await fetchAllBalances([request]);
-        if (!result) return false; // errored — couldn't confirm, leave the row as is
-        const newData = {...metaMaskUserData};
-        if (Number(result.value)) {
-            addBalance(newData, result);             // non-zero → update
-        } else {
-            removeBalance(newData, result);          // confirmed zero → drop the row
-        }
-        setMetaMaskUserData(newData);
+        if (!loadingUserDataAllowed || !metaMaskSettingsEnabled) return Promise.resolve();
+        return runner(assetIds.map(metaMaskScope), manual, async (keys, settle) => {
+            const known = new Map<string, AddressBalanceResult>();
+            Object.values(latestData.current).forEach(bySymbol =>
+                Object.values(bySymbol).forEach(byChain =>
+                    Object.values(byChain).forEach(b => known.set(balanceAssetId(b), b))));
+            const asked: { key: string, request: BalanceRequest }[] = [];
+            keys.forEach(key => {
+                const balance = known.get(assetIdOfScope(key));
+                const request = balance && requestForBalance(balance);
+                if (request) asked.push({key, request});
+                else settle.fail(key, 'This token is no longer in the token list', 'unavailable');
+            });
+            if (!asked.length) return;
+            const results = await fetchAllBalances(asked.map(a => a.request));
+            const changed = results.some(r => r);
+            if (changed) {
+                setMetaMaskUserData(prev => {
+                    const next = JSON.parse(JSON.stringify(prev)) as MetaMaskAccount;
+                    results.forEach(r => {
+                        if (!r) return;                              // errored → keep the row
+                        if (Number(r.value)) addBalance(next, r);    // non-zero → update
+                        else removeBalance(next, r);                 // confirmed zero → drop the row
+                    });
+                    latestData.current = next;
+                    return next;
+                });
+            }
+            results.forEach((r, i) => r
+                ? settle.ok(asked[i].key)
+                : settle.fail(asked[i].key, 'The network did not answer', 'retry'));
+        });
+    };
+
+    /** Manual refresh of one holding. Answered at once when it loaded seconds ago. */
+    const refreshMetaMaskAsset = async (assetId: string): Promise<boolean> => {
+        const plan = planManual(tracker.current(), [metaMaskScope(assetId)], Date.now());
+        tracker.pulse(plan.fresh);
+        await loadBalances(plan.fetch.map(assetIdOfScope), true);
         return true;
     };
+
+    useRetry(tracker, METAMASK, keys => void loadBalances(keys.map(assetIdOfScope), false));
 
     const options = useMemo<BalanceRequest[]>(() => {
         // wait for the CoinGecko token directory — it supplies the contract addresses to scan
@@ -468,6 +513,31 @@ export default function MetaMaskLoader(
         (wallet?.accounts?.length && metaMaskSettingsEnabled && loadingUserDataAllowed) ? REQUEST_DELAY_MS : null
     );
 
+    /** Manual refresh of every holding already found (the token search keeps its own schedule). */
+    const refreshMetaMaskKnown = (): Promise<void> => {
+        const ids = (metaMaskAssets || []).map(a => a.id);
+        const plan = planManual(tracker.current(), ids.map(metaMaskScope), Date.now());
+        tracker.pulse(plan.fresh);
+        return loadBalances(plan.fetch.map(assetIdOfScope), true);
+    };
+
+    // tokens that went away (or MetaMask switched off) take their refresh state with them
+    const assetIds = (metaMaskAssets || []).map(a => a.id).join('\n');
+    useEffect(() => {
+        const ids = new Set(assetIds.split('\n'));
+        tracker.forget(k => k.startsWith(METAMASK + '/') && !ids.has(assetIdOfScope(k)));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [assetIds]);
+
+    // The token search: null when idle (finished recently, switched off, wallet locked).
+    const scanSig = wallet?.accounts?.join(',') || '';
+    const scanActive = !isDemoMode && loadingUserDataAllowed && !!metaMaskSettingsEnabled && !!scanSig && options.length > 0
+        && !(scanState.sig === scanSig && scanState.completedAt && Date.now() - scanState.completedAt < SCAN_INTERVAL_MS);
+    const metaMaskScan: MetaMaskScanProgress | null = scanActive ? {
+        done: scanState.sig === scanSig && !scanState.completedAt ? Math.min(scanState.index, options.length) : 0,
+        total: options.length,
+    } : null;
+
     // Forget the cached balances and scan progress (a new wallet replaced the old one).
     const clearMetaMaskData = () => {
         setMetaMaskUserData({} as MetaMaskAccount);
@@ -479,6 +549,8 @@ export default function MetaMaskLoader(
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
         metaMaskAssets,
         refreshMetaMaskAsset,
+        refreshMetaMaskKnown,
+        metaMaskScan,
         metaMaskWallet: wallet,
         metaMaskIsError: error,
         metaMaskHandleConnect: handleConnect,

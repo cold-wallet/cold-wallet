@@ -26,6 +26,11 @@ import {buildDemoUserDataHolder} from "../utils/DemoAssetsGenerator";
 import uuidGenerator from "../utils/uuidGenerator";
 import PinSetup from "./pin/PinSetup";
 import type {ImportedWallet} from "../services/UserDataService";
+import useRefreshTracker from "../refresh/useRefreshTracker";
+import {assetRefreshScope} from "../refresh/scopes";
+import {binanceSectionOf} from "../integrations/binance/binanceApiClient";
+import {okxAssetPart} from "../integrations/okx/okxApiClient";
+import {OKX_SUB, okxCoinScope} from "../refresh/scopeKeys";
 
 export default function ColdWallet(
     {properties, startInDemoMode = false}: {
@@ -73,6 +78,9 @@ export default function ColdWallet(
         }
     }, [startInDemoMode, loggedIn, isDemoMode, startDemo]);
 
+    // What is loading or failed, for the refresh buttons; every loader reports to it.
+    const refreshTracker = useRefreshTracker();
+
     // Crypto symbols whose prices the UI actually needs (held assets across all sources);
     // collected by an effect below, AFTER every integration loader has produced its data.
     const [neededPriceSymbols, setNeededPriceSymbols] = useState<string[]>([]);
@@ -81,7 +89,9 @@ export default function ColdWallet(
         coinGeckoCurrencies, coinGeckoCurrenciesLoaded,
         prefetchCoinGeckoPrice,
         coinGeckoPricePending,
-    } = CoinGeckoLoader(properties.storageFactory, neededPriceSymbols)
+        refreshCoinGeckoPrices,
+        coinGeckoCatalogue,
+    } = CoinGeckoLoader(properties.storageFactory, neededPriceSymbols, refreshTracker)
 
     const loadingUserDataAllowed = !isDemoMode && !shouldEnterPinCode;
     const {
@@ -89,6 +99,7 @@ export default function ColdWallet(
         binanceCurrencies, binanceCurrenciesLoaded,
         binanceUserData, setBinanceUserData,
         loadBinanceUserData,
+        refreshBinance, refreshBinancePrices,
     } = BinanceLoader(
         isDemoMode,
         loadingUserDataAllowed,
@@ -97,12 +108,14 @@ export default function ColdWallet(
         userData.settings.binanceIntegrationEnabled,
         userData.settings.binanceIntegrationApiKey,
         userData.settings.binanceIntegrationApiSecret,
+        refreshTracker,
     );
     const {
         okxPrices, okxPricesLoaded,
         okxCurrencies, okxCurrenciesLoaded,
         okxUserData, setOkxUserData,
         loadOkxUserData,
+        refreshOkx, refreshOkxPrices,
     } = OkxLoader(
         isDemoMode,
         loadingUserDataAllowed,
@@ -113,6 +126,7 @@ export default function ColdWallet(
         userData.settings.okxIntegrationApiSecret,
         userData.settings.okxIntegrationPassPhrase,
         userData.settings.okxIntegrationSubAccountName,
+        refreshTracker,
     );
     const {
         monobankRates,
@@ -121,13 +135,15 @@ export default function ColdWallet(
         monobankUserData,
         setMonobankUserData,
         loadMonobankUserData,
+        refreshMonobank, refreshMonobankRates,
     } = MonobankLoader(
         isDemoMode,
         loadingUserDataAllowed,
         properties.storageFactory,
         properties.integrationUserDataStorageFactory,
         userData.settings.monobankIntegrationEnabled,
-        userData.settings.monobankIntegrationToken
+        userData.settings.monobankIntegrationToken,
+        refreshTracker,
     );
 
     const [newAssetCurrency, setNewAssetCurrency] = useState<string | null>(null);
@@ -185,7 +201,8 @@ export default function ColdWallet(
         enabledCcxtIntegrations, setEnabledCcxtIntegrations,
         getEnabledCcxtIntegrations,
         loadCcxtUserData,
-    } = CcxtLoader(loadingUserDataAllowed, properties.storageFactory, userData)
+        refreshCcxt,
+    } = CcxtLoader(loadingUserDataAllowed, properties.storageFactory, userData, refreshTracker)
 
     const [loadingUserDataFromResource, setLoadingUserDataFromResource] = useState<string | null>(null);
     const [currentIntegrationApiKey, setCurrentIntegrationApiKey] = useState<string | null>(null);
@@ -198,13 +215,15 @@ export default function ColdWallet(
         metaMaskSettingsEnabled, setMetaMaskSettingsEnabled,
         metaMaskAssets,
         refreshMetaMaskAsset,
+        refreshMetaMaskKnown,
+        metaMaskScan,
         metaMaskWallet,
         metaMaskIsError,
         metaMaskErrorMessage,
         metaMaskHasProvider,
         metaMaskIsConnecting,
         metaMaskHandleConnect,
-    } = MetaMaskLoader(isDemoMode, loadingUserDataAllowed, binanceCurrencies, coinGeckoCurrencies, properties.storageFactory, userData)
+    } = MetaMaskLoader(isDemoMode, loadingUserDataAllowed, binanceCurrencies, coinGeckoCurrencies, properties.storageFactory, userData, refreshTracker)
 
     // every holding the dashboard shows: manual + each integration that is switched on
     const allAssets = useMemo(() => collectHoldings({
@@ -254,6 +273,7 @@ export default function ColdWallet(
     // Cached integration balances belong to the wallet they were fetched for; they are dropped when
     // another wallet takes its place, so none of them show up in the new one.
     function dropIntegrationBalances() {
+        refreshTracker.reset();
         setBinanceUserData(null);
         setOkxUserData(null);
         setMonobankUserData(null);
@@ -356,6 +376,8 @@ export default function ColdWallet(
     useEffect(() => {
         if (wasLocked.current === shouldEnterPinCode) return;
         wasLocked.current = shouldEnterPinCode;
+        // nothing of the closed wallet keeps spinning, and its retries stop
+        refreshTracker.reset();
         stateReset();
         setStartingOver(false);
         if (!shouldEnterPinCode) setIntegrationsReload((n) => n + 1);
@@ -397,6 +419,46 @@ export default function ColdWallet(
     });
     /** a price for `currency` may still arrive: some source hasn't answered, or CoinGecko owes it */
     const pricePending = (currency: string) => syncing || coinGeckoPricePending(currency);
+
+    // ----- manual refresh -----
+    const refreshPrices = () => Promise.all([
+        refreshBinancePrices(), refreshOkxPrices(), refreshMonobankRates(), refreshCoinGeckoPrices(),
+    ]);
+    function refreshSource(sourceKey: string) {
+        if (sourceKey === 'binance') void refreshBinance();
+        else if (sourceKey === 'okx') void refreshOkx();
+        else if (sourceKey === 'monobank') void refreshMonobank();
+        else if (sourceKey === 'metamask') void refreshMetaMaskKnown();
+        else if (sourceKey.startsWith('ccxt:')) void refreshCcxt([sourceKey.slice('ccxt:'.length)]);
+    }
+    function refreshAll() {
+        void refreshPrices();
+        void refreshBinance();
+        void refreshOkx();
+        void refreshMonobank();
+        void refreshCcxt();
+        void refreshMetaMaskKnown();
+    }
+    function refreshAsset(asset: AssetDTO) {
+        if (asset.isBinanceAsset) {
+            const section = binanceSectionOf(binanceUserData, asset.id);
+            if (section) void refreshBinance([section]);
+        } else if (asset.isOkxAsset) {
+            const part = okxAssetPart(asset.id);
+            if (part) void refreshOkx([part.part === 'spot' ? okxCoinScope(part.ccy) : OKX_SUB]);
+        } else if (asset.isMetaMaskAsset) {
+            void refreshMetaMaskAsset(asset.id);
+        }
+    }
+    const refresh = {
+        status: refreshTracker.status,
+        refreshAll,
+        refreshSource,
+        assetScope: (asset: AssetDTO) => assetRefreshScope(asset, binanceUserData),
+        refreshAsset,
+        metaMaskScan,
+        coinGeckoCatalogue,
+    };
 
     function getCurrencyOptions(): Option[] {
         return Array.from(currencyService.getCurrencyList())
@@ -484,7 +546,7 @@ export default function ColdWallet(
         metaMaskHandleConnect,
 
         loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded, syncing,
-        pricesStale: stale, pricePending, allAssets,
+        pricesStale: stale, pricePending, allAssets, refresh,
 
         selectedPageNumber, setSelectedPageNumber,
         firstPageChartView, setFirstPageChartView,

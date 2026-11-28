@@ -5,6 +5,17 @@ import StorageFactory from "../../domain/StorageFactory";
 import apiClient from "./apiClient";
 import CoinGeckoPriceResponse from "./CoinGeckoPriceResponse";
 import CoinGeckoCurrencyResponse from "./CoinGeckoCurrencyResponse";
+import {RefreshTracker} from "../../refresh/useRefreshTracker";
+import {planManual} from "../../refresh/refreshState";
+
+const PRICES_SCOPE = 'prices/coingecko';
+const LIST_SCOPE = 'prices/coingecko-list';
+
+/** Progress of the background price catalogue (prices of every listed coin, for the coin picker). */
+export interface CatalogueProgress {
+    done: number;
+    total: number;
+}
 
 const name = "coingecko"
 const subCurrencies = ["btc", "eur", "uah", "usd", "xag", "xau", "xdr"]
@@ -26,6 +37,7 @@ const FAILURES_BEFORE_GIVING_UP = 3;
 export default function CoinGeckoLoader(
     storageFactory: StorageFactory,
     neededSymbols: string[],
+    tracker: RefreshTracker,
 ) {
     const [
         coinGeckoCurrencies,
@@ -52,13 +64,17 @@ export default function CoinGeckoLoader(
             && (Date.now() - coinGeckoCurrenciesFetchedAt) < CURRENCIES_TTL_MS) {
             return
         }
+        const ticket = tracker.begin([LIST_SCOPE], false);
         apiClient.fetchCurrencies()
             .then((response: ApiResponse<{ [index: string]: CoinGeckoCurrencyResponse } | any>) => {
                 if (response.success) {
                     setCoinGeckoCurrencies(response.result);
                     setCoinGeckoCurrenciesFetchedAt(Date.now());
+                    tracker.succeed(ticket, LIST_SCOPE);
                 } else {
                     setCurrenciesFailed(true);
+                    // not retried this session (see currenciesFailed): nothing to wait for
+                    tracker.fail(ticket, LIST_SCOPE, response.error || 'Coin list did not load', 'unavailable');
                     console.warn(`Error fetching currencies from ${name}:`, response.error);
                 }
             });
@@ -106,9 +122,11 @@ export default function CoinGeckoLoader(
     };
 
     // One request: prices for `symbols`, optionally advancing the background sweep cursor.
-    const fetchPrices = (symbols: Set<string>, advanceSweep: boolean) => {
+    // `track`: it carries the held coins' prices, so the refresh buttons show it (a single coin
+    // prefetched for the add-asset dialog doesn't count).
+    const fetchPrices = (symbols: Set<string>, advanceSweep: boolean, track = false, manual = false): Promise<void> => {
         if (!coinGeckoCurrencies || Date.now() < pauseUntil.current) {
-            return
+            return Promise.resolve()
         }
         const toLoad = {} as { [index: string]: CoinGeckoCurrencyResponse };
         Object.entries(coinGeckoCurrencies).forEach(([ticker, currency]) => {
@@ -130,11 +148,13 @@ export default function CoinGeckoLoader(
         }
 
         if (!Object.keys(toLoad).length) {
-            return
+            return Promise.resolve()
         }
-        apiClient.fetchPrices(toLoad, subCurrencies)
+        const ticket = track ? tracker.begin([PRICES_SCOPE], manual) : 0;
+        return apiClient.fetchPrices(toLoad, subCurrencies)
             .then((response: ApiResponse<CoinGeckoPriceResponse | any>) => {
                 if (response.success) {
+                    if (track) tracker.succeed(ticket, PRICES_SCOPE);
                     setFailuresInRow(0);
                     setAnswered((prev) => {
                         const next = new Set(prev);
@@ -152,24 +172,46 @@ export default function CoinGeckoLoader(
                         console.log(`coingecko sweep at ${at} of ${total} (${(at * 100 / total).toFixed(1)}%)`)
                     }
                 } else {
+                    if (track) {
+                        // after a few failures in a row the buttons stop waiting for it (polling goes on)
+                        tracker.fail(ticket, PRICES_SCOPE, response.error || 'Prices did not load',
+                            failuresInRow + 1 >= FAILURES_BEFORE_GIVING_UP ? 'unavailable' : 'retry');
+                    }
                     setFailuresInRow((n) => n + 1);
                     // most likely a 429 (rate limit) — give the API a breather
                     pauseUntil.current = Date.now() + FAILURE_PAUSE_MS;
                     console.warn(`Error fetching prices from ${name}, pausing for ${FAILURE_PAUSE_MS / 1000}s:`, response.error);
                 }
             })
+            .catch((e: unknown) => {
+                if (track) tracker.fail(ticket, PRICES_SCOPE, String(e), 'retry');
+            })
     };
 
     // held/picker symbols: refresh immediately when the set changes (new asset added), …
     useEffect(() => {
-        fetchPrices(neededSet, false)
+        void fetchPrices(neededSet, false, true)
     }, [neededSet, coinGeckoCurrencies]);
     // …and one combined needed+sweep request per tick
-    useInterval(() => fetchPrices(neededSet, true), TICK_MS);
+    useInterval(() => void fetchPrices(neededSet, true, true), TICK_MS);
+
+    /** Manual refresh of the held coins' prices (answered at once when they loaded seconds ago). */
+    const refreshCoinGeckoPrices = (): Promise<void> => {
+        const plan = planManual(tracker.current(), [PRICES_SCOPE], Date.now());
+        tracker.pulse(plan.fresh);
+        return plan.fetch.length ? fetchPrices(neededSet, false, true, true) : Promise.resolve();
+    };
+
+    // the background catalogue: null while it rests between passes or has nothing to go through
+    const catalogueTotal = coinGeckoCurrencies ? Object.keys(coinGeckoCurrencies).length : 0;
+    const coinGeckoCatalogue: CatalogueProgress | null =
+        catalogueTotal && Date.now() >= sweepCooldownUntil.current
+            ? {done: Math.min(sweepIndex, catalogueTotal), total: catalogueTotal}
+            : null;
 
     /** Fetch one symbol's price ahead of time (e.g. as soon as it's picked in the add-asset dialog). */
     const prefetchCoinGeckoPrice = (symbol: string) => {
-        fetchPrices(new Set([symbol.toUpperCase()]), false)
+        void fetchPrices(new Set([symbol.toUpperCase()]), false)
     };
 
     /** a CoinGecko price for `symbol` may still arrive (see `answered` above) */
@@ -187,5 +229,7 @@ export default function CoinGeckoLoader(
         coinGeckoCurrencies,
         coinGeckoCurrenciesLoaded: !!coinGeckoCurrencies,
         prefetchCoinGeckoPrice,
+        refreshCoinGeckoPrices,
+        coinGeckoCatalogue,
     }
 }

@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import CoinGeckoLoader from './CoinGeckoLoader';
+import useRefreshTracker from '../../refresh/useRefreshTracker';
 import inMemoryStorageFactory from '../../../web/storage/InMemoryStorageFactory';
 import ApiResponse from '../../domain/ApiResponse';
 
@@ -18,7 +19,7 @@ describe('CoinGecko: is a price still on the way?', () => {
   it('yes while the coin directory loads, no once it failed to load', async () => {
     let fail: (r: unknown) => void = () => {};
     api.fetchCurrencies.mockReturnValue(new Promise((r) => { fail = r; }));
-    const { result } = renderHook(() => CoinGeckoLoader(inMemoryStorageFactory, ['ODD']));
+    const { result } = renderHook(() => CoinGeckoLoader(inMemoryStorageFactory, ['ODD'], useRefreshTracker()));
     expect(result.current.coinGeckoPricePending('ODD')).toBe(true);
     await act(async () => fail(ApiResponse.fail(0, 'blocked')));
     expect(result.current.coinGeckoPricePending('ODD')).toBe(false);
@@ -28,7 +29,7 @@ describe('CoinGecko: is a price still on the way?', () => {
     api.fetchCurrencies.mockResolvedValue(ApiResponse.success(200, directory));
     let answer: (r: unknown) => void = () => {};
     api.fetchPrices.mockReturnValue(new Promise((r) => { answer = r; }));
-    const { result } = renderHook(() => CoinGeckoLoader(inMemoryStorageFactory, ['ODD', 'NOPE']));
+    const { result } = renderHook(() => CoinGeckoLoader(inMemoryStorageFactory, ['ODD', 'NOPE'], useRefreshTracker()));
     await waitFor(() => expect(api.fetchPrices).toHaveBeenCalled());
     expect(result.current.coinGeckoPricePending('ODD')).toBe(true);
     expect(result.current.coinGeckoPricePending('NOPE')).toBe(false);

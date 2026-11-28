@@ -14,6 +14,8 @@ import DonutChart from "../dashboard/DonutChart";
 import TreemapChart from "../dashboard/TreemapChart";
 import HoldingRow from "../dashboard/HoldingRow";
 import PendingValue from "../dashboard/PendingValue";
+import RefreshButton from "../dashboard/RefreshButton";
+import { assetView, sourceView } from "../../refresh/describe";
 import { NumericFormat } from "react-number-format";
 import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../../ui/format";
 import { assetSym, shortenAddresses } from "../../ui/visual";
@@ -68,6 +70,16 @@ export default function AssetsDashboard({ props }: { props: Props }) {
     const totalStr = hidden ? AMOUNT_MASK : fmtUSD(total);
     // "<$0.01" (sub-cent dust) has no cents tail to mute — keep it whole.
     const [totalInt, totalCents] = (hidden || totalStr.startsWith('<')) ? [totalStr, ''] : splitCents(totalStr);
+
+    // a holding's own refresh button, for sources that can load part of an account
+    function refreshOf(asset: AssetDTO) {
+        const scope = props.refresh.assetScope(asset);
+        if (!scope) return undefined;
+        return {
+            view: (now: number) => assetView(props.refresh.status, scope, now),
+            onClick: () => props.refresh.refreshAsset(asset),
+        };
+    }
 
     function openAdd() {
         props.stateReset();
@@ -132,6 +144,12 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                 </svg>
                             </button>
                         )}
+                        <RefreshButton
+                            className="iconbtn refresh"
+                            label="Refresh all"
+                            view={(now) => sourceView(props.refresh.status, '', now)}
+                            onClick={props.refresh.refreshAll}
+                        />
                         {!props.isDemoMode && props.userDataHolder.pinCodeEncrypted && (
                             <button className="iconbtn" title="Lock" onClick={props.lockWallet}>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -203,7 +221,18 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                         <span className="group__more" title={`${holdings(g.unpriced)} not counted: ${g.pending ? 'price loading' : 'no price'}`}>+{g.unpriced}</span>
                                     )}
                                 </span>
+                                {g.k !== 'manual' && (
+                                    <RefreshButton
+                                        className="act act--sm refresh group__refresh"
+                                        label={'Refresh ' + g.label}
+                                        view={(now) => sourceView(props.refresh.status, g.k, now)}
+                                        onClick={() => props.refresh.refreshSource(g.k)}
+                                    />
+                                )}
                             </div>
+                            {g.k === 'metamask' && props.refresh.metaMaskScan && (
+                                <ScanLine label="Searching tokens" progress={props.refresh.metaMaskScan} />
+                            )}
                             {g.items.map((h) => (
                                 <HoldingRow
                                     key={h.id}
@@ -213,7 +242,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                     onSelect={setActiveId}
                                     onEdit={() => editAsset(h.asset)}
                                     onDelete={() => deleteAsset(h.asset)}
-                                    onRefresh={h.asset.isMetaMaskAsset ? () => props.refreshMetaMaskAsset(h.id) : undefined}
+                                    refresh={refreshOf(h.asset)}
                                 />
                             ))}
                         </div>
@@ -347,6 +376,19 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                     </div>
                 </div>
             </main>
+        </div>
+    );
+}
+
+/** A long background job with a known size (the MetaMask token search): a thin bar and a count. */
+function ScanLine({ label, progress }: { label: string; progress: { done: number; total: number } }) {
+    const pct = progress.total ? Math.min(100, (progress.done / progress.total) * 100) : 0;
+    const text = `${label} · ${progress.done.toLocaleString('en-US')} / ${progress.total.toLocaleString('en-US')}`;
+    return (
+        <div className="scanline" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={progress.total}
+             aria-valuenow={progress.done} title={text}>
+            <span className="scanline__bar"><i style={{ width: pct + '%' }} /></span>
+            <span className="scanline__txt">{label} {Math.floor(pct)}%</span>
         </div>
     );
 }
