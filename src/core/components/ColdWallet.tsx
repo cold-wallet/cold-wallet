@@ -15,7 +15,7 @@ import UserData from "../domain/UserData";
 import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 import AssetDTO from "../domain/AssetDTO";
 import OnStartupLoader from "./OnStartupLoader";
-import { collectHoldings } from "./holdings";
+import { collectHoldings, enabledCcxtHoldings } from "./holdings";
 import { isPriced } from "../ui/portfolio";
 import Props from "./Props";
 import CcxtLoader, {CcxtAccountsData} from "../integrations/ccxt/CcxtLoader";
@@ -241,12 +241,12 @@ export default function ColdWallet(
             || (userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData))
             || (userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData))
             || (userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData))
-            || !!(Object.values(ccxtUserData).reduce((r, c) => r.concat(c), []).length)
+            || enabledCcxtHoldings(userData, ccxtUserData).length > 0
     }
 
     const anyAssetExist = useMemo(
         () => getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData),
-        [userData, binanceUserData, okxUserData, monobankUserData,]
+        [userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData]
     )
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow]
         = useState(!anyAssetExist && loggedIn);
