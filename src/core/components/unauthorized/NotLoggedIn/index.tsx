@@ -59,8 +59,8 @@ export default function NotLoggedIn({ props, replacing }: {
     if (choosingPin) {
         return <PinSetup title="Create new wallet"
                          intro={replacing
-                             ? "First, choose a PIN-code for the new wallet. The locked wallet is replaced once you confirm it."
-                             : "First, choose a PIN-code. It locks your wallet on this device."}
+                             ? "First, choose a PIN for the new wallet. The locked wallet is replaced once you confirm it."
+                             : "First, choose a PIN. It locks your wallet on this device."}
                          onBack={() => setChoosingPin(false)}
                          onDone={props.createWallet} />;
     }

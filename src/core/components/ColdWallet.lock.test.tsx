@@ -9,6 +9,7 @@ import UserDataHolder from '../domain/UserDataHolder';
 import type UserDataStorageFactory from '../domain/UserDataStorageFactory';
 import { dataImporter } from './settings/ImportData';
 import ApiResponse from '../domain/ApiResponse';
+import { setVaultTimingsForTests, VAULT_TIMINGS } from './vault/useVault';
 
 // setupTests replaces ColdWallet with a stub for the other tests; this one needs the real thing.
 vi.unmock('./ColdWallet');
@@ -50,7 +51,7 @@ const sealedWithKraken = async (pin: string) => {
 };
 
 async function enterPin(pin: string) {
-  await screen.findByText('Enter PIN-code');
+  await screen.findByText('Enter PIN');
   for (const d of pin) fireEvent.click(screen.getByRole('button', { name: d }));
   fireEvent.click(screen.getByTitle('Confirm'));
   await screen.findByTitle('Settings');
@@ -96,6 +97,19 @@ describe('locking the open wallet', () => {
     fireEvent.click(screen.getByTitle('Lock'));
     await enterPin('2580');
     expect(screen.queryByText('Export backup')).toBeNull();
+  });
+
+  it('closes the doors before locking when the Lock button is used', async () => {
+    await start();
+    setVaultTimingsForTests(VAULT_TIMINGS);
+    try {
+      fireEvent.click(screen.getByTitle('Lock'));
+      expect(document.querySelector('.vault')?.getAttribute('data-phase')).toBe('closing');
+      expect(screen.queryByText('Enter PIN')).toBeNull(); // still open under the closing doors
+      await screen.findByText('Enter PIN');
+    } finally {
+      setVaultTimingsForTests({ checkMin: 0, turn: 0, open: 0, close: 0, latch: 0 });
+    }
   });
 
   it('closes what was open when the PIN is changed in another tab', async () => {
