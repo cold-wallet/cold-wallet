@@ -2,6 +2,7 @@
 // Shared by ColdWallet (is any price still missing?) and the dashboard (what to list and value).
 import AssetDTO from "../domain/AssetDTO";
 import UserData from "../domain/UserData";
+import type { CcxtAccountsData } from "../integrations/ccxt/CcxtLoader";
 import { AccountInfo } from "../integrations/binance/binanceApiClient";
 import { OkxAccount } from "../integrations/okx/okxApiClient";
 import MonobankUserData from "../integrations/monobank/MonobankUserData";
@@ -13,7 +14,17 @@ export interface HoldingSources {
     monobankUserData: MonobankUserData | null;
     metaMaskSettingsEnabled: boolean;
     metaMaskAssets: AssetDTO[] | null;
-    ccxtUserData: { [exchange: string]: AssetDTO[] };
+    ccxtUserData: CcxtAccountsData;
+}
+
+/** Holdings of the ccxt exchanges switched on in settings. An exchange that was switched off keeps
+ *  its last balances on the device until the next sync drops them, and they mustn't show meanwhile
+ *  (Binance, OKX and Monobank are gated the same way). */
+export function enabledCcxtHoldings(userData: UserData, ccxtUserData: CcxtAccountsData): AssetDTO[] {
+    const integrations = userData.settings.integrations || {};
+    return Object.entries(ccxtUserData)
+        .filter(([exchange]) => integrations[exchange]?.enabled)
+        .flatMap(([, assets]) => assets);
 }
 
 export function collectHoldings(s: HoldingSources): AssetDTO[] {
@@ -30,5 +41,21 @@ export function collectHoldings(s: HoldingSources): AssetDTO[] {
     if (s.metaMaskSettingsEnabled && s.metaMaskAssets) {
         assets = assets.concat(s.metaMaskAssets);
     }
-    return Object.values(s.ccxtUserData).reduce((merged, current) => merged.concat(current), assets);
+    return assets.concat(enabledCcxtHoldings(s.userData, s.ccxtUserData));
+}
+
+/** The wallet holds something: a manual asset, or a balance of an integration that is switched
+ *  on (MetaMask isn't counted here, as before). */
+export function anyHoldingExists(
+    userData: UserData,
+    binanceUserData: AccountInfo | null,
+    okxUserData: OkxAccount | null,
+    monobankUserData: MonobankUserData | null,
+    ccxtUserData: CcxtAccountsData,
+): boolean {
+    return !!(userData.assets.length)
+        || (userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData))
+        || (userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData))
+        || (userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData))
+        || enabledCcxtHoldings(userData, ccxtUserData).length > 0;
 }

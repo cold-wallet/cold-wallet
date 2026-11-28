@@ -8,6 +8,7 @@ import UserData, { UserSettings } from '../domain/UserData';
 import UserDataHolder from '../domain/UserDataHolder';
 import type UserDataStorageFactory from '../domain/UserDataStorageFactory';
 import { dataImporter } from './settings/ImportData';
+import ApiResponse from '../domain/ApiResponse';
 
 // setupTests replaces ColdWallet with a stub for the other tests; this one needs the real thing.
 vi.unmock('./ColdWallet');
@@ -23,6 +24,12 @@ vi.mock('../integrations/binance/BinanceLoader', () => ({
   }),
 }));
 
+// ccxt exchanges: records which exchange each sync asks for (no network)
+const { ccxtLoad } = vi.hoisted(() => ({ ccxtLoad: vi.fn() }));
+vi.mock('../integrations/ccxt/ccxtConnector', () => ({
+  default: { loadUserData: ccxtLoad, getExchanges: () => [], getExchangesAsync: async () => [] },
+}));
+
 // The wallet lives in memory; `saveElsewhere()` replaces it the way another tab would.
 function memoryWallet(initial: UserDataHolder) {
   let set: (h: UserDataHolder) => void = () => {};
@@ -35,6 +42,12 @@ function memoryWallet(initial: UserDataHolder) {
 }
 
 const sealed = async (pin: string) => sealUserDataHolder(new UserData('u1', new UserSettings(), []), await newPinKey(pin));
+/** a wallet with a ccxt exchange (Kraken) switched on, with test keys */
+const sealedWithKraken = async (pin: string) => {
+  const settings = new UserSettings();
+  settings.integrations = { kraken: { enabled: true, apiKey: 'test-key', apiSecret: 'test-secret', password: null, additionalSetting: null } };
+  return sealUserDataHolder(new UserData('u1', settings, []), await newPinKey(pin));
+};
 
 async function enterPin(pin: string) {
   await screen.findByText('Enter PIN-code');
@@ -49,8 +62,8 @@ async function openExport() {
   await screen.findByText('Export backup');
 }
 
-async function showLocked() {
-  const wallet = memoryWallet(await sealed('2580'));
+async function showLocked(holder?: UserDataHolder) {
+  const wallet = memoryWallet(holder ?? await sealed('2580'));
   render(<ColdWallet properties={{
     storageFactory: inMemoryStorageFactory,
     userDataStorageFactory: wallet.factory,
@@ -144,6 +157,32 @@ describe('exchange balances', () => {
     for (const d of '2580') fireEvent.click(screen.getByRole('button', { name: d }));
     fireEvent.click(screen.getByTitle('Confirm'));
     await waitFor(() => expect(loadBinance).toHaveBeenCalledWith(true));
+  });
+
+  it('include the ccxt exchanges switched on in the opened wallet, right after unlocking', async () => {
+    ccxtLoad.mockReset();
+    ccxtLoad.mockResolvedValue(ApiResponse.success(200, []));
+    await showLocked(await sealedWithKraken('2580'));
+    expect(ccxtLoad).not.toHaveBeenCalled(); // locked: its settings aren't readable
+    await enterPin('2580');
+    await waitFor(() => expect(ccxtLoad).toHaveBeenCalledWith('kraken', 'test-key', 'test-secret', null, null));
+  });
+
+  it('include the ccxt exchanges of a backup imported in Settings', async () => {
+    ccxtLoad.mockReset();
+    ccxtLoad.mockResolvedValue(ApiResponse.success(200, []));
+    await start();
+    expect(ccxtLoad).not.toHaveBeenCalled(); // the opened wallet has none
+    fireEvent.click(screen.getByTitle('Settings'));
+    fireEvent.click(await screen.findByText('Import'));
+    fireEvent.change(await screen.findByPlaceholderText(/Paste your backup token/), {
+      target: { value: dataImporter.generateExportData(await sealedWithKraken('2580')) },
+    });
+    fireEvent.click(screen.getByText('Restore'));
+    await screen.findByText('Enter backup PIN');
+    for (const d of '2580') fireEvent.click(screen.getByRole('button', { name: d }));
+    fireEvent.click(screen.getByTitle('Confirm'));
+    await waitFor(() => expect(ccxtLoad).toHaveBeenCalledWith('kraken', 'test-key', 'test-secret', null, null));
   });
 });
 

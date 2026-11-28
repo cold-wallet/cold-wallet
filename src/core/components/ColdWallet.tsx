@@ -4,18 +4,15 @@ import MonobankLoader from "./../integrations/monobank/MonobankLoader";
 import NotLoggedIn from "./unauthorized/NotLoggedIn";
 import AssetsDashboard from "./AssetsDashboard";
 import StorageFactory from "../domain/StorageFactory";
-import {AccountInfo} from "../integrations/binance/binanceApiClient";
-import MonobankUserData from "../integrations/monobank/MonobankUserData";
 import PinCodeOnLogin from "./unauthorized/PinCodeOnLogin";
 import OkxLoader from "../integrations/okx/OkxLoader";
-import {OkxAccount} from "../integrations/okx/okxApiClient";
 import UserDataService from "../services/UserDataService";
 import useIdleLock, {AUTO_LOCK_AFTER} from "../utils/useIdleLock";
 import UserData from "../domain/UserData";
 import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
 import AssetDTO from "../domain/AssetDTO";
 import OnStartupLoader from "./OnStartupLoader";
-import { collectHoldings } from "./holdings";
+import { anyHoldingExists, collectHoldings } from "./holdings";
 import { isPriced } from "../ui/portfolio";
 import Props from "./Props";
 import CcxtLoader, {CcxtAccountsData} from "../integrations/ccxt/CcxtLoader";
@@ -187,6 +184,7 @@ export default function ColdWallet(
         ccxtUserData, setCcxtUserData,
         enabledCcxtIntegrations, setEnabledCcxtIntegrations,
         getEnabledCcxtIntegrations,
+        loadCcxtUserData,
     } = CcxtLoader(loadingUserDataAllowed, properties.storageFactory, userData)
 
     const [loadingUserDataFromResource, setLoadingUserDataFromResource] = useState<string | null>(null);
@@ -208,45 +206,26 @@ export default function ColdWallet(
         metaMaskHandleConnect,
     } = MetaMaskLoader(isDemoMode, loadingUserDataAllowed, binanceCurrencies, coinGeckoCurrencies, properties.storageFactory, userData)
 
-    // Collect the symbols of every held asset (manual + all integrations) for the CoinGecko
-    // needed-first price fetch. Updates only when the set actually changes.
+    // every holding the dashboard shows: manual + each integration that is switched on
+    const allAssets = useMemo(() => collectHoldings({
+        userData, binanceUserData, okxUserData, monobankUserData,
+        metaMaskSettingsEnabled, metaMaskAssets, ccxtUserData,
+    }), [userData, binanceUserData, okxUserData, monobankUserData, metaMaskSettingsEnabled, metaMaskAssets, ccxtUserData]);
+
+    // The symbols of those holdings, for the CoinGecko needed-first price fetch (a source that is
+    // switched off keeps its last balances on the device, but needs no prices). Updates only when
+    // the set actually changes.
     useEffect(() => {
-        const symbols = new Set<string>();
-        userData.assets.forEach(a => symbols.add(a.currency.toUpperCase()));
-        if (binanceUserData) {
-            AccountInfo.getAllAssets(binanceUserData).forEach(a => symbols.add(a.currency.toUpperCase()));
-        }
-        if (okxUserData) {
-            OkxAccount.getAllAssets(okxUserData).forEach(a => symbols.add(a.currency.toUpperCase()));
-        }
-        if (monobankUserData) {
-            MonobankUserData.getAllAssets(monobankUserData).forEach(a => symbols.add(a.currency.toUpperCase()));
-        }
-        (metaMaskAssets || []).forEach(a => symbols.add(a.currency.toUpperCase()));
-        Object.values(ccxtUserData).forEach(assets => assets.forEach(a => symbols.add(a.currency.toUpperCase())));
-        const next = Array.from(symbols).sort();
+        const next = Array.from(new Set(allAssets.map(a => a.currency.toUpperCase()))).sort();
         if (next.join(',') !== neededPriceSymbols.join(',')) {
             setNeededPriceSymbols(next);
         }
-    }, [userData, binanceUserData, okxUserData, monobankUserData, metaMaskAssets, ccxtUserData, neededPriceSymbols]);
+    }, [allAssets, neededPriceSymbols]);
 
-    function getAnyAssetExist(
-        userData: UserData,
-        binanceUserData: AccountInfo | null,
-        okxUserData: OkxAccount | null,
-        monobankUserData: MonobankUserData | null,
-        ccxtUserData: CcxtAccountsData,
-    ) {
-        return !!(userData.assets.length)
-            || (userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData))
-            || (userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData))
-            || (userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData))
-            || !!(Object.values(ccxtUserData).reduce((r, c) => r.concat(c), []).length)
-    }
-
+    const getAnyAssetExist = anyHoldingExists;
     const anyAssetExist = useMemo(
-        () => getAnyAssetExist(userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData),
-        [userData, binanceUserData, okxUserData, monobankUserData,]
+        () => anyHoldingExists(userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData),
+        [userData, binanceUserData, okxUserData, monobankUserData, ccxtUserData]
     )
     const [showCreateNewAssetWindow, setShowCreateNewAssetWindow]
         = useState(!anyAssetExist && loggedIn);
@@ -297,6 +276,7 @@ export default function ColdWallet(
         loadBinanceUserData();
         loadOkxUserData();
         loadMonobankUserData();
+        loadCcxtUserData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [integrationsReload]);
 
@@ -401,11 +381,7 @@ export default function ColdWallet(
         okxPrices,
         coinGeckoPrices])
 
-    // every holding the dashboard shows, and whether some of them have no price yet
-    const allAssets = useMemo(() => collectHoldings({
-        userData, binanceUserData, okxUserData, monobankUserData,
-        metaMaskSettingsEnabled, metaMaskAssets, ccxtUserData,
-    }), [userData, binanceUserData, okxUserData, monobankUserData, metaMaskSettingsEnabled, metaMaskAssets, ccxtUserData]);
+    // whether some holding has no price yet
     const pricesMissing = useMemo(
         () => allAssets.some((a) => !isPriced(a.currency, priceService)),
         [allAssets, priceService]);
