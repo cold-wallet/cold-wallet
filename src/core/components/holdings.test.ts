@@ -1,6 +1,7 @@
 import AssetDTO, { AssetType } from '../domain/AssetDTO';
 import UserData, { IntegrationSettingsData } from '../domain/UserData';
-import { collectHoldings, enabledCcxtHoldings } from './holdings';
+import type { CcxtAccountsData } from '../integrations/ccxt/CcxtLoader';
+import { anyHoldingExists, collectHoldings, enabledCcxtHoldings } from './holdings';
 
 const ccxtAsset = (exchange: string, currency: string) =>
   new AssetDTO(`${exchange}_${currency} SPOT`, currency, '1', `${currency} SPOT`, 8, AssetType.crypto, false, false, false, true, exchange);
@@ -37,5 +38,27 @@ describe('ccxt holdings', () => {
       ccxtUserData: saved,
     });
     expect(all.map((a) => a.currency)).toEqual(['EUR', 'ETH', 'SOL']);
+  });
+});
+
+describe('anyHoldingExists', () => {
+  const empty = () => { const u = user({}); u.assets = []; return u; };
+  const exists = (u: UserData, ccxt: CcxtAccountsData = saved) => anyHoldingExists(u, null, null, null, ccxt);
+
+  it('counts a manual asset', () => {
+    expect(exists(user({}), {})).toBe(true);
+  });
+
+  it('counts balances of a switched-on exchange only', () => {
+    const on = empty(); on.settings.integrations = { kraken: integration(true) };
+    const off = empty(); off.settings.integrations = { kraken: integration(false), bybit: integration(false) };
+    expect(exists(on)).toBe(true);
+    expect(exists(off)).toBe(false);
+    expect(exists(empty())).toBe(false);
+  });
+
+  it('a switched-on exchange with nothing left on it is not a holding', () => {
+    const on = empty(); on.settings.integrations = { kraken: integration(true) };
+    expect(exists(on, { kraken: [] })).toBe(false);
   });
 });

@@ -43,3 +43,19 @@ export function collectHoldings(s: HoldingSources): AssetDTO[] {
     }
     return assets.concat(enabledCcxtHoldings(s.userData, s.ccxtUserData));
 }
+
+/** The wallet holds something: a manual asset, or a balance of an integration that is switched
+ *  on (MetaMask isn't counted here, as before). */
+export function anyHoldingExists(
+    userData: UserData,
+    binanceUserData: AccountInfo | null,
+    okxUserData: OkxAccount | null,
+    monobankUserData: MonobankUserData | null,
+    ccxtUserData: CcxtAccountsData,
+): boolean {
+    return !!(userData.assets.length)
+        || (userData.settings.binanceIntegrationEnabled && AccountInfo.assetsExist(binanceUserData))
+        || (userData.settings.okxIntegrationEnabled && OkxAccount.assetsExist(okxUserData))
+        || (userData.settings.monobankIntegrationEnabled && MonobankUserData.assetsExist(monobankUserData))
+        || enabledCcxtHoldings(userData, ccxtUserData).length > 0;
+}
