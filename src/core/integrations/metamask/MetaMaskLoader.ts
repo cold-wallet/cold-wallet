@@ -19,7 +19,61 @@ import PLATFORM_CHAINID from "../coingecko/platforms";
 import {createDemoMetamaskAssets} from "../../utils/DemoAssetsGenerator";
 import {erc20Abi, formatUnits} from "viem";
 
-interface BalanceRequest {
+/** Rebuild the request that re-checks a stored balance (single-token refresh, search clean-up):
+ *  from its saved contract, or — for a balance saved before contracts were kept — by looking its
+ *  symbol up in the CoinGecko coin list for that chain. Null: it can't be checked any more. */
+export function balanceRequestFor(
+    b: AddressBalanceResult,
+    coinGeckoCurrencies: { [symbol: string]: CoinGeckoCurrencyResponse } | null,
+): BalanceRequest | null {
+    if (b.token) {
+        return {address: b.address, token: b.token, chainId: b.chainId, symbol: b.symbol};
+    }
+    const coin = coinGeckoCurrencies?.[b.symbol];
+    if (coin?.platforms) {
+        const entry = Object.entries(coin.platforms)
+            .find(([p, addr]) => PLATFORM_CHAINID[p] === b.chainId && addr);
+        if (entry) {
+            return {address: b.address, token: entry[1].toLowerCase() as `0x${string}`,
+                chainId: b.chainId, symbol: b.symbol};
+        }
+    }
+    if (b.symbol === "ETH" && b.chainId === 1) {
+        return {address: b.address, chainId: 1, symbol: "ETH"};
+    }
+    return null;
+}
+
+/** After a complete token search: the stored balances minus those it no longer covers and that
+ *  can't be checked otherwise (no saved contract, not in today's coin list). Such a balance was
+ *  found under an older coin list — a coin renamed since (MATIC → POL on Polygon, whose old entry
+ *  doubles the new one), or a copy the list no longer names for that chain — and would stay frozen,
+ *  counted in the totals, for good. Null when nothing goes. */
+export function withoutUncheckable(
+    data: MetaMaskAccount,
+    searched: BalanceRequest[],
+    coinGeckoCurrencies: { [symbol: string]: CoinGeckoCurrencyResponse } | null,
+): MetaMaskAccount | null {
+    const id = (address: string, chainId: number, symbol: string) => `${address.toLowerCase()}|${chainId}|${symbol}`;
+    const covered = new Set(searched.map(r => id(r.address, r.chainId, r.symbol)));
+    const stale: AddressBalanceResult[] = [];
+    Object.values(data).forEach(bySymbol => Object.values(bySymbol).forEach(byChain =>
+        Object.values(byChain).forEach(b => {
+            if (!covered.has(id(b.address, b.chainId, b.symbol)) && !balanceRequestFor(b, coinGeckoCurrencies)) {
+                stale.push(b);
+            }
+        })));
+    if (!stale.length) return null;
+    const next = JSON.parse(JSON.stringify(data)) as MetaMaskAccount;
+    stale.forEach(b => {
+        delete next[b.address]?.[b.symbol]?.[b.chainId];
+        if (next[b.address]?.[b.symbol] && !Object.keys(next[b.address][b.symbol]).length) delete next[b.address][b.symbol];
+        if (next[b.address] && !Object.keys(next[b.address]).length) delete next[b.address];
+    });
+    return next;
+}
+
+export interface BalanceRequest {
     token?: `0x${string}` // undefined → native balance
     chainId: number
     symbol: string
@@ -174,23 +228,8 @@ export default function MetaMaskLoader(
         return [optionEth, ...tokenOptions];
     }
 
-    // Rebuild the BalanceRequest for a stored balance (used by the single-token refresh). The
-    // contract address isn't stored, so look it up in the CoinGecko map by symbol → platform.
-    const requestForBalance = (b: AddressBalanceResult): BalanceRequest | null => {
-        const coin = coinGeckoCurrencies?.[b.symbol];
-        if (coin?.platforms) {
-            const entry = Object.entries(coin.platforms)
-                .find(([p, addr]) => PLATFORM_CHAINID[p] === b.chainId && addr);
-            if (entry) {
-                return {address: b.address, token: entry[1].toLowerCase() as `0x${string}`,
-                    chainId: b.chainId, symbol: b.symbol};
-            }
-        }
-        if (b.symbol === "ETH" && b.chainId === 1) {
-            return {address: b.address, chainId: 1, symbol: "ETH"};
-        }
-        return null;
-    };
+    const requestForBalance = (b: AddressBalanceResult): BalanceRequest | null =>
+        balanceRequestFor(b, coinGeckoCurrencies);
 
     const [batchSize, setBatchSize] = useState(BATCH_SIZE)
 
@@ -225,9 +264,14 @@ export default function MetaMaskLoader(
         return true;
     };
 
+    // a demo session gets one sample set of tokens when it opens (see BinanceLoader), not a new one
+    // whenever the market list or the settings change
+    const [demoAssets, setDemoAssets] = useState<AssetDTO[]>([]);
+    useEffect(() => { setDemoAssets(isDemoMode ? createDemoMetamaskAssets() : []); }, [isDemoMode]);
+
     const metaMaskAssets = useMemo(() => {
         if (isDemoMode) {
-            return createDemoMetamaskAssets()
+            return demoAssets
         }
         if (!binanceCurrencies || !userData.settings?.metaMask?.enabled) {
             return []
@@ -258,7 +302,7 @@ export default function MetaMaskLoader(
         })
         // All inputs the memo reads: with only metaMaskUserData here, it froze on the first render
         // (demo mode not on yet / binanceCurrencies still null) and stayed [] until balances changed.
-    }, [isDemoMode, binanceCurrencies, userData.settings?.metaMask?.enabled, metaMaskUserData])
+    }, [isDemoMode, demoAssets, binanceCurrencies, userData.settings?.metaMask?.enabled, metaMaskUserData])
 
     const fetchAllBalances = async (requests: BalanceRequest[]) => {
         const tokenRequests = requests
@@ -334,6 +378,7 @@ export default function MetaMaskLoader(
                 formatted: formatUnits(value, decimals),
                 symbol: req.symbol,
                 value: value.toString(),
+                token: req.token,
             }
         });
 
@@ -345,7 +390,7 @@ export default function MetaMaskLoader(
             if (res.status === 'success' && (res.result as bigint) === 0n) {
                 results[index] = {
                     chainId: req.chainId, address: req.address, symbol: req.symbol,
-                    decimals: 0, formatted: "0", value: "0",
+                    decimals: 0, formatted: "0", value: "0", token: req.token,
                 }
             }
         });
@@ -486,11 +531,16 @@ export default function MetaMaskLoader(
                 if (Number(r.value)) { addBalance(merged, r); changed = true; }   // non-zero → add/update
                 else if (removeBalance(merged, r)) changed = true;          // confirmed zero → drop
             });
-            if (changed) setMetaMaskUserData(merged);
-
             const nextIndex = index + slice.length;
+            const complete = nextIndex >= options.length;
+            // a whole pass for this wallet is done: drop balances it no longer covers and that can't
+            // be checked any other way (see withoutUncheckable)
+            const cleaned = complete ? withoutUncheckable(merged, options, coinGeckoCurrencies) : null;
+            if (cleaned) setMetaMaskUserData(cleaned);
+            else if (changed) setMetaMaskUserData(merged);
+
             const stamp = Date.now();
-            if (nextIndex >= options.length) {
+            if (complete) {
                 // cursor walked the whole list → cooldown starts now
                 setScanState({sig, index: 0, completedAt: stamp, updatedAt: stamp});
                 console.log(`metamask scan complete: ${options.length} tokens — idle for ${SCAN_INTERVAL_MS / 60000}m`);

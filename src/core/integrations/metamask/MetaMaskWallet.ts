@@ -5,6 +5,9 @@ export interface AddressBalanceResult {
     formatted: string
     symbol: string
     value: string
+    /** The token's contract (none: the chain's native coin, or a balance saved by an older version).
+     *  Kept so the balance can be checked again even after the coin list stops naming it. */
+    token?: `0x${string}`
 }
 
 export interface MetaMaskAccount {

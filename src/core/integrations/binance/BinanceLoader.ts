@@ -154,16 +154,17 @@ const BinanceLoader = (
         });
     };
 
+    // A demo session gets one sample portfolio when it opens: a new one on every visit, never a
+    // new one under the user's eyes (polls and refreshes leave it as it is).
+    useEffect(() => {
+        if (isDemoMode) store(new AccountInfo({accountType: "SPOT", balances: createDemoBinanceAssets()} as SpotAccount));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isDemoMode]);
+
     // Polling: core balances every minute; heavy sections every HEAVY_INTERVAL_MS (and on the first
     // load, so the initial view is complete). Sections that loaded meanwhile (a manual refresh) wait.
     let loadBinanceUserData = () => {
-        if (isDemoMode) {
-            store(new AccountInfo({
-                accountType: "SPOT",
-                balances: createDemoBinanceAssets()
-            } as SpotAccount));
-            return;
-        }
+        if (isDemoMode) return;
         const now = Date.now();
         const status = tracker.current();
         const due = ALL.filter(section => {

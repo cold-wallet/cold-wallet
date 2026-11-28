@@ -99,6 +99,9 @@ export default function ColdWallet(
     } = CoinGeckoLoader(properties.storageFactory, neededPriceSymbols, refreshTracker)
 
     const loadingUserDataAllowed = !isDemoMode && !shouldEnterPinCode;
+    // A demo that is actually open. A device without a wallet also carries the demo flag (its empty
+    // default holder), but nothing demo may be generated for its start screen.
+    const demoSession = isDemoMode && loggedIn;
     const {
         binancePrices, binancePricesLoaded,
         binanceCurrencies, binanceCurrenciesLoaded,
@@ -106,7 +109,7 @@ export default function ColdWallet(
         loadBinanceUserData,
         refreshBinance, refreshBinancePrices,
     } = BinanceLoader(
-        isDemoMode,
+        demoSession,
         loadingUserDataAllowed,
         properties.storageFactory,
         properties.integrationUserDataStorageFactory,
@@ -122,7 +125,7 @@ export default function ColdWallet(
         loadOkxUserData,
         refreshOkx, refreshOkxPrices,
     } = OkxLoader(
-        isDemoMode,
+        demoSession,
         loadingUserDataAllowed,
         properties.storageFactory,
         properties.integrationUserDataStorageFactory,
@@ -142,7 +145,7 @@ export default function ColdWallet(
         loadMonobankUserData,
         refreshMonobank, refreshMonobankRates,
     } = MonobankLoader(
-        isDemoMode,
+        demoSession,
         loadingUserDataAllowed,
         properties.storageFactory,
         properties.integrationUserDataStorageFactory,
@@ -229,7 +232,7 @@ export default function ColdWallet(
         metaMaskHasProvider,
         metaMaskIsConnecting,
         metaMaskHandleConnect,
-    } = MetaMaskLoader(isDemoMode, loadingUserDataAllowed, binanceCurrencies, coinGeckoCurrencies, properties.storageFactory, userData, refreshTracker)
+    } = MetaMaskLoader(demoSession, loadingUserDataAllowed, binanceCurrencies, coinGeckoCurrencies, properties.storageFactory, userData, refreshTracker)
 
     // every holding the dashboard shows: manual + each integration that is switched on
     const allAssets = useMemo(() => collectHoldings({

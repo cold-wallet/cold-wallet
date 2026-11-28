@@ -129,3 +129,42 @@ describe('Binance refresh, section by section', () => {
     }
   });
 });
+
+describe('Binance in the demo', () => {
+  it('one sample portfolio per demo session: polls, refreshes and the market list arriving keep it', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'setInterval'] });
+    try {
+      const storage = device();
+      const { result, rerender } = renderHook(({ demo }) => {
+        const tracker = useRefreshTracker();
+        return { tracker, ...BinanceLoader(demo, false, storage, storage, false, null, null, tracker) };
+      }, { initialProps: { demo: true } });
+      await act(async () => { await vi.advanceTimersByTimeAsync(100); });
+      const first = result.current.binanceUserData?.account?.balances?.map((a) => a.id);
+      expect(first?.length).toBeGreaterThan(0);
+
+      await act(async () => { await vi.advanceTimersByTimeAsync(5 * 60_000); });           // polls
+      await act(async () => {
+        const refreshing = result.current.refreshBinance();
+        await vi.advanceTimersByTimeAsync(1_000);
+        await refreshing;
+      });
+      rerender({ demo: true });
+      expect(result.current.binanceUserData?.account?.balances?.map((a) => a.id)).toEqual(first);
+      expect(api.getUserInfoAsync).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('nothing demo is generated outside a demo session', async () => {
+    const storage = device();
+    const { result } = renderHook(() => {
+      const tracker = useRefreshTracker();
+      return { tracker, ...BinanceLoader(false, false, storage, storage, false, null, null, tracker) };
+    });
+    await act(async () => { await Promise.resolve(); });
+    expect(result.current.binanceUserData).toBeNull();
+  });
+});
+

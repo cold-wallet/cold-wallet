@@ -37,10 +37,12 @@ export function createDemoBinanceAssets() {
 
 export function createDemoOkxAssets() {
     const length = 1 + Math.random() * 5;
-    return Array.from({length}, () => {
-        const currency = getRandomCryptoCurrency();
+    // one holding per coin, with the ids real OKX holdings have, so the demo offers the same
+    // single-coin refresh
+    const currencies = Array.from(new Set(Array.from({length}, () => getRandomCryptoCurrency())));
+    return currencies.map((currency) => {
         return new AssetDTO(
-            uuidGenerator.generateUUID(),
+            `okx_spot_${currency}`,
             currency,
             getRandomAmount(currency, AssetType.crypto).toString(),
             "demo okx amount",

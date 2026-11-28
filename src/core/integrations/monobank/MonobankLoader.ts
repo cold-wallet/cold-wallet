@@ -126,11 +126,14 @@ const MonobankLoader = (
     };
 
     // polling every 5 minutes, never sooner than a minute after the previous request
+    // a demo session gets one sample portfolio when it opens (see BinanceLoader)
+    useEffect(() => {
+        if (isDemoMode) setMonobankUserData(demoData());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isDemoMode]);
+
     const loadMonobankUserData = () => {
-        if (isDemoMode) {
-            setMonobankUserData(demoData());
-            return;
-        }
+        if (isDemoMode) return;
         const s = stateOf(tracker.current(), MONOBANK);
         if (!dueForPoll(s, Date.now(), USER_DATA_INTERVAL_MS)
             || Date.now() - s.lastAttemptAt < MONOBANK_MIN_GAP_MS) {

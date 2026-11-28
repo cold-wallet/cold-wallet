@@ -164,11 +164,14 @@ const OkxLoader = (
     };
 
     // polling every minute; parts that loaded meanwhile (a manual refresh) wait for the next tick
+    // a demo session gets one sample portfolio when it opens (see BinanceLoader)
+    useEffect(() => {
+        if (isDemoMode) store(new OkxAccount(createDemoOkxAssets()));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isDemoMode]);
+
     let loadOkxUserData = () => {
-        if (isDemoMode) {
-            store(new OkxAccount(createDemoOkxAssets()));
-            return;
-        }
+        if (isDemoMode) return;
         const now = Date.now();
         const status = tracker.current();
         void loadScopes(parts().filter(k => dueForPoll(stateOf(status, k), now, USER_DATA_INTERVAL_MS)), false);
