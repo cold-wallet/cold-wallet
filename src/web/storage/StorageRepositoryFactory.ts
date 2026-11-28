@@ -16,16 +16,18 @@ export default function StorageRepositoryFactory(storage: Storage):
 
         useEffect(() => {
             // Persist any concrete value — including falsy ones like false / 0 / "".
-            // Only the nullable variant's "absent" state (null/undefined) is skipped: the
-            // initializer supplies defaults, so there's nothing useful to write for it.
-            if (getter != null) {
-                try {
+            // The nullable variant's "absent" state (null/undefined) removes the saved value: data
+            // cleared on purpose (another wallet took over this device) must not come back on reload.
+            try {
+                if (getter != null) {
                     storage.setItem(key, JSON.stringify(getter));
-                } catch (e) {
-                    // QuotaExceededError (or storage disabled) must never crash the app — the
-                    // value stays in memory for the session, it just isn't persisted.
-                    console.warn(`storage: could not persist "${key}"`, e);
+                } else {
+                    storage.removeItem(key);
                 }
+            } catch (e) {
+                // QuotaExceededError (or storage disabled) must never crash the app — the
+                // value stays in memory for the session, it just isn't persisted.
+                console.warn(`storage: could not persist "${key}"`, e);
             }
         }, [getter, key]);
 
