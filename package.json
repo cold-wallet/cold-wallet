@@ -55,8 +55,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && node --max-old-space-size=8192 ./node_modules/.bin/vite build",
-    "typecheck": "tsc",
+    "build": "tsc && npm run build:bundle",
+    "build:bundle": "node --max-old-space-size=8192 ./node_modules/.bin/vite build",
+    "typecheck": "tsc && tsc -p tsconfig.node.json --noEmit --composite false",
     "preview": "vite preview",
     "test": "vitest",
     "test:ci": "vitest run",
