@@ -128,7 +128,7 @@ describe('what the buttons show', () => {
     expect(sourceView(s, '', T)).toMatchObject({ spinning: true, tone: 'idle' });
     s = fail(s, 'prices/coingecko', T + 100, '429', 'retry');
     expect(sourceView(s, '', T + 200)).toMatchObject({ spinning: true, tone: 'warn' });
-    expect(sourceView(s, '', T + 200).title).toMatch(/CoinGecko prices failed: 429 · retrying in 15 s/);
+    expect(sourceView(s, '', T + 200).title).toMatch(/CoinGecko prices failed: 429 · retrying in 60 s/);
     s = fail(begin(s, ['okx/spot'], T, false), 'okx/spot', T + 300, 'Invalid OK-ACCESS-KEY', 'fatal');
     expect(sourceView(s, '', T + 400).tone).toBe('error');
     expect(sourceView(s, '', T + 400).blockedUntil).toBe(0);

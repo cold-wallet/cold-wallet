@@ -5,10 +5,17 @@ import StorageFactory from "../../domain/StorageFactory";
 import apiClient from "./apiClient";
 import CoinGeckoPriceResponse from "./CoinGeckoPriceResponse";
 import CoinGeckoCurrencyResponse from "./CoinGeckoCurrencyResponse";
-import {RefreshTracker} from "../../refresh/useRefreshTracker";
+import {RefreshTracker, useRetry} from "../../refresh/useRefreshTracker";
 import {planManual} from "../../refresh/refreshState";
+import {COINGECKO_FAILURE_PAUSE_MS} from "../../refresh/scopeKeys";
 
 const PRICES_SCOPE = 'prices/coingecko';
+// The held coins can change several times while a wallet opens (manual holdings first, then each
+// integration's balances). Wait this long for them to settle, so opening sends one request, not a
+// burst that the keyless API answers with 429s.
+const NEEDED_SETTLE_MS = 500;
+// a request for coins added while another one was on its way follows it after this gap
+const FOLLOW_UP_GAP_MS = 1_000;
 const LIST_SCOPE = 'prices/coingecko-list';
 
 /** Progress of the background price catalogue (prices of every listed coin, for the coin picker). */
@@ -30,7 +37,7 @@ const POPULAR_SYMBOLS = ["USDT", "BTC", "ETH"];
 const TICK_MS = 30_000;
 const SWEEP_BATCH = 500;
 const SWEEP_COOLDOWN_MS = 30 * 60_000; // pause between full sweeps
-const FAILURE_PAUSE_MS = 60_000;       // back off after any failure (rate limit etc.)
+const FAILURE_PAUSE_MS = COINGECKO_FAILURE_PAUSE_MS; // back off after any failure (rate limit etc.)
 const CURRENCIES_TTL_MS = 7 * 24 * 3_600_000;
 const FAILURES_BEFORE_GIVING_UP = 3;
 
@@ -121,11 +128,26 @@ export default function CoinGeckoLoader(
         return subset;
     };
 
+    // the latest values, for a follow-up request or a retry that runs after a later render
+    const neededRef = useRef(neededSet);
+    neededRef.current = neededSet;
+    const pricesRef = useRef(coinGeckoPrices);
+    pricesRef.current = coinGeckoPrices;
+    // One request for the held coins at a time: another one asked for meanwhile follows it.
+    const inFlight = useRef(false);
+    const followUp = useRef(false);
+
     // One request: prices for `symbols`, optionally advancing the background sweep cursor.
     // `track`: it carries the held coins' prices, so the refresh buttons show it (a single coin
-    // prefetched for the add-asset dialog doesn't count).
-    const fetchPrices = (symbols: Set<string>, advanceSweep: boolean, track = false, manual = false): Promise<void> => {
+    // prefetched for the add-asset dialog doesn't count); only one such request runs at a time.
+    // `queue`: if one is already on its way, send this one after it (new coins to price) instead
+    // of dropping it (a polling tick, a click: the request on its way already covers them).
+    const fetchPrices = (symbols: Set<string>, {sweep: advanceSweep = false, track = false, manual = false, queue = false} = {}): Promise<void> => {
         if (!coinGeckoCurrencies || Date.now() < pauseUntil.current) {
+            return Promise.resolve()
+        }
+        if (track && inFlight.current) {
+            if (queue) followUp.current = true;
             return Promise.resolve()
         }
         const toLoad = {} as { [index: string]: CoinGeckoCurrencyResponse };
@@ -151,6 +173,7 @@ export default function CoinGeckoLoader(
             return Promise.resolve()
         }
         const ticket = track ? tracker.begin([PRICES_SCOPE], manual) : 0;
+        if (track) inFlight.current = true;
         return apiClient.fetchPrices(toLoad, subCurrencies)
             .then((response: ApiResponse<CoinGeckoPriceResponse | any>) => {
                 if (response.success) {
@@ -161,7 +184,8 @@ export default function CoinGeckoLoader(
                         Object.keys(toLoad).forEach((ticker) => next.add(ticker));
                         return next;
                     });
-                    const merged = {...coinGeckoPrices, ...(response.result)};
+                    const merged = {...pricesRef.current, ...(response.result)};
+                    pricesRef.current = merged;
                     setCoinGeckoPrices(merged)             // full map, in memory only
                     setPersistedPrices(pickNeeded(merged)) // small held subset, persisted
                     setCoinGeckoPricesLoaded(true)
@@ -186,20 +210,34 @@ export default function CoinGeckoLoader(
             .catch((e: unknown) => {
                 if (track) tracker.fail(ticket, PRICES_SCOPE, String(e), 'retry');
             })
+            .finally(() => {
+                if (!track) return;
+                inFlight.current = false;
+                if (followUp.current) {
+                    followUp.current = false;
+                    setTimeout(() => void fetchRef.current(neededRef.current, {track: true, queue: true}), FOLLOW_UP_GAP_MS);
+                }
+            })
     };
+    const fetchRef = useRef(fetchPrices);
+    fetchRef.current = fetchPrices;
 
-    // held/picker symbols: refresh immediately when the set changes (new asset added), …
+    // held/picker symbols: refresh as soon as the set settles after a change (new asset added), …
     useEffect(() => {
-        void fetchPrices(neededSet, false, true)
+        const t = setTimeout(() => void fetchRef.current(neededRef.current, {track: true, queue: true}), NEEDED_SETTLE_MS);
+        return () => clearTimeout(t);
     }, [neededSet, coinGeckoCurrencies]);
     // …and one combined needed+sweep request per tick
-    useInterval(() => void fetchPrices(neededSet, true, true), TICK_MS);
+    useInterval(() => void fetchPrices(neededSet, {sweep: true, track: true}), TICK_MS);
+    // after a failure: once the pause is over (the polling tick would come up to 30 s later)
+    useRetry(tracker, PRICES_SCOPE, () => void fetchRef.current(neededRef.current, {track: true}),
+        () => FAILURE_PAUSE_MS);
 
     /** Manual refresh of the held coins' prices (answered at once when they loaded seconds ago). */
     const refreshCoinGeckoPrices = (): Promise<void> => {
         const plan = planManual(tracker.current(), [PRICES_SCOPE], Date.now());
         tracker.pulse(plan.fresh);
-        return plan.fetch.length ? fetchPrices(neededSet, false, true, true) : Promise.resolve();
+        return plan.fetch.length ? fetchPrices(neededSet, {track: true, manual: true}) : Promise.resolve();
     };
 
     // the background catalogue: null while it rests between passes or has nothing to go through
@@ -211,7 +249,7 @@ export default function CoinGeckoLoader(
 
     /** Fetch one symbol's price ahead of time (e.g. as soon as it's picked in the add-asset dialog). */
     const prefetchCoinGeckoPrice = (symbol: string) => {
-        void fetchPrices(new Set([symbol.toUpperCase()]), false)
+        void fetchPrices(new Set([symbol.toUpperCase()]))
     };
 
     /** a CoinGecko price for `symbol` may still arrive (see `answered` above) */

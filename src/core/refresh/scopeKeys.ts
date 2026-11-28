@@ -31,3 +31,6 @@ export const metaMaskScope = (assetId: string) => `${METAMASK}/${assetId}`;
 
 /** An exchange's refresh scope: the same key as its source on the dashboard. */
 export const ccxtScope = (exchange: string) => `ccxt:${exchange}`;
+
+/** CoinGecko's keyless API rate-limits hard: after a failed request it is left alone this long. */
+export const COINGECKO_FAILURE_PAUSE_MS = 60_000;

@@ -7,7 +7,7 @@ import {AccountInfo, BINANCE_SECTION_LABELS, BinanceSection, binanceSectionOf} f
 import {okxAssetPart} from "../integrations/okx/okxApiClient";
 import {
     BINANCE, binanceLimits, binanceScope, METAMASK, metaMaskScope, MONOBANK, MONOBANK_MIN_GAP_MS,
-    OKX, OKX_SPOT, OKX_SUB, okxCoinScope,
+    OKX, OKX_SPOT, OKX_SUB, okxCoinScope, COINGECKO_FAILURE_PAUSE_MS,
 } from "./scopeKeys";
 import {isUnder} from "./refreshState";
 
@@ -30,6 +30,8 @@ export function assetRefreshScope(asset: AssetDTO, binanceUserData: AccountInfo 
 export function refreshMinGap(key: string): number {
     if (isUnder(key, MONOBANK) || key === 'prices/monobank') return MONOBANK_MIN_GAP_MS;
     if (isUnder(key, BINANCE)) return binanceLimits.minGapMs(key);
+    // CoinGecko pauses a minute after a failed request (its keyless API rate-limits hard)
+    if (key === 'prices/coingecko') return COINGECKO_FAILURE_PAUSE_MS;
     return 0;
 }
 
