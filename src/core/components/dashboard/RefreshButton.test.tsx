@@ -23,23 +23,29 @@ describe('RefreshButton', () => {
     expect(screen.getByRole('button').className).toContain('is-error');
   });
 
-  it('is disabled while a rate limit holds, and comes back by itself when it is over', () => {
+  it('while a rate limit holds: a click loads nothing but says how long is left; it comes back by itself', () => {
     vi.useFakeTimers();
     try {
-      const until = Date.now() + 2_000;
+      const until = Date.now() + 4_000;
       const onClick = vi.fn();
       render(<RefreshButton className="act refresh" label="Refresh Monobank" onClick={onClick}
                             view={(now) => ({ spinning: false, tone: 'idle', blockedUntil: until, title: `available in ${Math.ceil((until - now) / 1000)} s` })} />);
       const button = screen.getByRole('button', { name: 'Refresh Monobank' }) as HTMLButtonElement;
-      expect(button.disabled).toBe(true);
-      expect(button.title).toBe('available in 2 s');
-      expect(button.textContent).toBe('2');              // the seconds show in place of the icon
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      expect(button.title).toBe('available in 4 s');
+      expect(button.className).toContain('is-waiting');
+      expect(button.className).not.toContain('show-wait');   // the seconds show on hover only…
+
+      fireEvent.click(button);
+      expect(onClick).not.toHaveBeenCalled();
+      expect(button.className).toContain('show-wait');       // …or for a moment after a click
+      expect(screen.getByRole('status').textContent).toBe('in 4s');
       act(() => { vi.advanceTimersByTime(1_000); });
-      expect(button.title).toBe('available in 1 s');
-      expect(button.textContent).toBe('1');
-      act(() => { vi.advanceTimersByTime(1_000); });
-      expect(button.disabled).toBe(false);
-      expect(button.querySelector('svg')).not.toBeNull();
+      expect(screen.getByRole('status').textContent).toBe('in 3s');
+
+      act(() => { vi.advanceTimersByTime(3_000); });
+      expect(button.getAttribute('aria-disabled')).toBeNull();
+      expect(button.className).not.toContain('is-waiting');
       fireEvent.click(button);
       expect(onClick).toHaveBeenCalledTimes(1);
     } finally {

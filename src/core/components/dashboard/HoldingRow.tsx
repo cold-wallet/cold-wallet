@@ -25,10 +25,9 @@ interface HoldingRowProps {
 export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete, refresh }: HoldingRowProps) {
   const a = h.asset;
   const amt = amountDisplay(a.amount, h.scale, h.unitUsd);
-  // a holding being refreshed, failing or waiting out a rate limit keeps its buttons visible
-  const now = Date.now();
-  const view = refresh?.view(now);
-  const busy = !!view && (view.spinning || view.tone !== 'idle' || view.blockedUntil > now);
+  // a holding being refreshed (or failing) keeps its buttons visible, not only on hover
+  const view = refresh?.view(Date.now());
+  const busy = !!view && (view.spinning || view.tone !== 'idle');
   return (
     <div
       className={'row' + (active ? ' is-active' : '') + (busy ? ' row--busy' : '')}
