@@ -56,8 +56,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && node --max-old-space-size=8192 ./node_modules/.bin/vite build",
+    "typecheck": "tsc",
     "preview": "vite preview",
     "test": "vitest",
+    "test:ci": "vitest run",
     "test:ui": "vitest --ui",
     "lint": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,scss,css,json}\"",
