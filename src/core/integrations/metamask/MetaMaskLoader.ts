@@ -398,6 +398,11 @@ export default function MetaMaskLoader(
             });
             if (!asked.length) return;
             const results = await fetchAllBalances(asked.map(a => a.request));
+            // the wallet was locked or replaced meanwhile: its balances must not land
+            if (!settle.live()) {
+                asked.forEach(a => settle.skip(a.key));
+                return;
+            }
             const changed = results.some(r => r);
             if (changed) {
                 setMetaMaskUserData(prev => {

@@ -30,7 +30,7 @@ describe('useScopedRunner', () => {
     expect(work).toHaveBeenCalledTimes(0); // queued behind nothing, but asynchronous
     await act(async () => { gate.resolve(); await first; await second; });
     expect(work).toHaveBeenCalledTimes(1);
-    expect(activeUnder(result.current.tracker.status, 'monobank')).toBe(false);
+    expect(activeUnder(result.current.tracker.current(), 'monobank')).toBe(false);
   });
 
   it('a coin of an account already loading joins the account request', async () => {
@@ -67,7 +67,7 @@ describe('useScopedRunner', () => {
     await act(async () => {
       await result.current.run(['ccxt:kraken', 'ccxt:bybit'], false, async (_keys, settle) => { settle.ok('ccxt:kraken'); });
     });
-    const status = result.current.tracker.status;
+    const status = result.current.tracker.current();
     expect(stateOf(status, 'ccxt:kraken').error).toBeNull();
     expect(stateOf(status, 'ccxt:bybit').error?.kind).toBe('retry');
   });
@@ -79,7 +79,7 @@ describe('useScopedRunner', () => {
     act(() => { done = result.current.run(['binance/spot'], false, async (keys, settle) => { await gate.promise; settle.fail('binance/spot', 'x', 'retry'); }); });
     act(() => result.current.tracker.reset());
     await act(async () => { gate.resolve(); await done; });
-    expect(result.current.tracker.status).toEqual({});
+    expect(result.current.tracker.current()).toEqual({});
   });
 
   it('a lock keeps the state of market data: a price request on its way still lands', async () => {
@@ -91,10 +91,10 @@ describe('useScopedRunner', () => {
       void result.current.run(['monobank'], false, async () => { await gate.promise; });
     });
     act(() => result.current.tracker.reset());
-    expect(Object.keys(result.current.tracker.status)).toEqual(['prices/monobank']);
+    expect(Object.keys(result.current.tracker.current())).toEqual(['prices/monobank']);
     await act(async () => { gate.resolve(); await done; });
-    expect(stateOf(result.current.tracker.status, 'prices/monobank').error?.kind).toBe('retry');
-    expect(stateOf(result.current.tracker.status, 'monobank').running).toBe(0);
+    expect(stateOf(result.current.tracker.current(), 'prices/monobank').error?.kind).toBe('retry');
+    expect(stateOf(result.current.tracker.current(), 'monobank').running).toBe(0);
   });
 });
 
@@ -104,10 +104,10 @@ describe('answering from fresh data', () => {
     try {
       const { result } = setup(false);
       act(() => result.current.tracker.pulse(['okx/spot']));
-      expect(activeUnder(result.current.tracker.status, 'okx')).toBe(true);
+      expect(activeUnder(result.current.tracker.current(), 'okx')).toBe(true);
       act(() => { vi.advanceTimersByTime(FRESH_PULSE_MS); });
-      expect(activeUnder(result.current.tracker.status, 'okx')).toBe(false);
-      expect(stateOf(result.current.tracker.status, 'okx/spot').lastAttemptAt).toBe(0);
+      expect(activeUnder(result.current.tracker.current(), 'okx')).toBe(false);
+      expect(stateOf(result.current.tracker.current(), 'okx/spot').lastAttemptAt).toBe(0);
     } finally {
       vi.useRealTimers();
     }

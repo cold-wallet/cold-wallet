@@ -52,6 +52,7 @@ describe('names and limits', () => {
     expect(scopeLabel('okx/sub')).toBe('Sub-account');
     expect(scopeLabel('okx/spot/BTC')).toBe('BTC');
     expect(scopeLabel('metamask/metamask USDC base 0xabc')).toBe('USDC on base');
+    expect(scopeLabel('metamask/metamask USDC BNB Smart Chain 0xabc')).toBe('USDC on BNB Smart Chain');
     expect(sourceLabelOf('ccxt:kraken')).toBe('Kraken');
     expect(sourceLabelOf('prices/okx')).toBe('Prices');
   });

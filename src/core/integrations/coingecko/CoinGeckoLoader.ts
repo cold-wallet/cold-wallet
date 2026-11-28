@@ -136,6 +136,9 @@ export default function CoinGeckoLoader(
     // One request for the held coins at a time: another one asked for meanwhile follows it.
     const inFlight = useRef(false);
     const followUp = useRef(false);
+    const followUpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // no follow-up after the dashboard is gone
+    useEffect(() => () => { if (followUpTimer.current) clearTimeout(followUpTimer.current); }, []);
 
     // One request: prices for `symbols`, optionally advancing the background sweep cursor.
     // `track`: it carries the held coins' prices, so the refresh buttons show it (a single coin
@@ -215,7 +218,11 @@ export default function CoinGeckoLoader(
                 inFlight.current = false;
                 if (followUp.current) {
                     followUp.current = false;
-                    setTimeout(() => void fetchRef.current(neededRef.current, {track: true, queue: true}), FOLLOW_UP_GAP_MS);
+                    if (followUpTimer.current) clearTimeout(followUpTimer.current);
+                    followUpTimer.current = setTimeout(() => {
+                        followUpTimer.current = null;
+                        void fetchRef.current(neededRef.current, {track: true, queue: true});
+                    }, FOLLOW_UP_GAP_MS);
                 }
             })
     };

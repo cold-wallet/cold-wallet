@@ -16,6 +16,7 @@ import HoldingRow from "../dashboard/HoldingRow";
 import PendingValue from "../dashboard/PendingValue";
 import RefreshButton from "../dashboard/RefreshButton";
 import { assetView, headerView, sourceView } from "../../refresh/describe";
+import type { RefreshStatus } from "../../refresh/refreshState";
 import { NumericFormat } from "react-number-format";
 import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../../ui/format";
 import { assetSym, shortenAddresses } from "../../ui/visual";
@@ -76,7 +77,8 @@ export default function AssetsDashboard({ props }: { props: Props }) {
         const scope = props.refresh.assetScope(asset);
         if (!scope) return undefined;
         return {
-            view: (now: number) => assetView(props.refresh.status, scope, now),
+            store: props.refresh.store,
+            view: (status: RefreshStatus, now: number) => assetView(status, scope, now),
             onClick: () => props.refresh.refreshAsset(asset),
         };
     }
@@ -147,7 +149,8 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                         <RefreshButton
                             className="iconbtn refresh"
                             label="Refresh all"
-                            view={(now) => headerView(props.refresh.status, now)}
+                            store={props.refresh.store}
+                            view={headerView}
                             onClick={props.refresh.refreshAll}
                         />
                         {!props.isDemoMode && props.userDataHolder.pinCodeEncrypted && (
@@ -217,7 +220,8 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                     <RefreshButton
                                         className="act act--sm refresh group__refresh"
                                         label={'Refresh ' + g.label}
-                                        view={(now) => sourceView(props.refresh.status, g.k, now)}
+                                        store={props.refresh.store}
+                                        view={(status, now) => sourceView(status, g.k, now)}
                                         onClick={() => props.refresh.refreshSource(g.k)}
                                     />
                                 )}

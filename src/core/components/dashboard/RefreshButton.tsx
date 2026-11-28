@@ -6,6 +6,8 @@
 // question: on hover, and for a few seconds after a click or tap (touch screens have no hover).
 import React, { useEffect, useState } from 'react';
 import type { ButtonView } from '../../refresh/describe';
+import type { RefreshStatus } from '../../refresh/refreshState';
+import { RefreshStore, useRefreshStatus } from '../../refresh/useRefreshTracker';
 
 /** one turn of the icon (the CSS animation duration) */
 const SPIN_TURN_MS = 800;
@@ -13,16 +15,19 @@ const SPIN_TURN_MS = 800;
 const WAIT_NOTICE_MS = 3_000;
 
 interface RefreshButtonProps {
-  /** the view at a given moment (called again every second while a countdown runs) */
-  view: (now: number) => ButtonView;
+  /** the refresh status it shows (read here, so a change re-renders only the button) */
+  store: RefreshStore;
+  /** the view of that status at a given moment (called again every second while a countdown runs) */
+  view: (status: RefreshStatus, now: number) => ButtonView;
   onClick: () => void;
   className: string;
   label: string;
 }
 
-export default function RefreshButton({ view, onClick, className, label }: RefreshButtonProps) {
+export default function RefreshButton({ store, view, onClick, className, label }: RefreshButtonProps) {
+  const status = useRefreshStatus(store);
   const now = Date.now();
-  const v = view(now);
+  const v = view(status, now);
   const blocked = v.blockedUntil > now;
   const counting = blocked || v.tone === 'warn';
 

@@ -85,7 +85,8 @@ const okxApiClient = {
         }
         return accountInfo
     },
-    /** The trading account's non-zero balances; only `ccy`'s when given (an empty list: none left). */
+    /** The trading account's non-zero balances; only `ccy`'s when given (an empty list: none left).
+     *  Throws when OKX answers without the account itself (see accountDetails). */
     async fetchSpotBalances(
         credentials: OkxCredentials,
         okxCurrencies: { [index: string]: OkxCurrencyResponse } | null,
@@ -93,7 +94,7 @@ const okxApiClient = {
     ): Promise<AssetDTO[]> {
         const client = new RestClient(credentials);
         const balances: AccountBalance[] = await client.getBalance(ccy ? {ccy} : undefined);
-        return (balances[0]?.details || [])
+        return accountDetails(balances, 'trading account')
             .filter(balance => Number(balance.eq))
             .filter(balance => !ccy || balance.ccy === ccy)
             .map(asset => extractOkxAsset("spot", asset, okxCurrencies))
@@ -107,10 +108,20 @@ const okxApiClient = {
         const subAccountBalances: SubAccountBalances[] = await client.getSubAccountBalances({
             subAcct: subAccountName
         });
-        return (subAccountBalances[0]?.details || [])
+        return accountDetails(subAccountBalances, 'sub-account')
             .filter(balance => Number(balance.eq))
             .map(asset => extractOkxAsset("sub", asset, okxCurrencies))
     },
+}
+
+/** The coin balances of an OKX balance answer. OKX always answers with the account (`data: [{…,
+ *  details}]`): `details: []` means it holds nothing, so those balances really are gone. An answer
+ *  without the account (`data: []`) is not one OKX gives for a working account — maintenance, a
+ *  faulty proxy — so it is an error: the balances shown stay, and the request is tried again. */
+export function accountDetails<T>(answer: { details?: T[] }[] | undefined, what: string): T[] {
+    const details = answer?.[0]?.details;
+    if (!Array.isArray(details)) throw new Error(`OKX answered without the ${what} balances`);
+    return details;
 }
 
 export interface OkxCredentials {

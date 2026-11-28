@@ -4,6 +4,12 @@
 import React from 'react';
 import RefreshButton from './RefreshButton';
 import type { ButtonView } from '../../refresh/describe';
+import type { RefreshStatus } from '../../refresh/refreshState';
+import { RefreshStore, useRefreshStatus } from '../../refresh/useRefreshTracker';
+
+/** for rows without a refresh button: a status that never changes */
+const NOTHING: RefreshStatus = {};
+const NO_REFRESH: RefreshStore = { current: () => NOTHING, subscribe: () => () => undefined };
 import { maskUSD, amountDisplay } from '../../ui/format';
 import AmountText from './AmountText';
 import PendingValue from './PendingValue';
@@ -19,14 +25,15 @@ interface HoldingRowProps {
   onEdit: () => void;
   onDelete: () => void;
   /** this holding's refresh button (none: its source loads everything at once) */
-  refresh?: { view: (now: number) => ButtonView; onClick: () => void };
+  refresh?: { store: RefreshStore; view: (status: RefreshStatus, now: number) => ButtonView; onClick: () => void };
 }
 
 export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDelete, refresh }: HoldingRowProps) {
   const a = h.asset;
   const amt = amountDisplay(a.amount, h.scale, h.unitUsd);
   // a holding being refreshed (or failing) keeps its buttons visible, not only on hover
-  const view = refresh?.view(Date.now());
+  const status = useRefreshStatus(refresh?.store ?? NO_REFRESH);
+  const view = refresh?.view(status, Date.now());
   const busy = !!view && (view.spinning || view.tone !== 'idle');
   return (
     <div
@@ -72,7 +79,7 @@ export default function HoldingRow({ h, hidden, active, onSelect, onEdit, onDele
         ) : (
           <>
             {refresh ? (
-              <RefreshButton className="act refresh" label={'Refresh ' + h.code} view={refresh.view} onClick={refresh.onClick} />
+              <RefreshButton className="act refresh" label={'Refresh ' + h.code} store={refresh.store} view={refresh.view} onClick={refresh.onClick} />
             ) : (
               /* spacer in the edit slot so the lock lines up with the delete button */
               <span className="act" aria-hidden="true" style={{ visibility: 'hidden' }} />

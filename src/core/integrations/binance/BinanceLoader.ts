@@ -113,6 +113,10 @@ const BinanceLoader = (
 
     const configured = binanceIntegrationEnabled && !!binanceIntegrationApiKey && !!binanceIntegrationApiSecret;
     const runner = useScopedRunner(tracker, true);
+    // What a queued load sends with: the keys as they are when it runs, not when it was queued
+    // (new keys saved meanwhile must not be followed by a request with the old ones).
+    const live = useRef({configured, allowed: loadingUserDataAllowed, key: binanceIntegrationApiKey, secret: binanceIntegrationApiSecret, binanceCurrencies});
+    live.current = {configured, allowed: loadingUserDataAllowed, key: binanceIntegrationApiKey, secret: binanceIntegrationApiSecret, binanceCurrencies};
 
     /** Load `sections` (one proxy call each, queued behind any load already running). */
     const loadSections = (sections: BinanceSection[], manual: boolean): Promise<void> => {
@@ -126,14 +130,20 @@ const BinanceLoader = (
         if (!configured || !binanceCurrencies || !loadingUserDataAllowed || !sections.length) {
             return Promise.resolve();
         }
-        const key = binanceIntegrationApiKey as string;
-        const secret = binanceIntegrationApiSecret as string;
         return runner(sections.map(binanceScope), manual, async (keys, settle) => {
+            const now = live.current;
+            if (!now.configured || !now.allowed || !now.binanceCurrencies) {
+                keys.forEach(settle.skip);
+                return;
+            }
             await binanceApiClient.getUserInfoAsync(
-                key, secret, binanceCurrencies, latest.current,
+                now.key as string, now.secret as string, now.binanceCurrencies, latest.current,
                 new Set(keys.map(sectionOfScope)),
                 (section, accountInfo, error) => {
-                    if (error) {
+                    // the wallet was locked or replaced meanwhile: its balances must not land
+                    if (!settle.live()) {
+                        settle.skip(binanceScope(section));
+                    } else if (error) {
                         settle.fail(binanceScope(section), message(error), binanceFailKind(section, error));
                     } else {
                         store(accountInfo);

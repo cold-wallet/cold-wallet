@@ -112,6 +112,17 @@ const OkxLoader = (
         && !!okxIntegrationPassPhrase;
     const runner = useScopedRunner(tracker, true);
     const parts = () => okxIntegrationSubAccountName ? [OKX_SPOT, OKX_SUB] : [OKX_SPOT];
+    // what a queued load sends with: the settings as they are when it runs, not when it was queued
+    const settingsNow = {
+        configured, allowed: loadingUserDataAllowed, okxCurrencies, sub: okxIntegrationSubAccountName,
+        credentials: {
+            apiKey: okxIntegrationApiKey as string,
+            apiSecret: okxIntegrationApiSecret as string,
+            apiPass: okxIntegrationPassPhrase as string,
+        },
+    };
+    const live = useRef(settingsNow);
+    live.current = settingsNow;
 
     /** Load these scopes (the trading account, the sub-account, single coins), one after another. */
     const loadScopes = (keys: string[], manual: boolean): Promise<void> => {
@@ -125,27 +136,24 @@ const OkxLoader = (
         if (!configured || !okxCurrencies || !loadingUserDataAllowed || !keys.length) {
             return Promise.resolve();
         }
-        const credentials = {
-            apiKey: okxIntegrationApiKey as string,
-            apiSecret: okxIntegrationApiSecret as string,
-            apiPass: okxIntegrationPassPhrase as string,
-        };
-        const sub = okxIntegrationSubAccountName;
         return runner(keys, manual, async (todo, settle) => {
+            const {configured: on, allowed, okxCurrencies, sub, credentials} = live.current;
+            if (!on || !allowed || !okxCurrencies) {
+                todo.forEach(settle.skip);
+                return;
+            }
             for (const key of todo) {
                 try {
-                    if (key === OKX_SPOT) {
-                        const balances = await okxApiClient.fetchSpotBalances(credentials, okxCurrencies);
-                        store({...(latest.current || new OkxAccount()), spotAccountBalances: balances});
-                    } else if (key === OKX_SUB) {
-                        if (!sub) { settle.skip(key); continue; }
-                        const balances = await okxApiClient.fetchSubAccountBalances(credentials, sub, okxCurrencies);
-                        store({...(latest.current || new OkxAccount()), subAccountBalances: balances});
-                    } else {
-                        const ccy = key.slice(OKX_SPOT.length + 1);
-                        const balances = await okxApiClient.fetchSpotBalances(credentials, okxCurrencies, ccy);
-                        store(withOkxSpotCurrency(latest.current, ccy, balances));
-                    }
+                    if (key === OKX_SUB && !sub) { settle.skip(key); continue; }
+                    const ccy = key === OKX_SPOT || key === OKX_SUB ? undefined : key.slice(OKX_SPOT.length + 1);
+                    const balances = key === OKX_SUB
+                        ? await okxApiClient.fetchSubAccountBalances(credentials, sub as string, okxCurrencies)
+                        : await okxApiClient.fetchSpotBalances(credentials, okxCurrencies, ccy);
+                    // the wallet was locked or replaced meanwhile: its balances must not land
+                    if (!settle.live()) { settle.skip(key); continue; }
+                    if (key === OKX_SPOT) store({...(latest.current || new OkxAccount()), spotAccountBalances: balances});
+                    else if (key === OKX_SUB) store({...(latest.current || new OkxAccount()), subAccountBalances: balances});
+                    else store(withOkxSpotCurrency(latest.current, ccy as string, balances));
                     settle.ok(key);
                 } catch (e) {
                     console.warn(`failed to load ${key} from OKX`, e);

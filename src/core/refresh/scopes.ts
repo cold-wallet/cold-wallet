@@ -69,8 +69,10 @@ export function scopeLabel(key: string): string {
     if (key === OKX_SUB) return 'Sub-account';
     if (key.startsWith(OKX_SPOT + '/')) return key.slice(OKX_SPOT.length + 1);
     if (key.startsWith(METAMASK + '/')) {
-        // "metamask <SYMBOL> <chain> <address>"
-        const [, symbol, chain] = key.slice(METAMASK.length + 1).split(' ');
+        // "metamask <SYMBOL> <chain> <address>": chain names can have spaces ("BNB Smart Chain")
+        const words = key.slice(METAMASK.length + 1).split(' ');
+        const symbol = words[1];
+        const chain = words.slice(2, -1).join(' ');
         return symbol && chain ? `${symbol} on ${chain}` : sourceLabelOf(key);
     }
     return sourceLabelOf(key);

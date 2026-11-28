@@ -102,12 +102,12 @@ describe('CoinGecko: requests stay within its rate limit', () => {
     });
     await flush(800);
     expect(api.fetchPrices).toHaveBeenCalledTimes(1);
-    expect(activeUnder(result.current.tracker.status, 'prices/coingecko')).toBe(true);
+    expect(activeUnder(result.current.tracker.current(), 'prices/coingecko')).toBe(true);
 
     await flush(45_000);                                 // the 30 s tick falls in the pause
     expect(api.fetchPrices).toHaveBeenCalledTimes(1);
     await flush(18_000);                                 // pause over → retried within a couple of seconds
     expect(api.fetchPrices).toHaveBeenCalledTimes(2);
-    expect(activeUnder(result.current.tracker.status, 'prices/coingecko')).toBe(false);
+    expect(activeUnder(result.current.tracker.current(), 'prices/coingecko')).toBe(false);
   });
 });

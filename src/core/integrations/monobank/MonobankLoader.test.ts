@@ -47,12 +47,12 @@ describe('Monobank refresh: one request a minute', () => {
     expect(api.getUserInfo).toHaveBeenCalledTimes(2);
 
     now += 30_000;
-    expect(sourceView(result.current.tracker.status, 'monobank', now).blockedUntil).toBe(now + 30_000);
+    expect(sourceView(result.current.tracker.current(), 'monobank', now).blockedUntil).toBe(now + 30_000);
     await act(async () => { await result.current.refreshMonobank(); });
     expect(api.getUserInfo).toHaveBeenCalledTimes(2);
 
     now += 30_000;
-    expect(sourceView(result.current.tracker.status, 'monobank', now).blockedUntil).toBe(0);
+    expect(sourceView(result.current.tracker.current(), 'monobank', now).blockedUntil).toBe(0);
     await act(async () => { await result.current.refreshMonobank(); });
     expect(api.getUserInfo).toHaveBeenCalledTimes(3);
   });
@@ -61,14 +61,14 @@ describe('Monobank refresh: one request a minute', () => {
     api.getUserInfo.mockResolvedValueOnce(ApiResponse.fail(403, 'Unknown token'));
     const { result } = render();
     await act(async () => { await Promise.resolve(); });
-    expect(stateOf(result.current.tracker.status, 'monobank').error?.kind).toBe('fatal');
-    expect(activeUnder(result.current.tracker.status, 'monobank')).toBe(false);
+    expect(stateOf(result.current.tracker.current(), 'monobank').error?.kind).toBe('fatal');
+    expect(activeUnder(result.current.tracker.current(), 'monobank')).toBe(false);
 
     api.getUserInfo.mockResolvedValueOnce(ApiResponse.fail(429, 'Too many requests'));
     now += 61_000;
     await act(async () => { await result.current.refreshMonobank(); });
-    expect(stateOf(result.current.tracker.status, 'monobank').error?.kind).toBe('retry');
-    expect(activeUnder(result.current.tracker.status, 'monobank')).toBe(true);
+    expect(stateOf(result.current.tracker.current(), 'monobank').error?.kind).toBe('retry');
+    expect(activeUnder(result.current.tracker.current(), 'monobank')).toBe(true);
   });
 
   it('nothing loads for a switched-off integration', async () => {
@@ -76,7 +76,7 @@ describe('Monobank refresh: one request a minute', () => {
     await act(async () => { await result.current.refreshMonobank(); });
     expect(api.getUserInfo).not.toHaveBeenCalled();
     // (the public exchange rates still load: they need no account)
-    expect(Object.keys(result.current.tracker.status)).toEqual(['prices/monobank']);
+    expect(Object.keys(result.current.tracker.current())).toEqual(['prices/monobank']);
   });
 
   it('demo mode: the button spins briefly, nothing is requested', async () => {
@@ -86,9 +86,9 @@ describe('Monobank refresh: one request a minute', () => {
       let done: Promise<void> = Promise.resolve();
       act(() => { done = result.current.refreshMonobank(); });
       await act(async () => { await Promise.resolve(); });
-      expect(activeUnder(result.current.tracker.status, 'monobank')).toBe(true);
+      expect(activeUnder(result.current.tracker.current(), 'monobank')).toBe(true);
       await act(async () => { vi.advanceTimersByTime(1_000); await done; });
-      expect(activeUnder(result.current.tracker.status, 'monobank')).toBe(false);
+      expect(activeUnder(result.current.tracker.current(), 'monobank')).toBe(false);
       expect(api.getUserInfo).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();

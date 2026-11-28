@@ -2,13 +2,17 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import RefreshButton from './RefreshButton';
 import type { ButtonView } from '../../refresh/describe';
+import type { RefreshStore } from '../../refresh/useRefreshTracker';
+
+const NOTHING = {};
+const store: RefreshStore = { current: () => NOTHING, subscribe: () => () => undefined };
 
 const view = (v: Partial<ButtonView>) => () => ({ spinning: false, tone: 'idle', blockedUntil: 0, title: 'Refresh', ...v } as ButtonView);
 
 describe('RefreshButton', () => {
   it('spins and reports busy while its part loads; a click still works (it joins the request)', () => {
     const onClick = vi.fn();
-    render(<RefreshButton className="act refresh" label="Refresh BTC" view={view({ spinning: true })} onClick={onClick} />);
+    render(<RefreshButton store={store} className="act refresh" label="Refresh BTC" view={view({ spinning: true })} onClick={onClick} />);
     const button = screen.getByRole('button', { name: 'Refresh BTC' });
     expect(button.className).toContain('spinning');
     expect(button.getAttribute('aria-busy')).toBe('true');
@@ -17,9 +21,9 @@ describe('RefreshButton', () => {
   });
 
   it('shows a part being retried in amber, one that will not load in red', () => {
-    const { rerender } = render(<RefreshButton className="act refresh" label="r" view={view({ spinning: true, tone: 'warn' })} onClick={() => undefined} />);
+    const { rerender } = render(<RefreshButton store={store} className="act refresh" label="r" view={view({ spinning: true, tone: 'warn' })} onClick={() => undefined} />);
     expect(screen.getByRole('button').className).toContain('is-warn');
-    rerender(<RefreshButton className="act refresh" label="r" view={view({ tone: 'error' })} onClick={() => undefined} />);
+    rerender(<RefreshButton store={store} className="act refresh" label="r" view={view({ tone: 'error' })} onClick={() => undefined} />);
     expect(screen.getByRole('button').className).toContain('is-error');
   });
 
@@ -28,8 +32,8 @@ describe('RefreshButton', () => {
     try {
       const until = Date.now() + 4_000;
       const onClick = vi.fn();
-      render(<RefreshButton className="act refresh" label="Refresh Monobank" onClick={onClick}
-                            view={(now) => ({ spinning: false, tone: 'idle', blockedUntil: until, title: `available in ${Math.ceil((until - now) / 1000)} s` })} />);
+      render(<RefreshButton store={store} className="act refresh" label="Refresh Monobank" onClick={onClick}
+                            view={(_status, now) => ({ spinning: false, tone: 'idle', blockedUntil: until, title: `available in ${Math.ceil((until - now) / 1000)} s` })} />);
       const button = screen.getByRole('button', { name: 'Refresh Monobank' }) as HTMLButtonElement;
       expect(button.getAttribute('aria-disabled')).toBe('true');
       expect(button.title).toBe('available in 4 s');

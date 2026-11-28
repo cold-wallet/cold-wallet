@@ -19,11 +19,12 @@ import PriceService from "../services/PriceService";
 import {MetaMaskWallet} from "../integrations/metamask/MetaMaskWallet";
 import type {MetaMaskScanProgress} from "../integrations/metamask/MetaMaskLoader";
 import type {CatalogueProgress} from "../integrations/coingecko/CoinGeckoLoader";
-import type {RefreshStatus} from "../refresh/refreshState";
+import type {RefreshStore} from "../refresh/useRefreshTracker";
 
 /** Manual refresh of the dashboard's data, and what is loading right now. */
 export interface RefreshControls {
-    status: RefreshStatus;
+    /** what is loading or failed (the buttons subscribe to it) */
+    store: RefreshStore;
     /** prices and every connected source */
     refreshAll: () => void;
     /** one source, by its dashboard key ("binance", "okx", "monobank", "metamask", "ccxt:<exchange>") */

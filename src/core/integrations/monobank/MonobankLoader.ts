@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import useInterval from "../../../core/utils/useInterval";
 import monobankApiClient from "../../../core/integrations/monobank/monobankApiClient";
 import ApiResponse from "../../../core/domain/ApiResponse";
@@ -82,6 +82,8 @@ const MonobankLoader = (
 
     const configured = monobankIntegrationEnabled && !!monobankIntegrationToken;
     const runner = useScopedRunner(tracker, true);
+    const live = useRef({configured, allowed: loadingUserDataAllowed, token: monobankIntegrationToken});
+    live.current = {configured, allowed: loadingUserDataAllowed, token: monobankIntegrationToken};
     const demoData = () => new MonobankUserData(
         "clientId",
         "name",
@@ -102,10 +104,18 @@ const MonobankLoader = (
         if (!configured || !loadingUserDataAllowed) {
             return Promise.resolve();
         }
-        const token = monobankIntegrationToken as string;
         return runner([MONOBANK], manual, async (_, settle) => {
-            const response: ApiResponse<MonobankUserData | any> = await monobankApiClient.getUserInfo(token);
-            if (response.success && response.result) {
+            // the token as it is when the request goes, not when it was queued
+            const now = live.current;
+            if (!now.configured || !now.allowed) {
+                settle.skip(MONOBANK);
+                return;
+            }
+            const response: ApiResponse<MonobankUserData | any> = await monobankApiClient.getUserInfo(now.token as string);
+            if (!settle.live()) {
+                // the wallet was locked or replaced meanwhile: its accounts must not land
+                settle.skip(MONOBANK);
+            } else if (response.success && response.result) {
                 setMonobankUserData(response.result);
                 settle.ok(MONOBANK);
             } else {

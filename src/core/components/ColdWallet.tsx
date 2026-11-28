@@ -457,7 +457,7 @@ export default function ColdWallet(
         }
     }
     const refresh = {
-        status: refreshTracker.status,
+        store: refreshTracker,
         refreshAll,
         refreshSource,
         assetScope: (asset: AssetDTO) => assetRefreshScope(asset, binanceUserData, metaMaskRefreshable),
