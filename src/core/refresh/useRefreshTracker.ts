@@ -14,6 +14,10 @@ import {
     succeed as succeedRun,
 } from "./refreshState";
 
+/** Market data (prices, rates, market lists) isn't any wallet's: a lock or another wallet keeps
+ *  its status, and its requests on their way still count. */
+export const isMarketScope = (key: string) => key.startsWith('prices/');
+
 /** How long a refresh answered from fresh data spins, so the click visibly did something. */
 export const FRESH_PULSE_MS = 500;
 
@@ -31,7 +35,7 @@ export interface RefreshTracker {
     pulse: (keys: string[]) => void;
     /** forget scopes (an integration switched off) */
     forget: (drop: (key: string) => boolean) => void;
-    /** forget everything (the wallet locked or another one opened) */
+    /** forget the wallet's sources (it locked, or another one opened); market data stays */
     reset: () => void;
 }
 
@@ -47,18 +51,20 @@ export default function useRefreshTracker(): RefreshTracker {
     }, []);
 
     const current = useCallback(() => ref.current, []);
+    // an outcome counts unless it belongs to a wallet closed since the request started
+    const counts = (t: number, key: string) => t === ticket.current || isMarketScope(key);
     const begin = useCallback((keys: string[], manual: boolean) => {
         if (keys.length) apply(beginRun(ref.current, keys, Date.now(), manual));
         return ticket.current;
     }, [apply]);
     const succeed = useCallback((t: number, key: string) => {
-        if (t === ticket.current) apply(succeedRun(ref.current, key, Date.now()));
+        if (counts(t, key)) apply(succeedRun(ref.current, key, Date.now()));
     }, [apply]);
     const fail = useCallback((t: number, key: string, message: string, kind: FailKind) => {
-        if (t === ticket.current) apply(failRun(ref.current, key, Date.now(), message, kind));
+        if (counts(t, key)) apply(failRun(ref.current, key, Date.now(), message, kind));
     }, [apply]);
     const settle = useCallback((t: number, key: string) => {
-        if (t === ticket.current) apply(settleRun(ref.current, key));
+        if (counts(t, key)) apply(settleRun(ref.current, key));
     }, [apply]);
     const pulse = useCallback((keys: string[]) => {
         if (!keys.length) return;
@@ -69,7 +75,7 @@ export default function useRefreshTracker(): RefreshTracker {
     const forget = useCallback((drop: (key: string) => boolean) => apply(forgetScopes(ref.current, drop)), [apply]);
     const reset = useCallback(() => {
         ticket.current++;
-        apply({});
+        apply(forgetScopes(ref.current, (key) => !isMarketScope(key)));
     }, [apply]);
 
     return useMemo(() => ({status, current, begin, succeed, fail, settle, pulse, forget, reset}),

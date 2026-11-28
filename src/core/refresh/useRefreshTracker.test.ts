@@ -81,6 +81,21 @@ describe('useScopedRunner', () => {
     await act(async () => { gate.resolve(); await done; });
     expect(result.current.tracker.status).toEqual({});
   });
+
+  it('a lock keeps the state of market data: a price request on its way still lands', async () => {
+    const { result } = setup(false);
+    const gate = deferred();
+    let done: Promise<void> = Promise.resolve();
+    act(() => {
+      done = result.current.run(['prices/monobank'], false, async (keys, settle) => { await gate.promise; settle.fail('prices/monobank', '429', 'retry'); });
+      void result.current.run(['monobank'], false, async () => { await gate.promise; });
+    });
+    act(() => result.current.tracker.reset());
+    expect(Object.keys(result.current.tracker.status)).toEqual(['prices/monobank']);
+    await act(async () => { gate.resolve(); await done; });
+    expect(stateOf(result.current.tracker.status, 'prices/monobank').error?.kind).toBe('retry');
+    expect(stateOf(result.current.tracker.status, 'monobank').running).toBe(0);
+  });
 });
 
 describe('answering from fresh data', () => {
