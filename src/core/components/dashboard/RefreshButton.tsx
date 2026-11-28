@@ -2,7 +2,8 @@
 // it covers is loading (automatic polls included) or waiting for a retry, finishing its current
 // turn instead of stopping mid-rotation. Amber: a part failed and is retried; red: a part won't load
 // until something changes (the tooltip says what). While a rate limit holds the next request it is
-// disabled, with a countdown in the tooltip, and comes back on its own when the wait is over.
+// disabled, showing the seconds left in place of the icon, and comes back on its own when the wait
+// is over.
 import React, { useEffect, useState } from 'react';
 import type { ButtonView } from '../../refresh/describe';
 
@@ -54,9 +55,14 @@ export default function RefreshButton({ view, onClick, className, label }: Refre
       disabled={blocked}
       onClick={(e) => { e.stopPropagation(); if (!blocked) onClick(); }}
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" onAnimationIteration={onIteration}>
-        <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
-      </svg>
+      {blocked ? (
+        /* the wait itself, readable without a tooltip (touch screens have none) */
+        <span className="refresh__count" aria-hidden="true">{Math.max(1, Math.ceil((v.blockedUntil - now) / 1000))}</span>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" onAnimationIteration={onIteration}>
+          <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+        </svg>
+      )}
     </button>
   );
 }

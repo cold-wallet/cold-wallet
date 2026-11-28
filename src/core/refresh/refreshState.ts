@@ -24,6 +24,8 @@ export interface ScopeError {
 export interface ScopeState {
     /** requests queued or in flight for this scope */
     running: number;
+    /** a run in flight was started by the user (a click, also one answered from fresh data) */
+    loud: boolean;
     /** when the last real request for it started (0: never) */
     lastAttemptAt: number;
     /** the last real request was started by the user */
@@ -39,7 +41,7 @@ export interface ScopeState {
 export type RefreshStatus = Readonly<Record<string, ScopeState>>;
 
 export const IDLE: ScopeState = Object.freeze({
-    running: 0, lastAttemptAt: 0, lastAttemptManual: false, lastSuccessAt: 0, failures: 0, error: null,
+    running: 0, loud: false, lastAttemptAt: 0, lastAttemptManual: false, lastSuccessAt: 0, failures: 0, error: null,
 });
 
 /** Data loaded this recently is fresh: a manual refresh answers at once without a request. */
@@ -61,20 +63,27 @@ export function begin(status: RefreshStatus, keys: string[], now: number, manual
     return keys.reduce((next, key) => update(next, key, (s) => ({
         ...s,
         running: s.running + 1,
+        loud: s.loud || manual,
         ...(attempt ? { lastAttemptAt: now, lastAttemptManual: manual } : {}),
     })), status);
 }
 
+/** one run fewer; nothing in flight → nothing the user started is either */
+const done = (s: ScopeState) => {
+    const running = Math.max(0, s.running - 1);
+    return {running, loud: running > 0 && s.loud};
+};
+
 export function succeed(status: RefreshStatus, key: string, now: number): RefreshStatus {
     return update(status, key, (s) => ({
-        ...s, running: Math.max(0, s.running - 1), lastSuccessAt: now, failures: 0, error: null,
+        ...s, ...done(s), lastSuccessAt: now, failures: 0, error: null,
     }));
 }
 
 export function fail(status: RefreshStatus, key: string, now: number, message: string, kind: FailKind): RefreshStatus {
     return update(status, key, (s) => ({
         ...s,
-        running: Math.max(0, s.running - 1),
+        ...done(s),
         failures: s.failures + 1,
         error: { message, at: now, kind },
     }));
@@ -82,7 +91,7 @@ export function fail(status: RefreshStatus, key: string, now: number, message: s
 
 /** A run ended without news for this scope (answered from fresh data, or dropped). */
 export function settle(status: RefreshStatus, key: string): RefreshStatus {
-    return update(status, key, (s) => ({ ...s, running: Math.max(0, s.running - 1) }));
+    return update(status, key, (s) => ({ ...s, ...done(s) }));
 }
 
 /** Forget the scopes matching `drop` (an integration switched off, an asset that went away). */

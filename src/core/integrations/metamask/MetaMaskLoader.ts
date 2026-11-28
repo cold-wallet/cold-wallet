@@ -513,9 +513,27 @@ export default function MetaMaskLoader(
         (wallet?.accounts?.length && metaMaskSettingsEnabled && loadingUserDataAllowed) ? REQUEST_DELAY_MS : null
     );
 
+    // Holdings that can be re-fetched on their own: the token's contract is still in the CoinGecko
+    // directory for that chain (or it's ETH on Ethereum). A balance found under an older directory
+    // (a token renamed since, or a bridged copy the directory no longer lists for that chain) can't.
+    const refreshableIds = useMemo(() => {
+        const ids = new Set<string>();
+        if (isDemoMode) {
+            (metaMaskAssets || []).forEach(a => ids.add(a.id));
+            return ids;
+        }
+        Object.values(metaMaskUserData).forEach(bySymbol =>
+            Object.values(bySymbol).forEach(byChain =>
+                Object.values(byChain).forEach(b => { if (requestForBalance(b)) ids.add(balanceAssetId(b)); })));
+        return ids;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isDemoMode, metaMaskAssets, metaMaskUserData, coinGeckoCurrencies]);
+    /** the holding can be refreshed on its own */
+    const metaMaskRefreshable = (assetId: string) => refreshableIds.has(assetId);
+
     /** Manual refresh of every holding already found (the token search keeps its own schedule). */
     const refreshMetaMaskKnown = (): Promise<void> => {
-        const ids = (metaMaskAssets || []).map(a => a.id);
+        const ids = (metaMaskAssets || []).map(a => a.id).filter(metaMaskRefreshable);
         const plan = planManual(tracker.current(), ids.map(metaMaskScope), Date.now());
         tracker.pulse(plan.fresh);
         return loadBalances(plan.fetch.map(assetIdOfScope), true);
@@ -550,6 +568,7 @@ export default function MetaMaskLoader(
         metaMaskAssets,
         refreshMetaMaskAsset,
         refreshMetaMaskKnown,
+        metaMaskRefreshable,
         metaMaskScan,
         metaMaskWallet: wallet,
         metaMaskIsError: error,

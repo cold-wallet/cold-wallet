@@ -10,7 +10,7 @@ import UserDataService from "../services/UserDataService";
 import useIdleLock, {AUTO_LOCK_AFTER} from "../utils/useIdleLock";
 import UserData from "../domain/UserData";
 import CoinGeckoLoader from "../integrations/coingecko/CoinGeckoLoader";
-import AssetDTO from "../domain/AssetDTO";
+import AssetDTO, {AssetType} from "../domain/AssetDTO";
 import OnStartupLoader from "./OnStartupLoader";
 import { anyHoldingExists, collectHoldings } from "./holdings";
 import { isPriced } from "../ui/portfolio";
@@ -216,6 +216,7 @@ export default function ColdWallet(
         metaMaskAssets,
         refreshMetaMaskAsset,
         refreshMetaMaskKnown,
+        metaMaskRefreshable,
         metaMaskScan,
         metaMaskWallet,
         metaMaskIsError,
@@ -417,6 +418,11 @@ export default function ColdWallet(
         pricesMissing,
         dashboardOpen: loggedIn && !shouldEnterPinCode && !pinSetupFirst,
     });
+    // "May be outdated" only when it is true of the sum on screen: crypto is priced from Binance
+    // first, fiat from Monobank's rates, so a source that never answered matters only for those.
+    const pricesStale = stale && allAssets.some((a) => a.type === AssetType.crypto
+        ? !binancePricesLoaded
+        : a.currency.toUpperCase() !== 'USD' && !monobankRatesFresh);
     /** a price for `currency` may still arrive: some source hasn't answered, or CoinGecko owes it */
     const pricePending = (currency: string) => syncing || coinGeckoPricePending(currency);
 
@@ -454,7 +460,7 @@ export default function ColdWallet(
         status: refreshTracker.status,
         refreshAll,
         refreshSource,
-        assetScope: (asset: AssetDTO) => assetRefreshScope(asset, binanceUserData),
+        assetScope: (asset: AssetDTO) => assetRefreshScope(asset, binanceUserData, metaMaskRefreshable),
         refreshAsset,
         metaMaskScan,
         coinGeckoCatalogue,
@@ -546,7 +552,7 @@ export default function ColdWallet(
         metaMaskHandleConnect,
 
         loadMonobankUserData, loadBinanceUserData, loadOkxUserData, loaded, syncing,
-        pricesStale: stale, pricePending, allAssets, refresh,
+        pricesStale, pricePending, allAssets, refresh,
 
         selectedPageNumber, setSelectedPageNumber,
         firstPageChartView, setFirstPageChartView,

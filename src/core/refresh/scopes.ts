@@ -12,7 +12,8 @@ import {
 import {isUnder} from "./refreshState";
 
 /** The scope a holding's own refresh button loads (null: its source has no per-holding refresh). */
-export function assetRefreshScope(asset: AssetDTO, binanceUserData: AccountInfo | null): string | null {
+export function assetRefreshScope(asset: AssetDTO, binanceUserData: AccountInfo | null,
+                                  metaMaskRefreshable: (assetId: string) => boolean = () => true): string | null {
     if (asset.isBinanceAsset) {
         const section = binanceSectionOf(binanceUserData, asset.id);
         return section ? binanceScope(section) : null;
@@ -22,7 +23,7 @@ export function assetRefreshScope(asset: AssetDTO, binanceUserData: AccountInfo 
         if (!part) return null;
         return part.part === 'spot' ? okxCoinScope(part.ccy) : OKX_SUB;
     }
-    if (asset.isMetaMaskAsset) return metaMaskScope(asset.id);
+    if (asset.isMetaMaskAsset) return metaMaskRefreshable(asset.id) ? metaMaskScope(asset.id) : null;
     return null;
 }
 

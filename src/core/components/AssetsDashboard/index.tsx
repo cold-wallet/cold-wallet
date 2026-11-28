@@ -15,7 +15,7 @@ import TreemapChart from "../dashboard/TreemapChart";
 import HoldingRow from "../dashboard/HoldingRow";
 import PendingValue from "../dashboard/PendingValue";
 import RefreshButton from "../dashboard/RefreshButton";
-import { assetView, sourceView } from "../../refresh/describe";
+import { assetView, headerView, sourceView } from "../../refresh/describe";
 import { NumericFormat } from "react-number-format";
 import { fmtUSD, splitCents, maskUSD, AMOUNT_MASK, amountDisplay } from "../../ui/format";
 import { assetSym, shortenAddresses } from "../../ui/visual";
@@ -147,7 +147,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                         <RefreshButton
                             className="iconbtn refresh"
                             label="Refresh all"
-                            view={(now) => sourceView(props.refresh.status, '', now)}
+                            view={(now) => headerView(props.refresh.status, now)}
                             onClick={props.refresh.refreshAll}
                         />
                         {!props.isDemoMode && props.userDataHolder.pinCodeEncrypted && (
@@ -178,7 +178,6 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                 ? <div className="total__val num">{loadingCount ? <PendingValue /> : '—'}</div>
                                 : <FitText className="total__val num" max={32} min={16}>{totalInt}<span className="cents">{totalCents}</span></FitText>}
                         </div>
-                        {props.syncing && <div className="total__delta num" title="Fetching live prices and exchange rates">syncing…</div>}
                         {props.pricesStale && (
                             <div className="total__delta total__delta--warn" title="A price source hasn't answered: some values may use prices saved earlier">
                                 may be outdated
@@ -213,14 +212,7 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                             <div className="group__head">
                                 <SourceMark className="group__chip" icon={g.icon} mark={g.mark} tint={g.tint} />
                                 <span className="group__name">{g.label}</span>
-                                <span className="group__sum num">
-                                    {g.unpriced === g.items.length
-                                        ? (g.pending ? <PendingValue /> : '—')
-                                        : maskUSD(g.sum, hidden, { cents: false })}
-                                    {g.unpriced > 0 && g.unpriced < g.items.length && (
-                                        <span className="group__more" title={`${holdings(g.unpriced)} not counted: ${g.pending ? 'price loading' : 'no price'}`}>+{g.unpriced}</span>
-                                    )}
-                                </span>
+                                {/* next to the name, so the sums stay aligned with the amounts below */}
                                 {g.k !== 'manual' && (
                                     <RefreshButton
                                         className="act act--sm refresh group__refresh"
@@ -229,6 +221,14 @@ export default function AssetsDashboard({ props }: { props: Props }) {
                                         onClick={() => props.refresh.refreshSource(g.k)}
                                     />
                                 )}
+                                <span className="group__sum num">
+                                    {g.unpriced === g.items.length
+                                        ? (g.pending ? <PendingValue /> : '—')
+                                        : maskUSD(g.sum, hidden, { cents: false })}
+                                    {g.unpriced > 0 && g.unpriced < g.items.length && (
+                                        <span className="group__more" title={`${holdings(g.unpriced)} not counted: ${g.pending ? 'price loading' : 'no price'}`}>+{g.unpriced}</span>
+                                    )}
+                                </span>
                             </div>
                             {g.k === 'metamask' && props.refresh.metaMaskScan && (
                                 <ScanLine label="Searching tokens" progress={props.refresh.metaMaskScan} />

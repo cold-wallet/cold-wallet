@@ -5,8 +5,8 @@ import {
     blockedUntil,
     errorsOver,
     errorsUnder,
+    isActive,
     isUnder,
-    lastSuccessUnder,
     RefreshStatus,
     retryAt,
     ScopeError,
@@ -56,24 +56,55 @@ function errorLines(status: RefreshStatus, errors: KeyedError[], now: number, la
 const toneOf = (errors: KeyedError[]): ButtonView['tone'] =>
     errors.some(e => e.kind === 'fatal') ? 'error' : errors.some(e => e.kind === 'retry') ? 'warn' : 'idle';
 
-/** The button of a whole source ("binance", "ccxt:kraken") — or of everything, for prefix ''. */
+/** Market data (prices, rates): shared by everyone, nothing the user can act on. */
+const isMarket = (key: string) => key.startsWith('prices/');
+
+/** "Updated just now", plus the part that lags when it is over a minute behind the rest
+ *  ("· Locked Simple Earn 4 min ago"), so a source refreshed a moment ago doesn't read as stale. */
+function updatedLine(status: RefreshStatus, keys: string[], now: number): string | null {
+    const loaded = keys.map(k => [k, stateOf(status, k).lastSuccessAt] as const).filter(([, at]) => at > 0);
+    if (!loaded.length) return null;
+    const newest = Math.max(...loaded.map(([, at]) => at));
+    const [oldestKey, oldest] = loaded.reduce((a, b) => (b[1] < a[1] ? b : a));
+    const lag = newest - oldest > 60_000 && keys.length > 1 ? ` · ${scopeLabel(oldestKey)} ${ago(oldest, now)}` : '';
+    return `Updated ${ago(newest, now)}${lag}`;
+}
+
+/** The header button: everything. It spins for the connected sources and for prices the user is
+ *  waiting for (the first load, a click), not for the quiet price polls every few seconds. Failed
+ *  prices don't colour it: the dashboard already says which holdings lack a price or may be
+ *  outdated, and there is nothing to do about them. */
+export function headerView(status: RefreshStatus, now: number): ButtonView {
+    const entries = Object.entries(status);
+    const spinning = entries.some(([k, s]) => isMarket(k)
+        ? s.running > 0 && (s.loud || s.lastSuccessAt === 0)
+        : isActive(s));
+    const errors = errorsUnder(status, '').filter(e => !isMarket(e.key) && e.kind !== 'unavailable');
+    const lines: string[] = [spinning && !errors.some(e => e.kind === 'retry') ? 'Updating…' : 'Refresh all'];
+    lines.push(...errorLines(status, errors, now, (k) => `${sourceLabelOf(k)} · ${scopeLabel(k)}`));
+    const newest = Math.max(0, ...entries.map(([, s]) => s.lastSuccessAt));
+    if (newest) lines.push(`Updated ${ago(newest, now)}`);
+    return {spinning, tone: toneOf(errors), blockedUntil: 0, title: lines.join('\n')};
+}
+
+/** The button of a whole source ("binance", "ccxt:kraken"). */
 export function sourceView(status: RefreshStatus, prefix: string, now: number): ButtonView {
+    if (prefix === '') return headerView(status, now);
     const keys = Object.keys(status).filter(k => isUnder(k, prefix));
     const spinning = activeUnder(status, prefix);
     const errors = errorsUnder(status, prefix);
-    const everything = prefix === '';
-    const name = everything ? 'everything' : sourceLabelOf(prefix);
+    const name = sourceLabelOf(prefix);
     // a source waits out its rate limit only when every part of it does (Monobank: its only part)
     const waits = keys.map(k => blockedUntil(stateOf(status, k), now, refreshMinGap(k)));
-    const blocked = !everything && keys.length > 0 && waits.every(w => w > 0) ? Math.min(...waits) : 0;
-    const last = lastSuccessUnder(status, prefix);
+    const blocked = keys.length > 0 && waits.every(w => w > 0) ? Math.min(...waits) : 0;
 
     const lines: string[] = [];
     if (blocked) lines.push(`${name} allows one update per minute · available in ${seconds(blocked - now)}`);
     else if (spinning && !errors.some(e => e.kind === 'retry')) lines.push(`Updating ${name}…`);
-    else lines.push(everything ? 'Refresh all' : `Refresh ${name}`);
-    lines.push(...errorLines(status, errors, now, everything ? (k) => `${sourceLabelOf(k)} · ${scopeLabel(k)}` : scopeLabel));
-    if (last) lines.push(`Updated ${ago(last, now)}`);
+    else lines.push(`Refresh ${name}`);
+    lines.push(...errorLines(status, errors, now, scopeLabel));
+    const updated = updatedLine(status, keys, now);
+    if (updated) lines.push(updated);
     return {spinning, tone: toneOf(errors), blockedUntil: blocked, title: lines.join('\n')};
 }
 

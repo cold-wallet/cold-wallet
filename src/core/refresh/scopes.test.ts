@@ -1,7 +1,7 @@
 import AssetDTO, { AssetType } from '../domain/AssetDTO';
 import { AccountInfo, SpotAccount } from '../integrations/binance/binanceApiClient';
 import { assetRefreshScope, refreshMinGap, scopeLabel, sourceLabelOf } from './scopes';
-import { assetView, sourceView } from './describe';
+import { assetView, headerView, sourceView } from './describe';
 import { begin, fail, succeed } from './refreshState';
 import { binanceFailKind } from '../integrations/binance/BinanceLoader';
 import { okxFailKind } from '../integrations/okx/OkxLoader';
@@ -39,6 +39,8 @@ describe('which part a holding refresh loads', () => {
 
   it('MetaMask: the token itself; Monobank and ccxt exchanges: none (they load everything at once)', () => {
     expect(assetRefreshScope(metamask('metamask USDC base 0xabc'), null)).toBe('metamask/metamask USDC base 0xabc');
+    // a token found under an older coin list (renamed since, or a bridged copy no longer listed)
+    expect(assetRefreshScope(metamask('metamask MATIC polygon 0xabc'), null, () => false)).toBeNull();
     expect(assetRefreshScope(monobank, null)).toBeNull();
     expect(assetRefreshScope(kraken, null)).toBeNull();
   });
@@ -123,15 +125,41 @@ describe('what the buttons show', () => {
     expect(assetView(s, 'binance/savingsFlexible', T + 5_000).blockedUntil).toBe(T + 60_000);
   });
 
-  it('the header spins while anything loads, amber when a part is retried, red when one will not load', () => {
-    let s = begin({}, ['prices/coingecko'], T, false);
-    expect(sourceView(s, '', T)).toMatchObject({ spinning: true, tone: 'idle' });
-    s = fail(s, 'prices/coingecko', T + 100, '429', 'retry');
-    expect(sourceView(s, '', T + 200)).toMatchObject({ spinning: true, tone: 'warn' });
-    expect(sourceView(s, '', T + 200).title).toMatch(/CoinGecko prices failed: 429 · retrying in 60 s/);
-    s = fail(begin(s, ['okx/spot'], T, false), 'okx/spot', T + 300, 'Invalid OK-ACCESS-KEY', 'fatal');
-    expect(sourceView(s, '', T + 400).tone).toBe('error');
-    expect(sourceView(s, '', T + 400).blockedUntil).toBe(0);
+  it('the header spins for the first price load and for clicks, not for the quiet price polls', () => {
+    let s = begin({}, ['prices/binance'], T, false);
+    expect(headerView(s, T).spinning).toBe(true);              // first load: nothing loaded yet
+    s = succeed(s, 'prices/binance', T + 300);
+    s = begin(s, ['prices/binance'], T + 15_000, false);
+    expect(headerView(s, T + 15_100).spinning).toBe(false);    // a poll every 15 s: quiet
+    s = begin(s, ['prices/binance'], T + 15_200, true);
+    expect(headerView(s, T + 15_300).spinning).toBe(true);     // a click: the user is waiting
+    s = succeed(succeed(s, 'prices/binance', T + 15_500), 'prices/binance', T + 15_600);
+    expect(headerView(s, T + 15_700).spinning).toBe(false);
+  });
+
+  it('failed prices leave the header alone; a connected source failing colours it', () => {
+    let s = fail(begin({}, ['prices/coingecko'], T, false), 'prices/coingecko', T + 100, '429', 'retry');
+    expect(headerView(s, T + 200)).toMatchObject({ spinning: false, tone: 'idle' });
+    expect(headerView(s, T + 200).title).not.toMatch(/CoinGecko/);
+
+    s = fail(begin(s, ['binance/funding'], T, false), 'binance/funding', T + 300, 'timeout', 'retry');
+    expect(headerView(s, T + 400)).toMatchObject({ spinning: true, tone: 'warn' });
+    expect(headerView(s, T + 400).title).toMatch(/Binance · Funding failed: timeout · retrying in 15 s/);
+
+    s = fail(begin(s, ['okx/spot'], T, false), 'okx/spot', T + 500, 'Invalid OK-ACCESS-KEY', 'fatal');
+    expect(headerView(s, T + 600).tone).toBe('error');
+
+    // a part not offered for the account is noted on its source, not in the header
+    s = fail(begin(s, ['binance/futuresCoinM'], T, false), 'binance/futuresCoinM', T + 700, 'No permission', 'unavailable');
+    expect(headerView(s, T + 800).title).not.toMatch(/Not available/);
+    expect(sourceView(s, 'binance', T + 800).title).toMatch(/Not available: COIN-M futures/);
+  });
+
+  it('"updated" says when the source last loaded, and which part lags behind', () => {
+    let s = succeed(begin({}, ['binance/spot', 'binance/savingsFixed'], T, false), 'binance/savingsFixed', T);
+    s = succeed(s, 'binance/spot', T + 4 * 60_000);
+    expect(sourceView(s, 'binance', T + 4 * 60_000 + 2_000).title)
+      .toMatch(/Updated just now · Locked Simple Earn 4 min ago/);
   });
 
   it('a holding spins while its section loads and says when it last loaded', () => {

@@ -345,7 +345,7 @@ body {
 .act svg { width: 14px; height: 14px; }
 @keyframes act-spin { to { transform: rotate(360deg); } }
 .act.refresh.spinning svg, .iconbtn.refresh.spinning svg { animation: act-spin 0.8s linear infinite; }
-.act.refresh:disabled, .iconbtn.refresh:disabled { cursor: default; opacity: .45; }
+.act.refresh:disabled, .iconbtn.refresh:disabled { cursor: default; opacity: .7; }
 .act.refresh:disabled:hover, .iconbtn.refresh:disabled:hover { color: var(--ink-2); border-color: var(--line-2); background: var(--card-hi); }
 /* amber: a part failed and is retried; red: a part won't load until something changes */
 .refresh.is-warn, .refresh.is-warn:hover { color: var(--warn); border-color: color-mix(in oklab, var(--warn) 45%, transparent); }
@@ -356,9 +356,13 @@ body {
 /* small refresh in a source group's header: on hover, and always while it works or failed */
 .act--sm { width: 24px; height: 24px; border-radius: 7px; }
 .act--sm svg { width: 12px; height: 12px; }
-.group__refresh { visibility: hidden; margin-left: 2px; }
-.group__head:hover .group__refresh, .group__refresh:focus-visible,
+/* next to the source name; its slot stays reserved, so nothing moves when it shows */
+.group__refresh { visibility: hidden; margin-left: -3px; }
+.group__head:hover .group__refresh, .group__refresh:focus-visible, .group__refresh:disabled,
 .group__refresh.spinning, .group__refresh.is-warn, .group__refresh.is-error { visibility: visible; }
+/* seconds until a rate-limited refresh is allowed again, in place of the icon */
+.refresh__count { font-family: var(--mono); font-size: 10px; font-weight: 600; line-height: 1; }
+.iconbtn .refresh__count { font-size: 12px; }
 @media (hover: none) { .group__refresh { visibility: visible; } }
 /* long background job with a known size (MetaMask token search) */
 .scanline { display: flex; align-items: center; gap: 8px; padding: 0 6px 9px; font-size: 11px; color: var(--ink-3); }

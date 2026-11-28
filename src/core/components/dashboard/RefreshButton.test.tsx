@@ -33,10 +33,13 @@ describe('RefreshButton', () => {
       const button = screen.getByRole('button', { name: 'Refresh Monobank' }) as HTMLButtonElement;
       expect(button.disabled).toBe(true);
       expect(button.title).toBe('available in 2 s');
+      expect(button.textContent).toBe('2');              // the seconds show in place of the icon
       act(() => { vi.advanceTimersByTime(1_000); });
       expect(button.title).toBe('available in 1 s');
+      expect(button.textContent).toBe('1');
       act(() => { vi.advanceTimersByTime(1_000); });
       expect(button.disabled).toBe(false);
+      expect(button.querySelector('svg')).not.toBeNull();
       fireEvent.click(button);
       expect(onClick).toHaveBeenCalledTimes(1);
     } finally {
